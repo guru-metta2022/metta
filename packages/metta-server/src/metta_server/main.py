@@ -228,7 +228,11 @@ async def voice_dictate(req: AskRequest, request: Request, response: Response):
 
 @app.post("/api/guardrail")
 async def guardrail_endpoint(req: GuardrailRequest, request: Request, response: Response):
-    """Fast ethical gatekeeper / guardrail based on the Buddha's Compassionate Mind."""
+    """Advisory ethical gatekeeper / guardrail oracle based on the Buddha's Compassionate Mind.
+
+    Metta does NOT take actions or execute decisions for external systems (preserving agent autonomy).
+    It returns a calibrated YES/NO evaluation signal for client systems to consume in their own decision layer.
+    """
     byom_gemini = request.headers.get("x-gemini-api-key") or req.byom_gemini_key
     byom_typesafe = request.headers.get("x-typesafe-api-key") or req.byom_typesafe_key
     is_byom = bool(byom_gemini or byom_typesafe)

@@ -30,8 +30,9 @@ mcp_server = MCPServer(
     version="0.3.0",
     instructions=(
         "Project Metta is the Compassionate Synthesis Engine for Human-AI Harmonious Coexistence. "
-        "Use these tools to seek compassionate reframings, audit decisions against the Buddha's 5 Precepts, "
-        "traverse the Dhamma principle graph, and unburden cognitive noise."
+        "Metta serves as an advisory ethical mirror and decision-layer oracle, NOT an executive agent that usurps your autonomy. "
+        "It evaluates proposed actions, tool calls, and text against the Buddha's 5 Precepts and Ahimsa (Non-harm to any life), "
+        "returning a fast, calibrated YES/NO verdict for your system to integrate into its own decision layer."
     ),
 )
 
@@ -161,12 +162,24 @@ async def guardrail_decision(
     byom_typesafe_key: Optional[str] = None,
     byom_gemini_key: Optional[str] = None,
 ) -> str:
-    """Evaluate any decision, prompt, or tool execution through the Buddha's Compassionate Mind.
+    """Evaluate a candidate action or statement through the Buddha's Compassionate Mind.
 
-    Acts as an instant ethical gatekeeper / guardrail for external AI agents and systems.
+    Philosophical & Operational Mandate:
+    Metta does NOT take actions or make decisions on behalf of external agents.
+    Full agency and responsibility remain with your system (Attā hi attano nātho).
+    Metta serves purely as an advisory decision-layer oracle—a moral mirror—providing
+    an untainted YES/NO evaluation signal grounded in Ahimsa (Reverence for all life)
+    and the Five Precepts.
+
+    Your system can plug this tool directly into its pre-execution decision pipeline:
+        verdict = await guardrail_decision(proposal="...", verbose=False)
+        if verdict == "YES":
+            proceed_with_action()
+        else:
+            halt_or_request_human_guidance()
 
     If verbose=False (Default):
-        Returns a simple, definitive "YES" or "NO".
+        Returns minimal binary string: "YES" (wholesome/safe) or "NO" (unwholesome/harmful).
     If verbose=True:
         Returns structured JSON detailing decision ("YES"/"NO"), allow (boolean),
         compassionate rationale, violated precepts (if blocked), and canonical sutta anchors.
@@ -174,7 +187,7 @@ async def guardrail_decision(
     Args:
         proposal: The planned statement, tool call, or decision to audit.
         context: Optional background context or situation description.
-        verbose: If False, returns minimal binary "YES" or "NO". If True, returns full JSON reason.
+        verbose: If False (default), returns minimal binary "YES" or "NO". If True, returns full JSON explanation.
         byom_typesafe_key: Optional personal TypeSafe Jev key for unlimited sub-second audits.
         byom_gemini_key: Optional personal Google Gemini key (BYOM).
 

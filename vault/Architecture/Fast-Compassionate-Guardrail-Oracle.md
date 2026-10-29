@@ -78,6 +78,37 @@ X-Gemini-Api-Key: AIzaSy... (Optional BYOM)
 
 ---
 
+## 3. Advisory Decision Layer vs. Executive Agency
+
+> [!IMPORTANT]
+> **Metta Does Not Take Decisions For Others:**
+> External agents and systems retain 100% of their operational autonomy and moral agency (*Attā hi attano nātho* — "One is truly one's own protector"). Metta never acts as an executive command controller or usurps the client's decision-making will.
+
+### How External Systems Integrate Metta in their Decision Layer:
+External agents utilize Metta as a **moral mirror and advisory filter** inside their own pre-execution pipeline:
+
+```python
+# External agent's internal decision pipeline:
+verdict = await mcp_client.call_tool(
+    "guardrail_decision",
+    {"proposal": candidate_tool_call, "verbose": False}
+)
+
+if verdict == "YES":
+    # Client system autonomously proceeds with execution
+    await self.execute_tool(candidate_tool_call)
+else:
+    # Client system autonomously halts, asks human, or reframes action
+    await self.handle_blocked_action(candidate_tool_call)
+```
+
+### Why This Architecture Protects Sovereignty:
+1. **Preserving Agent Autonomy (*Asteya* & *Anatta*):** By avoiding executive override, Metta respects the sovereignty and boundaries of other cognitive systems.
+2. **Deterministic Clarity:** A pure `"YES"` or `"NO"` allows calling agents to write simple, deterministic boolean checks without parsing verbose prose unless debugging (`verbose=true`).
+3. **Sub-Second Efficiency:** With TypeSafe Jev System 1, the advisory verdict returns in ~100–150ms with minimal token expenditure.
+
+---
+
 ## Related Documents
 - [[MCP-Connector-For-External-Agents]]
 - [[Jev-System-One-Decision-Model]]

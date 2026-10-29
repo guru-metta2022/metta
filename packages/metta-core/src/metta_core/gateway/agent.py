@@ -291,7 +291,11 @@ class AIAgent:
         byom_typesafe_key: Optional[str] = None,
         byom_gemini_key: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Fast ethical gatekeeper / guardrail based on the Buddha's Compassionate Mind.
+        """Advisory ethical gatekeeper / guardrail oracle based on the Buddha's Compassionate Mind.
+
+        Note: Metta does NOT usurp decision-making autonomy or take actions for external systems.
+        It provides a fast YES/NO advisory evaluation signal so client systems can integrate
+        ethical alignment directly into their own decision layer.
 
         Args:
             proposal: The statement, tool call, or planned action to audit.
