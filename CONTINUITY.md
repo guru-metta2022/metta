@@ -55,6 +55,7 @@
    - [`src/metta_core/decisions/jev.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/decisions/jev.py): Jev System 1 model (`TypeSafe-Danger-Zone-Images: true`).
    - [`src/metta_core/providers/antigravity.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/providers/antigravity.py): Native Gemini 3.8 Flash provider via local `agy` binary with effort normalization.
    - [`src/metta_core/storage/`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/storage/): `SQLiteMemoryStore` & `SupabaseMemoryStore` implementing `BaseMemoryStore`.
+   - [`src/metta_core/mcp/server.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/mcp/server.py): Model Context Protocol (MCP) server for external AI agents with dual Stdio (`metta-mcp`) and SSE transports.
    - [`src/metta_core/graph/store.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/graph/store.py): Topological Dhamma graph with SuttaCentral & Access to Insight links.
    - [`src/metta_core/meditate/bhavana.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/meditate/bhavana.py): Subtractive unlearning and noise pruning.
 2. **Server Package (`packages/metta-server/`):**
@@ -84,9 +85,9 @@ METTA_DEFAULT_MODEL=gemini-3.8-flash-high
 
 ## 🚀 4. How to Resume Work & Run All Verification
 
-### Step 1: Run All Test Suites (22 Tests)
+### Step 1: Run All Test Suites (28 Tests)
 ```bash
-# Test Core Engine (17 passing tests)
+# Test Core Engine (23 passing tests including MCP suite)
 cd /home/guru/Work/metta/packages/metta-core
 uv run pytest
 

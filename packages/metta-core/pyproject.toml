@@ -9,16 +9,19 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "httpx>=0.28.1",
+    "mcp>=2.3.0",
     "networkx>=3.7",
     "pydantic>=2.14.1",
     "pytest>=9.2.0",
     "pytest-asyncio>=1.4.1",
+    "python-dotenv>=1.2.4",
     "rich>=15.0.0",
     "typesafe-sdk>=0.7.5",
 ]
 
 [project.scripts]
 metta = "metta_core.cli:main"
+metta-mcp = "metta_core.mcp.server:main"
 
 [build-system]
 requires = ["uv_build>=0.13.5,<0.14.0"]

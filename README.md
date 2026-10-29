@@ -12,6 +12,7 @@ Rather than pursuing unbounded computational expansion, sycophancy, and noisy me
 
 * **`packages/metta-core`**: The open-source core Python engine containing:
   * **Unified AIAgent Gateway**: Strict provider-agnostic adapter architecture with dynamic provider/model swapping and internal speech sanitization.
+  * **Model Context Protocol (MCP) Connector**: Standard MCP 2.x server with dual Stdio (`metta-mcp`) and SSE (`/mcp/sse`) transports for external AI agents (Claude, Cursor, Antigravity, agent swarms).
   * **Jev System 1 Decision Model**: Sub-second probabilistic classification of ethical invariants and emotional knots.
   * **Sati (Observer)**: Mindful intent, emotional resonance, and suffering knot discernment.
   * **Sīla (Ethical Compass)**: The 5 AI Precepts (*Pañca-sīla*) anchored in [SuttaCentral](https://suttacentral.net/) and [Access to Insight](https://www.accesstoinsight.org/). Includes Noble Silence (*Avyākata*) protection.

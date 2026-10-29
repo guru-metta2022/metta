@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 # Only domain/gateway abstractions are imported - ZERO provider-specific SDKs
 from metta_core.gateway.agent import AIAgent, UnifiedResponse
 from metta_core.gateway.interfaces import AgentSettings, VoiceDiagnostics
+from metta_core.mcp.server import mcp_server
 
 # Load environment variables (.env)
 load_dotenv()
@@ -195,6 +196,10 @@ async def trigger_meditation():
         logger.error("Error during meditation: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# Mount Model Context Protocol (MCP) SSE connector for external AI agents
+app.mount("/mcp", mcp_server.sse_app())
+logger.info("Mounted Model Context Protocol (MCP) Server at /mcp")
 
 # Mount static files if web build exists
 web_dist = pathlib.Path(__file__).parent.parent.parent.parent / "metta-web" / "dist"

@@ -33,11 +33,17 @@ class JevDecisionOutcome(BaseModel):
     raw_probabilities: Dict[str, float] = Field(default_factory=dict)
 
 
+_USE_ENV = object()
+
+
 class JevDecisionEngine:
     """Non-generative System 1 Decision Engine using TypeSafe Jev."""
 
-    def __init__(self, api_key: Optional[str] = None, model: str = "jev-latest"):
-        self.api_key = api_key or os.environ.get("TYPESAFE_API_KEY")
+    def __init__(self, api_key: Any = _USE_ENV, model: str = "jev-latest"):
+        if api_key is _USE_ENV:
+            self.api_key = os.environ.get("TYPESAFE_API_KEY")
+        else:
+            self.api_key = api_key
         self.model = model
         self._client: Optional[AsyncTypeSafeClient] = None
 

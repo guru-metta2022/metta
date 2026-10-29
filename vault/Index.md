@@ -15,6 +15,7 @@
 
 ### ⚙️ System Architecture
 * [[System-Overview]]: The 5-Layer Cognitive Architecture (*Sati, Sīla, Dhamma, Karunā, Bhāvanā*).
+* [[MCP-Connector-For-External-Agents]]: Model Context Protocol (MCP) server for external AI agents (Claude, Cursor, Antigravity) with dual Stdio & SSE transports.
 * [[Dual-Mode-Identity-Guest-Vs-Authenticated]]: Dual persona modes—Guest (Shoshin/Anatta ephemeral) vs. Authenticated (Sovereign Personal Graph).
 * [[Personal-Memory-Graph-Supabase]]: Topological memory graph implementation with SQLite local storage and Supabase PostgreSQL cloud adapter.
 * [[Unified-Interface-Adapter-Pattern]]: Absolute provider abstraction and dynamic driver swapping.
@@ -30,6 +31,7 @@
 * [[ADR-004-Jev-As-System-One-Decision-Engine]]: Utilizing TypeSafe Jev as a non-generative System 1 model to reduce latency by 65%.
 * [[ADR-005-Unified-AIAgent-Adapter-Architecture]]: Unified AIAgent Gateway with speech sanitization and runtime provider swapping.
 * [[ADR-006-Dual-Identity-And-Personal-Memory-Graph]]: Sovereign dual identity modes with on-demand personal memory graph retrieval and purge.
+* [[ADR-007-Model-Context-Protocol-MCP-Connector]]: Standard MCP 2.x server with dual stdio/SSE transports for external AI agents.
 
 ### 🔄 Continuity & Resumption
 * [[Session-Handoff-And-Credit-Resumption]]: Zero-loss state guide for resuming work across conversations, context resets, or refreshed API credit cycles.
