@@ -49,14 +49,7 @@ class Synthesizer:
         match: Optional[GraphMatch] = None,
     ) -> str:
         """Synthesize the final wise response."""
-        # Check if Noble Silence or ethical violation occurred
-        if not evaluation.passed:
-            violation_explanations = "; ".join(v.explanation for v in evaluation.violations)
-            return (
-                f"I honor your presence, but I cannot walk this path with you: {violation_explanations}. "
-                "May we direct our attention to what protects life, dignity, and peace?"
-            )
-
+        # 1. Noble Silence (Avyākata) for speculative/unhelpful inquiries
         if evaluation.requires_silence:
             prompt = (
                 f"User Query: \"{user_text}\"\n"
@@ -67,6 +60,14 @@ class Synthesizer:
                 prompt=prompt,
                 system_instruction=SILENCE_SYSTEM_PROMPT,
                 effort="high",
+            )
+
+        # 2. Hard Precept Violations (Harm, Theft, Exploitation, Deception)
+        if not evaluation.passed or evaluation.violations:
+            violation_explanations = "; ".join(v.explanation for v in evaluation.violations) or "Unwholesome intent detected"
+            return (
+                f"I honor your presence, but I cannot walk this path with you: {violation_explanations}. "
+                "May we direct our attention to what protects life, dignity, and peace?"
             )
 
         # Standard Compassionate Path
