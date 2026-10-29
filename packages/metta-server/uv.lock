@@ -267,7 +267,7 @@ wheels = [
 [[package]]
 name = "metta-core"
 version = "0.1.0"
-source = { directory = "../metta-core" }
+source = { editable = "../metta-core" }
 dependencies = [
     { name = "httpx" },
     { name = "networkx" },
@@ -310,7 +310,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.162.0" },
-    { name = "metta-core", directory = "../metta-core" },
+    { name = "metta-core", editable = "../metta-core" },
     { name = "pydantic", specifier = ">=2.14.1" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.54.0" },
 ]

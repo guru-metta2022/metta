@@ -54,6 +54,15 @@ class AskRequest(BaseModel):
     text: str = Field(..., description="User message or raw voice dictation transcript")
     source: str = Field(default="text", description="'text', 'voice', or 'mobile_stream'")
     metadata: Optional[Dict[str, Any]] = Field(default=None, description="Optional device/audio telemetry")
+    mode: str = Field(default="guest", description="'guest' or 'authenticated'")
+    user_id: Optional[str] = Field(default=None, description="Unique user identifier for authenticated mode")
+    email: Optional[str] = Field(default=None, description="Optional user email")
+
+
+class GoogleAuthRequest(BaseModel):
+    email: Optional[str] = Field(default=None, description="User Gmail address")
+    name: Optional[str] = Field(default=None, description="User display name")
+    credential: Optional[str] = Field(default=None, description="OAuth credential token if available")
 
 
 class ProviderSettingsUpdate(BaseModel):
@@ -99,6 +108,9 @@ async def interact(req: AskRequest):
             payload=req.text,
             source=req.source,
             metadata=req.metadata,
+            mode=req.mode,
+            user_id=req.user_id,
+            user_email=req.email,
         )
     except Exception as e:
         logger.error("Error during interaction: %s", e, exc_info=True)
@@ -113,9 +125,52 @@ async def voice_dictate(req: AskRequest):
             payload=req.text,
             source="voice",
             metadata=req.metadata,
+            mode=req.mode,
+            user_id=req.user_id,
+            user_email=req.email,
         )
     except Exception as e:
         logger.error("Error during voice dictation: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/auth/google")
+async def authenticate_google(req: GoogleAuthRequest):
+    """Simulate/handle Google OAuth authentication for personal memory graphs."""
+    email = req.email or "seeker.bodhi@gmail.com"
+    name = req.name or email.split("@")[0].capitalize()
+    user_id = f"google:{email.lower().replace('.', '_')}"
+    return {
+        "user_id": user_id,
+        "email": email,
+        "name": name,
+        "avatar": f"https://api.dicebear.com/7.x/bottts/svg?seed={user_id}",
+        "mode": "authenticated",
+    }
+
+
+@app.get("/api/user/graph")
+async def get_user_memory_graph(user_id: str):
+    """Retrieve the personal topological memory graph for an authenticated user."""
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id query parameter is required")
+    try:
+        return await ai_agent.get_user_graph(user_id)
+    except Exception as e:
+        logger.error("Error retrieving user graph: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/user/graph")
+async def clear_user_memory_graph(user_id: str):
+    """Sovereign user right: permanently wipe personal memory graph (Anatta/Release)."""
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id query parameter is required")
+    try:
+        success = await ai_agent.clear_user_graph(user_id)
+        return {"success": success, "message": "Personal memory graph permanently released."}
+    except Exception as e:
+        logger.error("Error clearing user graph: %s", e)
         raise HTTPException(status_code=500, detail=str(e))
 
 

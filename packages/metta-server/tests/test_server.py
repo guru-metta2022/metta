@@ -60,3 +60,26 @@ async def test_get_graph_canonical_links():
         first_edge = data["edges"][0]
         assert "suttacentral_url" in first_edge
         assert "accesstoinsight_url" in first_edge
+
+
+@pytest.mark.asyncio
+async def test_auth_google_and_user_memory_graph():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        # 1. Authenticate with Google
+        auth_res = await ac.post("/api/auth/google", json={"email": "tester.sati@gmail.com"})
+        assert auth_res.status_code == 200
+        auth_data = auth_res.json()
+        assert auth_data["email"] == "tester.sati@gmail.com"
+        user_id = auth_data["user_id"]
+
+        # 2. Get user graph (empty initially)
+        graph_res = await ac.get(f"/api/user/graph?user_id={user_id}")
+        assert graph_res.status_code == 200
+        graph_data = graph_res.json()
+        assert graph_data["user_id"] == user_id
+        assert graph_data["total_turns"] == 0
+
+        # 3. Clear user graph (Sovereign release)
+        clear_res = await ac.delete(f"/api/user/graph?user_id={user_id}")
+        assert clear_res.status_code == 200
+        assert clear_res.json()["success"] is True

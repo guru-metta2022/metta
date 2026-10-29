@@ -15,6 +15,7 @@ from metta_core.graph.models import GraphMatch
 from metta_core.voice.karuna import Synthesizer
 from metta_core.meditate.bhavana import Meditator, SessionTurn, MeditationReport
 from metta_core.decisions.jev import JevDecisionEngine, JevDecisionOutcome
+from metta_core.storage.interfaces import UserMemoryGraph
 
 logger = logging.getLogger("metta.engine")
 
@@ -47,10 +48,14 @@ class MettaEngine:
         self.meditator = Meditator(self.provider, self.graph_store)
         self.jev_engine = JevDecisionEngine(api_key=typesafe_api_key)
 
-    async def interact(self, user_text: str) -> MettaResponse:
+    async def interact(
+        self,
+        user_text: str,
+        user_graph: Optional[UserMemoryGraph] = None,
+    ) -> MettaResponse:
         """Process a user query through the full wisdom pipeline."""
         start_time = time.time()
-        logger.info("Metta received input: %s", user_text[:80])
+        logger.info("Metta received input: %s (User Graph attached: %s)", user_text[:80], bool(user_graph))
 
         evaluation: PreceptEvaluation
         observation: Optional[Observation] = None
@@ -125,6 +130,7 @@ class MettaEngine:
             observation=observation,
             evaluation=evaluation,
             match=match,
+            user_graph=user_graph,
         )
 
         # Step 4: Record in Ephemeral Memory for Meditation

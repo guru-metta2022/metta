@@ -1,7 +1,17 @@
 import React from 'react';
-import { Shield, Network, Sparkles, Settings } from 'lucide-react';
+import { Shield, Network, Sparkles, Settings, User, Brain } from 'lucide-react';
 
-export default function Header({ onOpenPrecepts, onOpenGraph, onOpenMeditate, onOpenSettings, isMeditating }) {
+export default function Header({
+  onOpenPrecepts,
+  onOpenGraph,
+  onOpenMeditate,
+  onOpenSettings,
+  isMeditating,
+  identityMode = 'guest',
+  userProfile = null,
+  onOpenAuthModal,
+  onOpenUserGraph,
+}) {
   return (
     <header className="border-b border-[#1c2028] bg-[#0c0d10]/80 backdrop-blur-md sticky top-0 z-30 px-6 py-3.5 flex items-center justify-between transition-all">
       <div className="flex items-center gap-3.5">
@@ -22,6 +32,38 @@ export default function Header({ onOpenPrecepts, onOpenGraph, onOpenMeditate, on
       </div>
 
       <div className="flex items-center gap-2">
+        {/* Identity Pill (Guest vs Authenticated) */}
+        {identityMode === 'authenticated' ? (
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={onOpenUserGraph}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#7ec69d] bg-[#14261c] hover:bg-[#1b3426] border border-[#2a543b] transition shadow-sm"
+              title="Open Sovereign Personal Memory Graph"
+            >
+              <Brain className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Personal Graph</span>
+            </button>
+
+            <button
+              onClick={onOpenAuthModal}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#c0c7d4] hover:text-[#f0f2f5] hover:bg-[#181d28] border border-[#232b3b] transition"
+              title="Identity & Mode Settings"
+            >
+              <span className="w-2 h-2 rounded-full bg-[#48d689]" />
+              <span className="max-w-[110px] truncate">{userProfile?.name || 'Seeker'}</span>
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={onOpenAuthModal}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#9da6b7] hover:text-[#f0f2f5] hover:bg-[#181c24] border border-[#222836] transition"
+            title="Switch to Google Login for Personal Graph Memory"
+          >
+            <User className="w-3.5 h-3.5 text-[#7c889f]" />
+            <span className="hidden sm:inline">Guest Mode</span>
+          </button>
+        )}
+
         <button
           onClick={onOpenPrecepts}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#b0b6c2] hover:text-[#f0f2f5] hover:bg-[#181c24] border border-[#1f242e] transition"

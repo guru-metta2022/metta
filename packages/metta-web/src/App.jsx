@@ -5,6 +5,8 @@ import PreceptsModal from './components/PreceptsModal';
 import GraphModal from './components/GraphModal';
 import MeditationModal from './components/MeditationModal';
 import SettingsModal from './components/SettingsModal';
+import AuthModal from './components/AuthModal';
+import UserGraphModal from './components/UserGraphModal';
 import { Send, Sparkles, Wind, Mic, MicOff, Volume2 } from 'lucide-react';
 
 const STARTER_PROMPTS = [
@@ -35,7 +37,38 @@ export default function App() {
   const [preceptsOpen, setPreceptsOpen] = useState(false);
   const [graphOpen, setGraphOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [userGraphOpen, setUserGraphOpen] = useState(false);
   const [meditationReport, setMeditationReport] = useState(null);
+
+  // Identity Mode (Guest vs Authenticated with Gmail/Google)
+  const [identityMode, setIdentityMode] = useState(() => localStorage.getItem('metta_identity_mode') || 'guest');
+  const [userProfile, setUserProfile] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('metta_user_profile') || 'null');
+    } catch {
+      return null;
+    }
+  });
+
+  const handleLogin = (profile) => {
+    setUserProfile(profile);
+    setIdentityMode('authenticated');
+    localStorage.setItem('metta_identity_mode', 'authenticated');
+    localStorage.setItem('metta_user_profile', JSON.stringify(profile));
+  };
+
+  const handleLogout = () => {
+    setUserProfile(null);
+    setIdentityMode('guest');
+    localStorage.removeItem('metta_identity_mode');
+    localStorage.removeItem('metta_user_profile');
+  };
+
+  const handleSelectGuest = () => {
+    setIdentityMode('guest');
+    localStorage.setItem('metta_identity_mode', 'guest');
+  };
 
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -120,6 +153,9 @@ export default function App() {
         body: JSON.stringify({
           text: query,
           source: source,
+          mode: identityMode,
+          user_id: identityMode === 'authenticated' ? userProfile?.user_id : null,
+          email: identityMode === 'authenticated' ? userProfile?.email : null,
         }),
       });
 
@@ -197,6 +233,10 @@ export default function App() {
         onOpenMeditate={handleTriggerMeditate}
         onOpenSettings={() => setSettingsOpen(true)}
         isMeditating={isMeditating}
+        identityMode={identityMode}
+        userProfile={userProfile}
+        onOpenAuthModal={() => setAuthModalOpen(true)}
+        onOpenUserGraph={() => setUserGraphOpen(true)}
       />
 
       {/* Main Dialogue Canvas */}
@@ -332,6 +372,22 @@ export default function App() {
       <SettingsModal
         isOpen={settingsOpen}
         onClose={() => setSettingsOpen(false)}
+      />
+
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        currentMode={identityMode}
+        userProfile={userProfile}
+        onLogin={handleLogin}
+        onLogout={handleLogout}
+        onSelectGuest={handleSelectGuest}
+      />
+
+      <UserGraphModal
+        isOpen={userGraphOpen}
+        onClose={() => setUserGraphOpen(false)}
+        userProfile={userProfile}
       />
 
       <MeditationModal

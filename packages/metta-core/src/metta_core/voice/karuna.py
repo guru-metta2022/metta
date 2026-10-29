@@ -11,6 +11,7 @@ from metta_core.providers.base import LLMProvider
 from metta_core.observer.sati import Observation
 from metta_core.precepts.models import PreceptEvaluation
 from metta_core.graph.models import GraphMatch
+from metta_core.storage.interfaces import UserMemoryGraph
 
 logger = logging.getLogger("metta.voice.karuna")
 
@@ -47,6 +48,7 @@ class Synthesizer:
         observation: Observation,
         evaluation: PreceptEvaluation,
         match: Optional[GraphMatch] = None,
+        user_graph: Optional[UserMemoryGraph] = None,
     ) -> str:
         """Synthesize the final wise response."""
         # 1. Noble Silence (Avyākata) for speculative/unhelpful inquiries
@@ -70,6 +72,35 @@ class Synthesizer:
                 "May we direct our attention to what protects life, dignity, and peace?"
             )
 
+        # 3. Personal Memory Graph Context (Authenticated Mode Only)
+        user_memory_context = ""
+        if user_graph and (user_graph.patterns or user_graph.growth_milestones):
+            current_knot = observation.cognitive_knot.lower()
+            relevant_patterns = [
+                p for p in user_graph.patterns
+                if p.knot_category in current_knot or current_knot in p.knot_category
+            ]
+            pattern_summaries = []
+            if relevant_patterns:
+                for p in relevant_patterns:
+                    principles_str = ", ".join(p.effective_principles) if p.effective_principles else "gentle awareness"
+                    pattern_summaries.append(
+                        f"- Known pattern: {p.observed_tendency} (recurred {p.occurrence_count} times; previously calmed by {principles_str})"
+                    )
+            elif user_graph.patterns:
+                top_p = sorted(user_graph.patterns, key=lambda x: x.occurrence_count, reverse=True)[:2]
+                for p in top_p:
+                    pattern_summaries.append(f"- Past theme: {p.observed_tendency} ({p.knot_category})")
+
+            milestone_summaries = [f"- Milestone: {m}" for m in user_graph.growth_milestones[-2:]]
+
+            lines = ["Personal Memory Graph Continuity (Honor this trajectory with subtle warmth, without mechanical recitation):"]
+            if pattern_summaries:
+                lines.extend(pattern_summaries)
+            if milestone_summaries:
+                lines.extend(milestone_summaries)
+            user_memory_context = "\n".join(lines) + "\n\n"
+
         # Standard Compassionate Path
         graph_context = ""
         if match:
@@ -86,6 +117,7 @@ class Synthesizer:
             f"- Emotional Resonance: {observation.emotional_state}\n"
             f"- Cognitive Knot: {observation.cognitive_knot}\n"
             f"- Core Need: {observation.core_need}\n\n"
+            f"{user_memory_context}"
             f"Principle Guidance:\n{graph_context}\n\n"
             "Compose a concise, soothing, grounded response (Acknowledge -> Reframe -> Guide)."
         )

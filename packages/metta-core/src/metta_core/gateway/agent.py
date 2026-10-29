@@ -16,6 +16,12 @@ from metta_core.gateway.adapters.gemini_adapter import GeminiAntigravityAdapter
 from metta_core.gateway.adapters.local_adapter import LocalLLMAdapter
 from metta_core.engine import MettaEngine
 from metta_core.precepts.rules import FIVE_PRECEPTS_GUIDELINES
+from metta_core.storage import (
+    BaseMemoryStore,
+    UserMemoryGraph,
+    SupabaseMemoryStore,
+    SQLiteMemoryStore,
+)
 
 logger = logging.getLogger("metta.gateway.agent")
 
@@ -32,6 +38,8 @@ class UnifiedResponse(BaseModel):
     system_one_used: bool = False
     provider: str
     model: str
+    mode: str = "guest"
+    user_graph_updated: bool = False
 
 
 class AIAgent:
@@ -42,6 +50,7 @@ class AIAgent:
         default_provider: str = "gemini",
         default_model: str = "gemini-3.8-flash-high",
         typesafe_api_key: Optional[str] = None,
+        memory_store: Optional[BaseMemoryStore] = None,
     ):
         self._providers: Dict[str, BaseAIProvider] = {
             "gemini": GeminiAntigravityAdapter(model=default_model),
@@ -55,9 +64,14 @@ class AIAgent:
 
         self._active_provider = self._providers[self._active_provider_name]
         self._typesafe_key = typesafe_api_key
+        self._memory_store = memory_store or SupabaseMemoryStore()
 
         # Re-initialize Metta core engine with the active provider adapter
         self._init_engine()
+
+    def set_memory_store(self, memory_store: BaseMemoryStore):
+        """Configure or swap memory store at runtime."""
+        self._memory_store = memory_store
 
     def _init_engine(self):
         """Bind active provider adapter to Metta engine."""
@@ -140,11 +154,23 @@ class AIAgent:
         report = await self._engine.meditate()
         return report.model_dump()
 
+    async def get_user_graph(self, user_id: str) -> Dict[str, Any]:
+        """Retrieve the sovereign personal memory graph for an authenticated user."""
+        graph = await self._memory_store.get_user_graph(user_id)
+        return graph.model_dump()
+
+    async def clear_user_graph(self, user_id: str) -> bool:
+        """Sovereign purge: completely erase user graph and pattern nodes."""
+        return await self._memory_store.clear_user_graph(user_id)
+
     async def ask(
         self,
         payload: Union[str, Dict[str, Any]],
         source: str = "text",
         metadata: Optional[Dict[str, Any]] = None,
+        mode: str = "guest",
+        user_id: Optional[str] = None,
+        user_email: Optional[str] = None,
     ) -> UnifiedResponse:
         """Singular execution gateway accepting raw text or voice dictation streams.
 
@@ -152,6 +178,9 @@ class AIAgent:
             payload: Raw text string or dictionary payload from client.
             source: Source channel ('text', 'voice', 'mobile_stream').
             metadata: Optional client-side metadata (e.g. device, sample rate).
+            mode: Identity mode ('guest' = Beginner's mind/ephemeral, 'authenticated' = personal memory graph).
+            user_id: User identifier for authenticated graph memory retrieval.
+            user_email: Optional user email.
         """
         raw_text = payload if isinstance(payload, str) else payload.get("text", "")
 
@@ -172,15 +201,40 @@ class AIAgent:
                     system_one_used=False,
                     provider=self._active_provider_name,
                     model=self._active_provider.model_name,
+                    mode=mode,
+                    user_graph_updated=False,
                 )
             clean_text = diagnostics.sanitized_input
         else:
             clean_text = raw_text.strip()
 
         # -------------------------------------------------------------
-        # 2. Execute Through Metta 5-Layer Cognitive Pipeline
+        # 2. Retrieve Personal Memory Graph ONLY If Authenticated
         # -------------------------------------------------------------
-        res = await self._engine.interact(clean_text)
+        user_graph: Optional[UserMemoryGraph] = None
+        if mode == "authenticated" and user_id:
+            user_graph = await self._memory_store.get_user_graph(user_id)
+
+        # -------------------------------------------------------------
+        # 3. Execute Through Metta 5-Layer Cognitive Pipeline
+        # -------------------------------------------------------------
+        res = await self._engine.interact(clean_text, user_graph=user_graph)
+
+        # -------------------------------------------------------------
+        # 4. Update Personal Memory Graph If Authenticated
+        # -------------------------------------------------------------
+        user_graph_updated = False
+        if mode == "authenticated" and user_id and res.observation and res.evaluation.passed:
+            principle = res.graph_match.path.principle if res.graph_match else None
+            await self._memory_store.record_interaction(
+                user_id=user_id,
+                knot=res.observation.cognitive_knot,
+                need=res.observation.core_need,
+                principle_used=principle,
+                summary=f"Emotion: {res.observation.emotional_state}; Knot: {res.observation.cognitive_knot}",
+                email=user_email,
+            )
+            user_graph_updated = True
 
         return UnifiedResponse(
             response_text=res.response_text,
@@ -192,4 +246,6 @@ class AIAgent:
             system_one_used=res.system_one_used,
             provider=self._active_provider_name,
             model=self._active_provider.model_name,
+            mode=mode,
+            user_graph_updated=user_graph_updated,
         )
