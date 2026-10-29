@@ -1,0 +1,23 @@
+[project]
+name = "metta-core"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "guru" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "networkx>=3.7",
+    "pydantic>=2.14.1",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.4.1",
+    "rich>=15.0.0",
+]
+
+[project.scripts]
+metta = "metta_core.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.13.5,<0.14.0"]
+build-backend = "uv_build"
