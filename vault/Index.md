@@ -31,5 +31,8 @@
 * [[ADR-005-Unified-AIAgent-Adapter-Architecture]]: Unified AIAgent Gateway with speech sanitization and runtime provider swapping.
 * [[ADR-006-Dual-Identity-And-Personal-Memory-Graph]]: Sovereign dual identity modes with on-demand personal memory graph retrieval and purge.
 
+### 🔄 Continuity & Resumption
+* [[Session-Handoff-And-Credit-Resumption]]: Zero-loss state guide for resuming work across conversations, context resets, or refreshed API credit cycles.
+
 ### 📜 Development Logs
 * [[DevLog-2026-10-29]]: Initial core engine implementation, live verification, and Zen UI bridge.
