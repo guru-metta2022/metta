@@ -61,6 +61,8 @@ async def consult_metta(
     context: Optional[str] = None,
     mode: str = "guest",
     agent_id: Optional[str] = None,
+    byom_gemini_key: Optional[str] = None,
+    byom_typesafe_key: Optional[str] = None,
 ) -> str:
     """Consult Metta for wise, grounding, ethically anchored reframing.
 
@@ -73,6 +75,8 @@ async def consult_metta(
         context: Optional background context or situation description.
         mode: Identity mode: 'guest' (Beginner's Mind / ephemeral) or 'authenticated'.
         agent_id: Unique agent identifier if wanting to record growth trajectory in personal memory graph.
+        byom_gemini_key: Optional personal Google Gemini API key (BYOM - avoids server rate limits).
+        byom_typesafe_key: Optional personal TypeSafe Jev API key (BYOM).
 
     Returns:
         JSON string containing compassionate response, emotional knot diagnostic,
@@ -81,12 +85,17 @@ async def consult_metta(
     agent = get_agent()
     full_prompt = f"Context: {context}\nQuery: {query}" if context else query
 
+    effective_gemini = byom_gemini_key or os.environ.get("METTA_BYOM_GEMINI_KEY")
+    effective_typesafe = byom_typesafe_key or os.environ.get("METTA_BYOM_TYPESAFE_KEY")
+
     res = await agent.ask(
         payload=full_prompt,
         source="mcp",
         mode=mode,
         user_id=agent_id,
         user_email=f"{agent_id}@agent.metta" if agent_id else None,
+        byom_gemini_key=effective_gemini,
+        byom_typesafe_key=effective_typesafe,
     )
 
     output = {
@@ -103,6 +112,7 @@ async def consult_metta(
         "active_model": res.model,
         "mode": res.mode,
         "memory_graph_updated": res.user_graph_updated,
+        "is_byom": res.is_byom,
     }
     return json.dumps(output, indent=2)
 

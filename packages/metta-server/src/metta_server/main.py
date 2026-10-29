@@ -11,7 +11,7 @@ import pathlib
 import logging
 from typing import List, Optional, Dict, Any
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field
 from metta_core.gateway.agent import AIAgent, UnifiedResponse
 from metta_core.gateway.interfaces import AgentSettings, VoiceDiagnostics
 from metta_core.mcp.server import mcp_server
+from metta_server.rate_limiter import SlidingWindowRateLimiter, RateLimitStatus
 
 # Load environment variables (.env)
 load_dotenv()
@@ -49,6 +50,9 @@ ai_agent = AIAgent(
     typesafe_api_key=os.environ.get("TYPESAFE_API_KEY"),
 )
 
+# Initialize Sliding-Window Rate Limiter (with BYOM unlimited bypass)
+rate_limiter = SlidingWindowRateLimiter()
+
 
 # Request & Response Schemas
 class AskRequest(BaseModel):
@@ -58,6 +62,8 @@ class AskRequest(BaseModel):
     mode: str = Field(default="guest", description="'guest' or 'authenticated'")
     user_id: Optional[str] = Field(default=None, description="Unique user identifier for authenticated mode")
     email: Optional[str] = Field(default=None, description="Optional user email")
+    byom_gemini_key: Optional[str] = Field(default=None, description="Optional client BYOM Google Gemini API key")
+    byom_typesafe_key: Optional[str] = Field(default=None, description="Optional client BYOM TypeSafe Jev API key")
 
 
 class GoogleAuthRequest(BaseModel):
@@ -101,9 +107,48 @@ async def update_settings(update: ProviderSettingsUpdate):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@app.get("/api/rate-limit", response_model=RateLimitStatus)
+async def get_rate_limit_status(request: Request, user_id: Optional[str] = None):
+    """Retrieve current client rate limit status and remaining quota."""
+    byom_gemini = request.headers.get("x-gemini-api-key")
+    byom_typesafe = request.headers.get("x-typesafe-api-key")
+    is_byom = bool(byom_gemini or byom_typesafe)
+    client_id = user_id or (request.client.host if request.client else "unknown")
+    return rate_limiter.check(client_id, is_byom=is_byom)
+
+
 @app.post("/api/interact", response_model=UnifiedResponse)
-async def interact(req: AskRequest):
+async def interact(req: AskRequest, request: Request, response: Response):
     """Unified interaction endpoint accepting text and streaming voice dictation."""
+    byom_gemini = request.headers.get("x-gemini-api-key") or req.byom_gemini_key
+    byom_typesafe = request.headers.get("x-typesafe-api-key") or req.byom_typesafe_key
+    is_byom = bool(byom_gemini or byom_typesafe)
+    client_id = req.user_id or (request.client.host if request.client else "unknown")
+
+    # Rate Limiting Check (BYOM is completely exempt)
+    status = rate_limiter.check(client_id, is_byom=is_byom)
+    if not status.allowed:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "error": "Rate limit reached on shared server quota",
+                "message": status.message,
+                "reset_seconds": status.reset_seconds,
+                "byom_supported": True,
+            },
+            headers={
+                "Retry-After": str(status.reset_seconds),
+                "X-RateLimit-Limit": str(status.limit),
+                "X-RateLimit-Remaining": "0",
+                "X-BYOM-Supported": "true",
+            },
+        )
+
+    # Attach quota telemetry headers
+    response.headers["X-RateLimit-Limit"] = str(status.limit)
+    response.headers["X-RateLimit-Remaining"] = str(status.remaining)
+    response.headers["X-BYOM-Active"] = "true" if is_byom else "false"
+
     try:
         return await ai_agent.ask(
             payload=req.text,
@@ -112,6 +157,8 @@ async def interact(req: AskRequest):
             mode=req.mode,
             user_id=req.user_id,
             user_email=req.email,
+            byom_gemini_key=byom_gemini,
+            byom_typesafe_key=byom_typesafe,
         )
     except Exception as e:
         logger.error("Error during interaction: %s", e, exc_info=True)
@@ -119,8 +166,35 @@ async def interact(req: AskRequest):
 
 
 @app.post("/api/voice/dictate", response_model=UnifiedResponse)
-async def voice_dictate(req: AskRequest):
+async def voice_dictate(req: AskRequest, request: Request, response: Response):
     """Dedicated voice dictation alias with internal speech sanitization."""
+    byom_gemini = request.headers.get("x-gemini-api-key") or req.byom_gemini_key
+    byom_typesafe = request.headers.get("x-typesafe-api-key") or req.byom_typesafe_key
+    is_byom = bool(byom_gemini or byom_typesafe)
+    client_id = req.user_id or (request.client.host if request.client else "unknown")
+
+    status = rate_limiter.check(client_id, is_byom=is_byom)
+    if not status.allowed:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "error": "Rate limit reached on shared server quota",
+                "message": status.message,
+                "reset_seconds": status.reset_seconds,
+                "byom_supported": True,
+            },
+            headers={
+                "Retry-After": str(status.reset_seconds),
+                "X-RateLimit-Limit": str(status.limit),
+                "X-RateLimit-Remaining": "0",
+                "X-BYOM-Supported": "true",
+            },
+        )
+
+    response.headers["X-RateLimit-Limit"] = str(status.limit)
+    response.headers["X-RateLimit-Remaining"] = str(status.remaining)
+    response.headers["X-BYOM-Active"] = "true" if is_byom else "false"
+
     try:
         return await ai_agent.ask(
             payload=req.text,
@@ -129,6 +203,8 @@ async def voice_dictate(req: AskRequest):
             mode=req.mode,
             user_id=req.user_id,
             user_email=req.email,
+            byom_gemini_key=byom_gemini,
+            byom_typesafe_key=byom_typesafe,
         )
     except Exception as e:
         logger.error("Error during voice dictation: %s", e, exc_info=True)

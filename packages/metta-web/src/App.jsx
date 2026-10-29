@@ -147,19 +147,42 @@ export default function App() {
     setIsLoading(true);
 
     try {
+      const byomGeminiKey = localStorage.getItem('metta_byom_gemini_key') || '';
+      const byomTypesafeKey = localStorage.getItem('metta_byom_typesafe_key') || '';
+
+      const headers = { 'Content-Type': 'application/json' };
+      if (byomGeminiKey) headers['X-Gemini-Api-Key'] = byomGeminiKey;
+      if (byomTypesafeKey) headers['X-TypeSafe-Api-Key'] = byomTypesafeKey;
+
       const res = await fetch('/api/interact', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           text: query,
           source: source,
           mode: identityMode,
           user_id: identityMode === 'authenticated' ? userProfile?.user_id : null,
           email: identityMode === 'authenticated' ? userProfile?.email : null,
+          byom_gemini_key: byomGeminiKey || null,
+          byom_typesafe_key: byomTypesafeKey || null,
         }),
       });
 
       if (!res.ok) {
+        if (res.status === 429) {
+          const errData = await res.json().catch(() => ({}));
+          const rateMsg = errData.detail?.message || 'Shared community quota pause. You can wait a moment, or add your personal API key in Settings (⚙️ BYOM) to continue with zero limits.';
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: 'assistant',
+              text: `🌿 ${rateMsg}`,
+              isRateLimited: true,
+              id: Date.now() + 1,
+            },
+          ]);
+          return;
+        }
         throw new Error(`Server returned status ${res.status}`);
       }
 

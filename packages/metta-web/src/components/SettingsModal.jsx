@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { X, Settings, Cpu, Zap, Check, AlertCircle, Volume2 } from 'lucide-react';
+import { X, Settings, Cpu, Zap, Check, AlertCircle, Volume2, Key, ShieldCheck } from 'lucide-react';
 
 export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
   const [settings, setSettings] = useState(null);
   const [selectedProvider, setSelectedProvider] = useState('gemini');
   const [selectedModel, setSelectedModel] = useState('gemini-3.8-flash-high');
+  const [byomGeminiKey, setByomGeminiKey] = useState(() => localStorage.getItem('metta_byom_gemini_key') || '');
+  const [byomTypesafeKey, setByomTypesafeKey] = useState(() => localStorage.getItem('metta_byom_typesafe_key') || '');
+  const [showKeys, setShowKeys] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -18,6 +21,9 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
           setSelectedModel(data.model);
         })
         .catch((err) => console.error('Failed to load settings:', err));
+
+      setByomGeminiKey(localStorage.getItem('metta_byom_gemini_key') || '');
+      setByomTypesafeKey(localStorage.getItem('metta_byom_typesafe_key') || '');
     }
   }, [isOpen]);
 
@@ -26,6 +32,20 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
     setSaveSuccess(false);
 
     try {
+      // 1. Save BYOM keys in client-side localStorage
+      if (byomGeminiKey.trim()) {
+        localStorage.setItem('metta_byom_gemini_key', byomGeminiKey.trim());
+      } else {
+        localStorage.removeItem('metta_byom_gemini_key');
+      }
+
+      if (byomTypesafeKey.trim()) {
+        localStorage.setItem('metta_byom_typesafe_key', byomTypesafeKey.trim());
+      } else {
+        localStorage.removeItem('metta_byom_typesafe_key');
+      }
+
+      // 2. Update provider/model settings on server
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -49,11 +69,13 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
     }
   };
 
+  const hasByomActive = Boolean(byomGeminiKey.trim() || byomTypesafeKey.trim());
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-[#101319] border border-[#232834] rounded-2xl max-w-lg w-full shadow-2xl p-6">
+      <div className="bg-[#101319] border border-[#232834] rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6">
         <div className="flex items-center justify-between pb-4 border-b border-[#1f2430]">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-[#182330] border border-[#263c54] flex items-center justify-center text-[#6c8eb5]">
@@ -64,7 +86,7 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
                 AI Gateway & Model Engine
               </h2>
               <p className="text-xs text-[#828a99]">
-                Unified Adapter Interface • Dynamic Provider Swapping
+                Unified Adapter Interface • BYOM Unlimited Bypass
               </p>
             </div>
           </div>
@@ -77,6 +99,82 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
         </div>
 
         <div className="my-5 space-y-4">
+          {/* BYOM Status Banner */}
+          <div className={`p-3.5 rounded-xl border flex items-center justify-between text-xs transition ${
+            hasByomActive
+              ? 'bg-[#15231c] border-[#2e5d42] text-[#8dd4ac]'
+              : 'bg-[#181d28] border-[#252f44] text-[#939eb2]'
+          }`}>
+            <div className="flex items-center gap-2.5">
+              <Key className="w-4 h-4 text-[#7ec69d]" />
+              <div>
+                <span className="font-semibold block">
+                  {hasByomActive ? 'Personal BYOM Keys Active' : 'Shared Community Tier'}
+                </span>
+                <span className="text-[11px] opacity-80">
+                  {hasByomActive
+                    ? 'Unlimited throughput • Server rate limiter completely bypassed'
+                    : 'Protected by shared rate limiter (10 req/min). Enter keys below to remove limits.'}
+                </span>
+              </div>
+            </div>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
+              hasByomActive
+                ? 'bg-[#1a3828] text-[#93dfb4] border-[#2e6245]'
+                : 'bg-[#1f2638] text-[#8fa0ba] border-[#2c3850]'
+            }`}>
+              {hasByomActive ? 'UNLIMITED' : 'RATE-LIMITED'}
+            </span>
+          </div>
+
+          {/* BYOM Input Fields */}
+          <div className="p-4 rounded-xl bg-[#121620] border border-[#1f2533] space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-[#8b95a5] uppercase tracking-wider flex items-center gap-1.5">
+                <Key className="w-3.5 h-3.5 text-[#e0a96d]" />
+                Bring Your Own Model (BYOM) Keys
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowKeys(!showKeys)}
+                className="text-[11px] text-[#788295] hover:text-[#c4ccd9] transition"
+              >
+                {showKeys ? 'Hide Keys' : 'Show Keys'}
+              </button>
+            </div>
+
+            <div>
+              <span className="text-[11px] text-[#717b8c] block mb-1">
+                Google Gemini API Key (Bypasses server quota)
+              </span>
+              <input
+                type={showKeys ? 'text' : 'password'}
+                value={byomGeminiKey}
+                onChange={(e) => setByomGeminiKey(e.target.value)}
+                placeholder="AIzaSy..."
+                className="w-full px-3 py-2 rounded-lg bg-[#0d1016] border border-[#212736] text-xs text-[#f0f2f5] font-mono focus:outline-none focus:border-[#385343]"
+              />
+            </div>
+
+            <div>
+              <span className="text-[11px] text-[#717b8c] block mb-1">
+                TypeSafe Jev API Key (System 1 Decision Engine)
+              </span>
+              <input
+                type={showKeys ? 'text' : 'password'}
+                value={byomTypesafeKey}
+                onChange={(e) => setByomTypesafeKey(e.target.value)}
+                placeholder="apikey_..."
+                className="w-full px-3 py-2 rounded-lg bg-[#0d1016] border border-[#212736] text-xs text-[#f0f2f5] font-mono focus:outline-none focus:border-[#385343]"
+              />
+            </div>
+
+            <p className="text-[10px] text-[#616a7a] flex items-center gap-1 pt-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#5e9e7b] shrink-0" />
+              Keys remain private in your browser's local storage and are sent encrypted per request.
+            </p>
+          </div>
+
           {/* Provider Selection */}
           <div>
             <label className="text-xs font-semibold text-[#8b95a5] uppercase tracking-wider block mb-2">
@@ -96,7 +194,7 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
                 }`}
               >
                 <div className="font-semibold text-sm">Google Gemini</div>
-                <div className="text-[11px] text-[#717b8c] mt-1">Antigravity API Cloud</div>
+                <div className="text-[11px] text-[#717b8c] mt-1">Antigravity API / Cloud REST</div>
                 <span className="text-[10px] text-[#7ec69d] mt-2 font-mono">Default • High Reasoning</span>
               </button>
 
@@ -122,7 +220,7 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
           {/* Model Target Field */}
           <div>
             <label className="text-xs font-semibold text-[#8b95a5] uppercase tracking-wider block mb-1.5">
-              Target Model Target Identifier
+              Target Model Identifier
             </label>
             <input
               type="text"

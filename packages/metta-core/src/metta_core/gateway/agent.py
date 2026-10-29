@@ -40,6 +40,7 @@ class UnifiedResponse(BaseModel):
     model: str
     mode: str = "guest"
     user_graph_updated: bool = False
+    is_byom: bool = False
 
 
 class AIAgent:
@@ -171,6 +172,8 @@ class AIAgent:
         mode: str = "guest",
         user_id: Optional[str] = None,
         user_email: Optional[str] = None,
+        byom_gemini_key: Optional[str] = None,
+        byom_typesafe_key: Optional[str] = None,
     ) -> UnifiedResponse:
         """Singular execution gateway accepting raw text or voice dictation streams.
 
@@ -181,8 +184,11 @@ class AIAgent:
             mode: Identity mode ('guest' = Beginner's mind/ephemeral, 'authenticated' = personal memory graph).
             user_id: User identifier for authenticated graph memory retrieval.
             user_email: Optional user email.
+            byom_gemini_key: Optional client-supplied BYOM Google Gemini API key.
+            byom_typesafe_key: Optional client-supplied BYOM TypeSafe Jev API key.
         """
         raw_text = payload if isinstance(payload, str) else payload.get("text", "")
+        is_byom = bool(byom_gemini_key or byom_typesafe_key)
 
         # -------------------------------------------------------------
         # 1. Run Internal Diagnostics for Voice Dictation
@@ -199,10 +205,11 @@ class AIAgent:
                     graph_match=None,
                     duration_seconds=0.05,
                     system_one_used=False,
-                    provider=self._active_provider_name,
+                    provider="gemini-byom" if byom_gemini_key else self._active_provider_name,
                     model=self._active_provider.model_name,
                     mode=mode,
                     user_graph_updated=False,
+                    is_byom=is_byom,
                 )
             clean_text = diagnostics.sanitized_input
         else:
@@ -216,12 +223,33 @@ class AIAgent:
             user_graph = await self._memory_store.get_user_graph(user_id)
 
         # -------------------------------------------------------------
-        # 3. Execute Through Metta 5-Layer Cognitive Pipeline
+        # 3. Dynamic BYOM Engine Selection (Overrides Server Credits)
         # -------------------------------------------------------------
-        res = await self._engine.interact(clean_text, user_graph=user_graph)
+        active_engine = self._engine
+        active_provider_label = self._active_provider_name
+
+        if is_byom:
+            if byom_gemini_key:
+                active_provider = GeminiAntigravityAdapter(
+                    model=self._active_provider.model_name,
+                    api_key=byom_gemini_key,
+                )
+                active_provider_label = "gemini-byom"
+            else:
+                active_provider = self._active_provider
+
+            active_engine = MettaEngine(
+                provider=active_provider,
+                typesafe_api_key=byom_typesafe_key or self._typesafe_key,
+            )
 
         # -------------------------------------------------------------
-        # 4. Update Personal Memory Graph If Authenticated
+        # 4. Execute Through Metta 5-Layer Cognitive Pipeline
+        # -------------------------------------------------------------
+        res = await active_engine.interact(clean_text, user_graph=user_graph)
+
+        # -------------------------------------------------------------
+        # 5. Update Personal Memory Graph If Authenticated
         # -------------------------------------------------------------
         user_graph_updated = False
         if mode == "authenticated" and user_id and res.observation and res.evaluation.passed:
@@ -244,8 +272,9 @@ class AIAgent:
             graph_match=res.graph_match.model_dump() if res.graph_match else None,
             duration_seconds=res.duration_seconds,
             system_one_used=res.system_one_used,
-            provider=self._active_provider_name,
+            provider=active_provider_label,
             model=self._active_provider.model_name,
             mode=mode,
             user_graph_updated=user_graph_updated,
+            is_byom=is_byom,
         )

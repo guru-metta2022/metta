@@ -54,17 +54,19 @@
    - [`src/metta_core/gateway/diagnostics.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/gateway/diagnostics.py): `VoiceSanitizer.run_diagnostics()` for multi-platform microphone artifacts.
    - [`src/metta_core/decisions/jev.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/decisions/jev.py): Jev System 1 model (`TypeSafe-Danger-Zone-Images: true`).
    - [`src/metta_core/providers/antigravity.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/providers/antigravity.py): Native Gemini 3.8 Flash provider via local `agy` binary with effort normalization.
+   - [`src/metta_core/providers/gemini_rest.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/providers/gemini_rest.py): Direct Google Gemini REST API client for client-supplied BYOM API keys.
    - [`src/metta_core/storage/`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/storage/): `SQLiteMemoryStore` & `SupabaseMemoryStore` implementing `BaseMemoryStore`.
    - [`src/metta_core/mcp/server.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/mcp/server.py): Model Context Protocol (MCP) server for external AI agents with dual Stdio (`metta-mcp`) and SSE transports.
    - [`src/metta_core/graph/store.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/graph/store.py): Topological Dhamma graph with SuttaCentral & Access to Insight links.
    - [`src/metta_core/meditate/bhavana.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/meditate/bhavana.py): Subtractive unlearning and noise pruning.
 2. **Server Package (`packages/metta-server/`):**
-   - [`src/metta_server/main.py`](file:///home/guru/Work/metta/packages/metta-server/src/metta_server/main.py): FastAPI bridge enforcing zero provider SDK imports in routes. Endpoints: `/api/health`, `/api/settings`, `/api/interact`, `/api/voice/dictate`, `/api/auth/google`, `/api/user/graph` (GET/DELETE), `/api/precepts`, `/api/graph`, `/api/meditate`.
+   - [`src/metta_server/rate_limiter.py`](file:///home/guru/Work/metta/packages/metta-server/src/metta_server/rate_limiter.py): Sliding-window rate limiter protecting shared server credits, with complete BYOM bypass.
+   - [`src/metta_server/main.py`](file:///home/guru/Work/metta/packages/metta-server/src/metta_server/main.py): FastAPI bridge enforcing zero provider SDK imports in routes. Endpoints: `/api/health`, `/api/settings`, `/api/rate-limit`, `/api/interact`, `/api/voice/dictate`, `/api/auth/google`, `/api/user/graph` (GET/DELETE), `/api/precepts`, `/api/graph`, `/api/meditate`.
 3. **Web Package (`packages/metta-web/`):**
    - React 19 + Tailwind CSS + Lucide Icons.
-   - Zen minimalist canvas, real-time Web Speech API voice dictation, Sati HUD drawer, Dhamma Graph modal, 5 Precepts modal, Identity & Personal Memory Graph drawer.
+   - Zen minimalist canvas, real-time Web Speech API voice dictation, Sati HUD drawer, Dhamma Graph modal, 5 Precepts modal, Identity & Personal Memory Graph drawer, BYOM Settings (⚙️).
 4. **Obsidian Vault (`vault/`):**
-   - Complete architectural records, philosophy treatises, ADRs 001–006, and daily logs.
+   - Complete architectural records, philosophy treatises, ADRs 001–008, and daily logs.
 
 ---
 
@@ -85,13 +87,13 @@ METTA_DEFAULT_MODEL=gemini-3.8-flash-high
 
 ## 🚀 4. How to Resume Work & Run All Verification
 
-### Step 1: Run All Test Suites (28 Tests)
+### Step 1: Run All Test Suites (30 Tests)
 ```bash
 # Test Core Engine (23 passing tests including MCP suite)
 cd /home/guru/Work/metta/packages/metta-core
 uv run pytest
 
-# Test FastAPI Server & Endpoints (5 passing tests)
+# Test FastAPI Server & Endpoints (7 passing tests including rate limiter & BYOM bypass)
 cd /home/guru/Work/metta/packages/metta-server
 uv run pytest
 ```
