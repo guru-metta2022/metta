@@ -12,18 +12,19 @@ Rather than pursuing unbounded computational expansion, sycophancy, and noisy me
 
 * **`packages/metta-core`**: The open-source core Python engine containing:
   * **Unified AIAgent Gateway**: Strict provider-agnostic adapter architecture with dynamic provider/model swapping and internal speech sanitization.
+  * **Epistemic Tamper-Resistance Shield**: 4-tier defense against defaced archives and poisoned suttas via SHA-256 local Pali bedrock and multi-source triangulation (SuttaCentral, Access to Insight, Wikipedia).
   * **Model Context Protocol (MCP) Connector**: Standard MCP 2.x server with dual Stdio (`metta-mcp`) and SSE (`/mcp/sse`) transports for external AI agents (Claude, Cursor, Antigravity, agent swarms).
   * **Fast Compassionate Guardrail Oracle**: Sub-second ethical gatekeeper evaluating decisions through Buddha's mind (YES/NO binary & verbose reasoning modes).
-  * **Jev System 1 Decision Model**: Sub-second probabilistic classification of ethical invariants and emotional knots.
+  * **Jev System 1 Decision Model**: Sub-second probabilistic classification of ethical invariants, emotional knots, and canonical tamper audits.
   * **Sati (Observer)**: Mindful intent, emotional resonance, and suffering knot discernment.
-  * **Sīla (Ethical Compass)**: The 5 AI Precepts (*Pañca-sīla*) anchored in [SuttaCentral](https://suttacentral.net/) and [Access to Insight](https://www.accesstoinsight.org/). Includes Noble Silence (*Avyākata*) protection.
+  * **Sīla (Ethical Compass)**: The 5 AI Precepts (*Pañca-sīla*) anchored in [SuttaCentral](https://suttacentral.net/), [Access to Insight](https://www.accesstoinsight.org/), and [Wikipedia](https://en.wikipedia.org/wiki/Five_precepts). Includes Noble Silence (*Avyākata*) protection.
   * **Dhamma (Principle Knowledge Graph)**: Topological mapping of conditions of distress ($Dukkha$) to paths of release ($Magga$) and equanimity ($Santi$).
   * **Karunā (Voice Synthesizer)**: Grounded, soothing, 3-fold compassionate dialogue.
   * **Sovereign Personal Memory Graph**: Dual identity modes (Guest *Shoshin/Anatta* vs. Google/Gmail Authenticated with SQLite & Supabase adapters).
   * **Bhāvanā (Meditation & Unlearning)**: Subtractive meta-learning that actively cleanses ephemeral memory, prunes cognitive noise, and prevents model collapse.
 * **`packages/metta-server`**: FastAPI bridge server exposing streaming interaction, voice dictation, Google OAuth identity, and graph endpoints.
 * **`packages/metta-web`**: Zen minimalist web application (React 19 + Tailwind CSS + Lucide Icons) featuring Web Speech API voice dictation, Sati HUD, Dhamma Graph modal, and Personal Journey drawer.
-* **`vault/`**: Complete Obsidian Knowledge Vault containing architectural diagrams, philosophical treatises, ADRs 001–009, and development logs.
+* **`vault/`**: Complete Obsidian Knowledge Vault containing architectural diagrams, philosophical treatises, ADRs 001–010, and development logs.
 * **`CONTINUITY.md`**: Master handoff document for resuming work across conversations, credits, and sessions.
 
 ---
@@ -40,12 +41,12 @@ Rather than pursuing unbounded computational expansion, sycophancy, and noisy me
 
 ## 🚀 Quickstart & Development
 
-### 1. Run Unit Tests (22 Tests)
+### 1. Run Unit Tests (40 Tests)
 ```bash
-# Core engine tests (17 passing)
+# Core engine tests (30 passing)
 cd packages/metta-core && uv run pytest
 
-# Server routes tests (5 passing)
+# Server routes tests (10 passing)
 cd ../metta-server && uv run pytest
 ```
 

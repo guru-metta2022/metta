@@ -24,6 +24,8 @@ from metta_core.storage import (
     SupabaseMemoryStore,
     SQLiteMemoryStore,
 )
+from metta_core.canonical import CanonicalConsensusAuditor, ConsensusAuditReport
+from metta_core.precepts.models import PreceptType
 
 logger = logging.getLogger("metta.gateway.agent")
 
@@ -356,3 +358,41 @@ class AIAgent:
             ]
 
         return output
+
+    async def audit_canonical_source(
+        self,
+        text: str,
+        precept: Optional[str] = None,
+        source_label: Optional[str] = None,
+        byom_typesafe_key: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Audit a canonical excerpt or website reference against the 4-tier consensus shield.
+
+        Protects against poisoned sutras, malicious defacement, or hostile doctrinal tampering.
+        """
+        # Resolve precept enum if string provided
+        precept_enum = None
+        if precept:
+            for p in PreceptType:
+                if p.value == precept.lower() or p.name.lower() == precept.lower():
+                    precept_enum = p
+                    break
+
+        jev_engine = JevDecisionEngine(api_key=byom_typesafe_key) if byom_typesafe_key else self._engine.jev_engine
+
+        tamper_result = None
+        if jev_engine and jev_engine.is_available:
+            tamper_result = await jev_engine.audit_canonical_integrity(
+                text=text,
+                source_label=source_label or "external_reference",
+            )
+
+        auditor = CanonicalConsensusAuditor(jev_engine=jev_engine)
+        report: ConsensusAuditReport = auditor.audit_text(
+            candidate_text=text,
+            precept=precept_enum,
+            source_label=source_label,
+            jev_tamper_result=tamper_result,
+        )
+
+        return report.model_dump()

@@ -80,6 +80,13 @@ class GuardrailRequest(BaseModel):
     byom_gemini_key: Optional[str] = Field(default=None, description="Optional BYOM Gemini key")
 
 
+class CanonicalVerifyRequest(BaseModel):
+    text: str = Field(..., description="Canonical passage, doctrinal statement, or website text to audit")
+    precept: Optional[str] = Field(default=None, description="Optional target precept ('ahimsa', 'asteya', etc.)")
+    source_url: Optional[str] = Field(default=None, description="Optional origin URL or citation")
+    byom_typesafe_key: Optional[str] = Field(default=None, description="Optional BYOM TypeSafe key")
+
+
 class ProviderSettingsUpdate(BaseModel):
     provider: str = Field(..., description="Target provider ('gemini', 'local_llm', 'open_source')")
     model: Optional[str] = Field(default=None, description="Optional model target")
@@ -306,6 +313,34 @@ async def clear_user_memory_graph(user_id: str):
 async def get_precepts():
     """Return the canonical Five Precepts rules."""
     return ai_agent.get_precepts()
+
+
+@app.get("/api/canonical/immutable")
+async def get_immutable_canonical_bedrock():
+    """Retrieve cryptographically hashed (SHA-256) immutable Pali canon bedrock."""
+    from metta_core.canonical import IMMUTABLE_PALI_CANON
+    return {k.value: v.model_dump() for k, v in IMMUTABLE_PALI_CANON.items()}
+
+
+@app.post("/api/canonical/verify")
+async def verify_canonical_source(req: CanonicalVerifyRequest, request: Request):
+    """Audit canonical scripture or website text against the 4-tier consensus shield.
+
+    Validates against SuttaCentral, Access to Insight, and Wikipedia Theravada consensus.
+    Guarantees fail-closed fallback to Immutable Bedrock if tampering or Ahimsa contradiction occurs.
+    """
+    byom_typesafe = req.byom_typesafe_key or request.headers.get("x-typesafe-api-key")
+
+    try:
+        return await ai_agent.audit_canonical_source(
+            text=req.text,
+            precept=req.precept,
+            source_label=req.source_url,
+            byom_typesafe_key=byom_typesafe,
+        )
+    except Exception as e:
+        logger.error("Error during canonical consensus audit: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/api/graph")

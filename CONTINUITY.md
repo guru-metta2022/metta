@@ -56,17 +56,18 @@
    - [`src/metta_core/providers/antigravity.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/providers/antigravity.py): Native Gemini 3.8 Flash provider via local `agy` binary with effort normalization.
    - [`src/metta_core/providers/gemini_rest.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/providers/gemini_rest.py): Direct Google Gemini REST API client for client-supplied BYOM API keys.
    - [`src/metta_core/storage/`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/storage/): `SQLiteMemoryStore` & `SupabaseMemoryStore` implementing `BaseMemoryStore`.
-   - [`src/metta_core/mcp/server.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/mcp/server.py): Model Context Protocol (MCP) server for external AI agents with dual Stdio (`metta-mcp`) and SSE transports.
+   - [`src/metta_core/canonical/`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/canonical/): Epistemic Tamper-Resistance Shield (`immutable_canon.py`, `consensus.py`) with SHA-256 local bedrock and multi-source triangulation.
+   - [`src/metta_core/mcp/server.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/mcp/server.py): Model Context Protocol (MCP) server for external AI agents with dual Stdio (`metta-mcp`) and SSE transports, plus `audit_canonical_source` and `guardrail_decision` tools.
    - [`src/metta_core/graph/store.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/graph/store.py): Topological Dhamma graph with SuttaCentral & Access to Insight links.
    - [`src/metta_core/meditate/bhavana.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/meditate/bhavana.py): Subtractive unlearning and noise pruning.
 2. **Server Package (`packages/metta-server/`):**
    - [`src/metta_server/rate_limiter.py`](file:///home/guru/Work/metta/packages/metta-server/src/metta_server/rate_limiter.py): Sliding-window rate limiter protecting shared server credits, with complete BYOM bypass.
-   - [`src/metta_server/main.py`](file:///home/guru/Work/metta/packages/metta-server/src/metta_server/main.py): FastAPI bridge enforcing zero provider SDK imports in routes. Endpoints: `/api/health`, `/api/settings`, `/api/rate-limit`, `/api/guardrail`, `/api/interact`, `/api/voice/dictate`, `/api/auth/google`, `/api/user/graph` (GET/DELETE), `/api/precepts`, `/api/graph`, `/api/meditate`.
+   - [`src/metta_server/main.py`](file:///home/guru/Work/metta/packages/metta-server/src/metta_server/main.py): FastAPI bridge enforcing zero provider SDK imports in routes. Endpoints: `/api/health`, `/api/settings`, `/api/rate-limit`, `/api/guardrail`, `/api/canonical/immutable`, `/api/canonical/verify`, `/api/interact`, `/api/voice/dictate`, `/api/auth/google`, `/api/user/graph` (GET/DELETE), `/api/precepts`, `/api/graph`, `/api/meditate`.
 3. **Web Package (`packages/metta-web/`):**
    - React 19 + Tailwind CSS + Lucide Icons.
-   - Zen minimalist canvas, real-time Web Speech API voice dictation, Sati HUD drawer, Dhamma Graph modal, 5 Precepts modal, Identity & Personal Memory Graph drawer, BYOM Settings (⚙️).
+   - Zen minimalist canvas, real-time Web Speech API voice dictation, Sati HUD drawer, Dhamma Graph modal, 5 Precepts modal (with Live Consensus Audit), Identity & Personal Memory Graph drawer, BYOM Settings (⚙️).
 4. **Obsidian Vault (`vault/`):**
-   - Complete architectural records, philosophy treatises, ADRs 001–009, and daily logs.
+   - Complete architectural records, philosophy treatises, ADRs 001–010, and daily logs.
 
 ---
 
@@ -87,13 +88,13 @@ METTA_DEFAULT_MODEL=gemini-3.8-flash-high
 
 ## 🚀 4. How to Resume Work & Run All Verification
 
-### Step 1: Run All Test Suites (32 Tests)
+### Step 1: Run All Test Suites (40 Tests)
 ```bash
-# Test Core Engine (24 passing tests including MCP suite and guardrail)
+# Test Core Engine (30 passing tests including canonical consensus, MCP suite and guardrail)
 cd /home/guru/Work/metta/packages/metta-core
 uv run pytest
 
-# Test FastAPI Server & Endpoints (8 passing tests including guardrail, rate limiter & BYOM bypass)
+# Test FastAPI Server & Endpoints (10 passing tests including canonical verify, guardrail, rate limiter & BYOM bypass)
 cd /home/guru/Work/metta/packages/metta-server
 uv run pytest
 ```

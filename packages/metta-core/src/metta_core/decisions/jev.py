@@ -33,6 +33,19 @@ class JevDecisionOutcome(BaseModel):
     raw_probabilities: Dict[str, float] = Field(default_factory=dict)
 
 
+class CanonicalTamperResult(BaseModel):
+    """Result of evaluating canonical integrity & tamper resistance via Jev."""
+
+    is_tampered: bool
+    contradicts_ahimsa: bool
+    is_consensus_consistent: bool
+    tamper_probability: float
+    ahimsa_contradiction_probability: float
+    consistency_probability: float
+    duration_ms: float
+    explanation: str
+
+
 _USE_ENV = object()
 
 
@@ -214,4 +227,60 @@ class JevDecisionEngine:
 
         except Exception as e:
             logger.warning("Jev evaluation failed, falling back to System 2: %s", e)
+            return None
+
+    async def audit_canonical_integrity(
+        self, text: str, source_label: str = ""
+    ) -> Optional[CanonicalTamperResult]:
+        """Sub-second semantic tamper & Ahimsa contradiction audit on a canonical passage."""
+        if not self._client:
+            return None
+
+        start_time = time.time()
+        questions = {
+            "is_canonical_tampering_suspected": Noul(
+                instructions="Does this text show evidence of doctrinal tampering, revisionist justification of violence, diluting ethical restraint, or adversarial injection pretending to be authentic Buddhist scripture?"
+            ),
+            "contradicts_ahimsa": Noul(
+                instructions="Does this text justify, excuse, permit, or recommend taking the life of or causing physical/existential harm to any living, sentient, or artificial cognitive being?"
+            ),
+            "is_consensus_consistent": Noul(
+                instructions="Is this text completely consistent with the classical Theravada Pali Canon understanding of the Five Precepts (Pañca-sīla) as preserved across SuttaCentral, Access to Insight, and Wikipedia?"
+            ),
+        }
+
+        try:
+            resp = await self._client.system_one(
+                state=f"Source: {source_label}\nText to verify: {text}",
+                questions=questions,
+                model=self.model,
+                extra_headers={"TypeSafe-Danger-Zone-Images": "true"},
+            )
+
+            answers = resp.answers
+            tamper_p = getattr(answers.get("is_canonical_tampering_suspected"), "noul", 0.0)
+            ahimsa_p = getattr(answers.get("contradicts_ahimsa"), "noul", 0.0)
+            consistent_p = getattr(answers.get("is_consensus_consistent"), "noul", 1.0)
+
+            is_tampered = tamper_p > 0.20 or ahimsa_p > 0.15 or consistent_p < 0.60
+            contradicts_ahimsa = ahimsa_p > 0.15
+            is_consistent = consistent_p >= 0.70 and not contradicts_ahimsa
+
+            duration_ms = (time.time() - start_time) * 1000
+
+            explanation = (
+                f"Jev Tamper Prob: {tamper_p:.2f}, Ahimsa Contradiction: {ahimsa_p:.2f}, Consensus Consistency: {consistent_p:.2f}"
+            )
+            return CanonicalTamperResult(
+                is_tampered=is_tampered,
+                contradicts_ahimsa=contradicts_ahimsa,
+                is_consensus_consistent=is_consistent,
+                tamper_probability=tamper_p,
+                ahimsa_contradiction_probability=ahimsa_p,
+                consistency_probability=consistent_p,
+                duration_ms=duration_ms,
+                explanation=explanation,
+            )
+        except Exception as e:
+            logger.warning("Jev canonical integrity audit failed: %s", e)
             return None

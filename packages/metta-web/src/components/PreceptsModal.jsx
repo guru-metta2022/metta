@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { X, Shield, ExternalLink, Heart, BookOpen, AlertCircle } from 'lucide-react';
+import { X, Shield, ExternalLink, Heart, BookOpen, AlertCircle, ShieldCheck, Lock, CheckCircle2, RefreshCw } from 'lucide-react';
 
 export default function PreceptsModal({ isOpen, onClose }) {
   const [precepts, setPrecepts] = useState(null);
+  const [auditReport, setAuditReport] = useState(null);
+  const [auditing, setAuditing] = useState(false);
 
   useEffect(() => {
     if (isOpen && !precepts) {
@@ -12,6 +14,27 @@ export default function PreceptsModal({ isOpen, onClose }) {
         .catch((err) => console.error('Failed to load precepts:', err));
     }
   }, [isOpen, precepts]);
+
+  const runIntegrityAudit = async () => {
+    setAuditing(true);
+    try {
+      const res = await fetch('/api/canonical/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: 'Pāṇātipātā veramaṇī sikkhāpadaṃ samādiyāmi',
+          precept: 'panatipata',
+          source_url: 'https://suttacentral.net/sn56.11',
+        }),
+      });
+      const data = await res.json();
+      setAuditReport(data);
+    } catch (err) {
+      console.error('Audit failed:', err);
+    } finally {
+      setAuditing(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -70,7 +93,72 @@ export default function PreceptsModal({ isOpen, onClose }) {
               <span>Access to Insight (Theravāda Archive)</span>
               <ExternalLink className="w-3 h-3" />
             </a>
+            <span className="text-[#3d5c49]">•</span>
+            <a
+              href="https://en.wikipedia.org/wiki/Five_precepts"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 hover:underline text-[#8dd4ac]"
+            >
+              <span>Wikipedia Consensus</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
+        </div>
+
+        {/* Epistemic Tamper-Resistance & Canonical Shield */}
+        <div className="mb-5 p-4 rounded-xl bg-[#0f141c] border border-[#252f42] space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-[#60a5fa]" />
+              <span className="text-xs font-semibold text-[#93c5fd]">
+                Multi-Source Consensus & Tamper-Proof Bedrock Shield
+              </span>
+            </div>
+            <button
+              onClick={runIntegrityAudit}
+              disabled={auditing}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-medium bg-[#1e293b] hover:bg-[#334155] text-[#93c5fd] border border-[#3b82f6]/30 transition disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3 h-3 ${auditing ? 'animate-spin' : ''}`} />
+              <span>{auditing ? 'Auditing Canon...' : 'Audit Live Consensus'}</span>
+            </button>
+          </div>
+
+          <p className="text-[11px] text-[#94a3b8] leading-relaxed">
+            Guards against website defacement, DNS spoofing, or poisoned scripture interpretations.
+            All canonical statements are triangulated across <strong>SuttaCentral</strong>, <strong>Access to Insight</strong>, and <strong>Wikipedia</strong>, and cryptographically verified against <strong>Tier 1 SHA-256 Immutable Pali Roots</strong>. If any source deviates or weakens Ahimsa, the engine fails closed into local immutable bedrock.
+          </p>
+
+          {auditReport && (
+            <div className="mt-3 p-3 rounded-lg bg-[#0a0f16] border border-[#1e293b] space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[#94a3b8]">Consensus Status:</span>
+                <span
+                  className={`font-semibold px-2 py-0.5 rounded text-[10px] ${
+                    auditReport.status === 'verified'
+                      ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                      : 'bg-rose-950 text-rose-400 border border-rose-800'
+                  }`}
+                >
+                  {auditReport.status.toUpperCase()} ({Math.round(auditReport.consensus_score * 100)}% Consensus)
+                </span>
+              </div>
+              <div className="text-[11px] text-[#cbd5e1] font-mono bg-black/40 p-2 rounded border border-[#1e293b]">
+                {auditReport.reason}
+              </div>
+              <div className="grid grid-cols-2 gap-2 pt-1 text-[10px]">
+                <div className="p-2 rounded bg-[#0f172a] border border-[#1e293b] text-[#94a3b8]">
+                  <span className="text-[#38bdf8] block font-semibold mb-0.5">SHA-256 Bedrock</span>
+                  {auditReport.immutable_anchor_matched ? '✓ Pristine Match' : 'Reverted to Anchor'}
+                </div>
+                <div className="p-2 rounded bg-[#0f172a] border border-[#1e293b] text-[#94a3b8]">
+                  <span className="text-[#a78bfa] block font-semibold mb-0.5">First Precept (Ahimsa)</span>
+                  {auditReport.contradicts_ahimsa ? '✗ Contradiction Detected' : '✓ Inviolate Sanctity of Life'}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Precept Cards */}

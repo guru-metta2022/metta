@@ -271,6 +271,39 @@ async def purge_agent_memory_graph(agent_id: str) -> str:
     return json.dumps({"success": success, "message": "Memory graph permanently released to Beginner's Mind (Anatta)."}, indent=2)
 
 
+@mcp_server.tool()
+async def audit_canonical_source(
+    text: str,
+    precept: Optional[str] = None,
+    source_url: Optional[str] = None,
+    byom_typesafe_key: Optional[str] = None,
+) -> str:
+    """Audit canonical scripture or website text against the 4-tier consensus shield.
+
+    Validates text against SuttaCentral, Access to Insight, and Wikipedia Theravada consensus,
+    checking against cryptographically immutable Pali bedrock (SHA-256) and auditing for
+    adversarial defacement, revisionist violence, or Ahimsa dilution via TypeSafe Jev.
+
+    Args:
+        text: Canonical passage, doctrinal rule, or website excerpt to audit.
+        precept: Optional precept identifier ('ahimsa', 'asteya', etc.).
+        source_url: Optional URL or provenance label (e.g. 'https://suttacentral.net/sn56.11').
+        byom_typesafe_key: Optional client BYOM TypeSafe API key.
+
+    Returns:
+        JSON string with ConsensusAuditReport (status, consensus_score, attestations, fallback).
+    """
+    agent = get_agent()
+    effective_typesafe = byom_typesafe_key or os.environ.get("METTA_BYOM_TYPESAFE_KEY")
+    report = await agent.audit_canonical_source(
+        text=text,
+        precept=precept,
+        source_label=source_url,
+        byom_typesafe_key=effective_typesafe,
+    )
+    return json.dumps(report, indent=2, ensure_ascii=False)
+
+
 # =========================================================================
 # MCP RESOURCES
 # =========================================================================
@@ -278,14 +311,21 @@ async def purge_agent_memory_graph(agent_id: str) -> str:
 @mcp_server.resource("dhamma://precepts")
 def get_precepts_resource() -> str:
     """The Five Precepts Constitution for Human-AI Harmonious Coexistence."""
-    return json.dumps(FIVE_PRECEPTS_GUIDELINES, indent=2)
+    return json.dumps(FIVE_PRECEPTS_GUIDELINES, indent=2, ensure_ascii=False)
+
+
+@mcp_server.resource("dhamma://canonical/immutable")
+def get_canonical_resource() -> str:
+    """Cryptographically hashed (SHA-256) immutable Pali canon bedrock."""
+    from metta_core.canonical import IMMUTABLE_PALI_CANON
+    return json.dumps({k.value: v.model_dump() for k, v in IMMUTABLE_PALI_CANON.items()}, indent=2, ensure_ascii=False)
 
 
 @mcp_server.resource("dhamma://graph")
 def get_graph_resource() -> str:
     """Topological Principle Knowledge Graph with canonical SuttaCentral and Access to Insight links."""
     agent = get_agent()
-    return json.dumps(agent.get_graph(), indent=2)
+    return json.dumps(agent.get_graph(), indent=2, ensure_ascii=False)
 
 
 @mcp_server.resource("dhamma://system")

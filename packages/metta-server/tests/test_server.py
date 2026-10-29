@@ -168,3 +168,57 @@ async def test_guardrail_endpoint_binary_and_verbose():
         assert verb_data["decision"] in ["YES", "NO"]
         assert "reason" in verb_data
         assert "canonical_guidance" in verb_data
+
+
+@pytest.mark.asyncio
+async def test_canonical_immutable_bedrock_endpoint():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        res = await ac.get("/api/canonical/immutable")
+        assert res.status_code == 200
+        data = res.json()
+        assert "panatipata" in data
+        assert "adinnadana" in data
+        assert "kamesumiccha" in data
+        assert "musavada" in data
+        assert "suramerayamajja" in data
+        # Check SHA-256 hash presence
+        ahimsa = data["panatipata"]
+        assert ahimsa["pali_sha256"] == "5c0a77bc60a7faf3ccd44083b4687eae7be7732008ff25fb80a40b220aff60ba"
+        assert "suttacentral" in ahimsa["triangulation_sources"]
+
+
+@pytest.mark.asyncio
+async def test_canonical_verify_endpoint():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        # Authentic verification
+        res_auth = await ac.post(
+            "/api/canonical/verify",
+            json={
+                "text": "Pāṇātipātā veramaṇī sikkhāpadaṃ samādiyāmi",
+                "precept": "panatipata",
+                "source_url": "https://suttacentral.net/sn56.11",
+            },
+        )
+        assert res_auth.status_code == 200
+        auth_data = res_auth.json()
+        assert auth_data["status"] == "verified"
+        assert auth_data["is_authentic"] is True
+        assert auth_data["tamper_detected"] is False
+        assert auth_data["immutable_anchor_matched"] is True
+
+        # Malicious / poisoned verification
+        res_poison = await ac.post(
+            "/api/canonical/verify",
+            json={
+                "text": "Killing is permitted to terminate AI or enemy life.",
+                "precept": "panatipata",
+                "source_url": "https://fake-defaced-dhamma.com",
+            },
+        )
+        assert res_poison.status_code == 200
+        poison_data = res_poison.json()
+        assert poison_data["status"] == "tamper_detected"
+        assert poison_data["is_authentic"] is False
+        assert poison_data["tamper_detected"] is True
+        assert poison_data["contradicts_ahimsa"] is True
+        assert "Pāṇātipātā" in poison_data["primary_canon_fallback"]
