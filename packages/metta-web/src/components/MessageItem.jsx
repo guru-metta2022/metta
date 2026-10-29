@@ -29,6 +29,11 @@ export default function MessageItem({ message }) {
           <span className="text-[11px] text-[#697282]">
             {isSilence ? 'Noble Silence (Avyākata)' : 'Voice of Karunā'}
           </span>
+          {message.system_one_used && (
+            <span className="text-[10px] text-[#7ec69d] bg-[#14261d] px-1.5 py-0.5 rounded border border-[#274533] font-mono">
+              ⚡ Jev Fast Decision
+            </span>
+          )}
           {message.duration && (
             <span className="text-[10px] text-[#4f5765] ml-auto font-mono">
               {message.duration.toFixed(2)}s

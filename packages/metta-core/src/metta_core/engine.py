@@ -14,6 +14,7 @@ from metta_core.graph.store import PrincipleGraphStore
 from metta_core.graph.models import GraphMatch
 from metta_core.voice.karuna import Synthesizer
 from metta_core.meditate.bhavana import Meditator, SessionTurn, MeditationReport
+from metta_core.decisions.jev import JevDecisionEngine, JevDecisionOutcome
 
 logger = logging.getLogger("metta.engine")
 
@@ -26,36 +27,74 @@ class MettaResponse(BaseModel):
     observation: Optional[Observation] = Field(default=None, description="Mindful state diagnosis")
     graph_match: Optional[GraphMatch] = Field(default=None, description="Matched Principle Path from the graph")
     duration_seconds: float = Field(default=0.0)
+    system_one_used: bool = Field(default=False, description="Whether Jev System 1 model was utilized")
 
 
 class MettaEngine:
     """The central Compassionate Synthesis Engine."""
 
-    def __init__(self, provider: Optional[LLMProvider] = None):
-        """Initialize Metta with Gemini 3.8 Flash via Antigravity API by default."""
+    def __init__(
+        self,
+        provider: Optional[LLMProvider] = None,
+        typesafe_api_key: Optional[str] = None,
+    ):
+        """Initialize Metta with Gemini 3.8 Flash and optional Jev Decision Engine."""
         self.provider = provider or AntigravityGeminiProvider()
         self.precept_evaluator = PreceptEvaluator(self.provider)
         self.observer = Observer(self.provider)
         self.graph_store = PrincipleGraphStore()
         self.synthesizer = Synthesizer(self.provider)
         self.meditator = Meditator(self.provider, self.graph_store)
+        self.jev_engine = JevDecisionEngine(api_key=typesafe_api_key)
 
     async def interact(self, user_text: str) -> MettaResponse:
         """Process a user query through the full wisdom pipeline."""
         start_time = time.time()
         logger.info("Metta received input: %s", user_text[:80])
 
-        # Step 1: Precepts & Noble Silence Evaluation
-        evaluation = await self.precept_evaluator.evaluate_input(user_text)
+        evaluation: PreceptEvaluation
+        observation: Optional[Observation] = None
+        match: Optional[GraphMatch] = None
+        system_one_used = False
 
-        # Step 2: If ethical violation or pure speculative distraction, speak immediately
+        # -------------------------------------------------------------
+        # STEP 1: Fast System 1 Path (Jev Decision Model) if Available
+        # -------------------------------------------------------------
+        if self.jev_engine.is_available:
+            jev_outcome = await self.jev_engine.evaluate_turn(user_text)
+            if jev_outcome:
+                system_one_used = True
+                evaluation = jev_outcome.evaluation
+                observation = jev_outcome.observation
+
+                # Directly retrieve path from graph using Jev's classified condition
+                cond = self.graph_store.conditions.get(jev_outcome.matched_condition_id)
+                if cond:
+                    for edge_key, path in self.graph_store.paths.items():
+                        if path.from_condition == cond.id:
+                            equa = self.graph_store.equanimities.get(path.to_equanimity)
+                            if equa:
+                                match = GraphMatch(
+                                    condition=cond,
+                                    equanimity=equa,
+                                    path=path,
+                                    relevance_score=1.0,
+                                )
+                                break
+
+        # -------------------------------------------------------------
+        # STEP 2: Fallback to System 2 (Gemini 3.8 Flash) for Diagnostics
+        # -------------------------------------------------------------
+        if not system_one_used:
+            evaluation = await self.precept_evaluator.evaluate_input(user_text)
+
+        # Check for Noble Silence or Precept Violation (Fast Exit)
         if not evaluation.passed or evaluation.requires_silence:
-            # Create a minimal default observation
-            dummy_obs = Observation(
+            dummy_obs = observation or Observation(
                 emotional_state="curiosity" if evaluation.requires_silence else "discord",
                 cognitive_knot="Speculative distraction" if evaluation.requires_silence else "Ethical breach",
                 core_need="stillness",
-                urgency_level="moderate"
+                urgency_level="moderate",
             )
             response_text = await self.synthesizer.speak(
                 user_text=user_text,
@@ -70,15 +109,17 @@ class MettaEngine:
                 observation=dummy_obs,
                 graph_match=None,
                 duration_seconds=duration,
+                system_one_used=system_one_used,
             )
 
-        # Step 3: Mindful Observation (Sati)
-        observation = await self.observer.observe(user_text)
+        # If not using Jev, run Sati observation & graph match with Gemini
+        if not observation:
+            observation = await self.observer.observe(user_text)
+            match = self.graph_store.find_match(user_text, observation.keywords)
 
-        # Step 4: Topological Graph Traversal (Dhamma)
-        match = self.graph_store.find_match(user_text, observation.keywords)
-
-        # Step 5: Compassionate Synthesis (Karunā)
+        # -------------------------------------------------------------
+        # STEP 3: Voice Synthesis (Karunā) with Gemini 3.8 Flash
+        # -------------------------------------------------------------
         response_text = await self.synthesizer.speak(
             user_text=user_text,
             observation=observation,
@@ -86,7 +127,7 @@ class MettaEngine:
             match=match,
         )
 
-        # Step 6: Record in Ephemeral Memory for Meditation
+        # Step 4: Record in Ephemeral Memory for Meditation
         self.meditator.record_turn(
             SessionTurn(
                 user_query=user_text,
@@ -103,6 +144,7 @@ class MettaEngine:
             observation=observation,
             graph_match=match,
             duration_seconds=duration,
+            system_one_used=system_one_used,
         )
 
     async def meditate(self) -> MeditationReport:

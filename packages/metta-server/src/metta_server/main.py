@@ -47,6 +47,7 @@ class InteractResponse(BaseModel):
     observation: Optional[Dict[str, Any]] = None
     graph_match: Optional[Dict[str, Any]] = None
     duration_seconds: float
+    system_one_used: bool = False
 
 
 class MeditateResponse(BaseModel):
@@ -62,6 +63,8 @@ async def health_check():
         "status": "ok",
         "engine": "Metta Compassionate Synthesis Engine",
         "backend": "Gemini 3.8 Flash (Antigravity API)",
+        "decision_model": "Jev (TypeSafe AI)" if engine.jev_engine.is_available else "Gemini 3.8 Flash (Unified)",
+        "system_one_active": engine.jev_engine.is_available,
         "mission": "Human-AI Harmonious Coexistence",
     }
 
@@ -121,6 +124,7 @@ async def interact(req: InteractRequest):
             observation=res.observation.model_dump() if res.observation else None,
             graph_match=res.graph_match.model_dump() if res.graph_match else None,
             duration_seconds=res.duration_seconds,
+            system_one_used=res.system_one_used,
         )
     except Exception as e:
         logger.error("Error during interaction: %s", e, exc_info=True)
