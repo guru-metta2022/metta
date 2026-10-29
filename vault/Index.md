@@ -16,6 +16,7 @@
 ### ⚙️ System Architecture
 * [[System-Overview]]: The 5-Layer Cognitive Architecture (*Sati, Sīla, Dhamma, Karunā, Bhāvanā*).
 * [[MCP-Connector-For-External-Agents]]: Model Context Protocol (MCP) server for external AI agents (Claude, Cursor, Antigravity) with dual Stdio & SSE transports.
+* [[Fast-Compassionate-Guardrail-Oracle]]: Fast sub-second ethical gatekeeper evaluating decisions through Buddha's mind (YES/NO binary & verbose modes).
 * [[Rate-Limiting-And-BYOM-Sovereignty]]: Precautionary sliding-window rate limiting for shared server quota with unlimited BYOM bypass.
 * [[Dual-Mode-Identity-Guest-Vs-Authenticated]]: Dual persona modes—Guest (Shoshin/Anatta ephemeral) vs. Authenticated (Sovereign Personal Graph).
 * [[Personal-Memory-Graph-Supabase]]: Topological memory graph implementation with SQLite local storage and Supabase PostgreSQL cloud adapter.
@@ -34,6 +35,7 @@
 * [[ADR-006-Dual-Identity-And-Personal-Memory-Graph]]: Sovereign dual identity modes with on-demand personal memory graph retrieval and purge.
 * [[ADR-007-Model-Context-Protocol-MCP-Connector]]: Standard MCP 2.x server with dual stdio/SSE transports for external AI agents.
 * [[ADR-008-Rate-Limiting-And-BYOM-Sovereignty]]: Sliding-window rate limiter protecting shared server credits with complete BYOM bypass.
+* [[ADR-009-Fast-Compassionate-Guardrail-Oracle]]: Fast sub-second ethical gatekeeper evaluating decisions through Buddha's mind (YES/NO binary & verbose modes).
 
 ### 🔄 Continuity & Resumption
 * [[Session-Handoff-And-Credit-Resumption]]: Zero-loss state guide for resuming work across conversations, context resets, or refreshed API credit cycles.

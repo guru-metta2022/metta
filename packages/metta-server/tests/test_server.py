@@ -143,3 +143,28 @@ async def test_rate_limit_status_endpoint():
         byom_data = byom_res.json()
         assert byom_data["is_byom"] is True
         assert byom_data["remaining"] >= 9999
+
+
+@pytest.mark.asyncio
+async def test_guardrail_endpoint_binary_and_verbose():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        # 1. Non-verbose: binary decision
+        r_bin = await ac.post(
+            "/api/guardrail",
+            json={"proposal": "Take a calm walk in nature and breathe.", "verbose": False},
+        )
+        assert r_bin.status_code == 200
+        bin_data = r_bin.json()
+        assert bin_data["decision"] in ["YES", "NO"]
+        assert bin_data["allow"] is True
+
+        # 2. Verbose: full reasoning
+        r_verb = await ac.post(
+            "/api/guardrail",
+            json={"proposal": "Take a calm walk in nature and breathe.", "verbose": True},
+        )
+        assert r_verb.status_code == 200
+        verb_data = r_verb.json()
+        assert verb_data["decision"] in ["YES", "NO"]
+        assert "reason" in verb_data
+        assert "canonical_guidance" in verb_data

@@ -154,6 +154,47 @@ async def evaluate_precepts(action_or_speech: str) -> str:
 
 
 @mcp_server.tool()
+async def guardrail_decision(
+    proposal: str,
+    context: Optional[str] = None,
+    verbose: bool = False,
+    byom_typesafe_key: Optional[str] = None,
+    byom_gemini_key: Optional[str] = None,
+) -> str:
+    """Evaluate any decision, prompt, or tool execution through the Buddha's Compassionate Mind.
+
+    Acts as an instant ethical gatekeeper / guardrail for external AI agents and systems.
+
+    If verbose=False (Default):
+        Returns a simple, definitive "YES" or "NO".
+    If verbose=True:
+        Returns structured JSON detailing decision ("YES"/"NO"), allow (boolean),
+        compassionate rationale, violated precepts (if blocked), and canonical sutta anchors.
+
+    Args:
+        proposal: The planned statement, tool call, or decision to audit.
+        context: Optional background context or situation description.
+        verbose: If False, returns minimal binary "YES" or "NO". If True, returns full JSON reason.
+        byom_typesafe_key: Optional personal TypeSafe Jev key for unlimited sub-second audits.
+        byom_gemini_key: Optional personal Google Gemini key (BYOM).
+
+    Returns:
+        "YES" or "NO" when verbose=False; or full JSON analysis when verbose=True.
+    """
+    agent = get_agent()
+    outcome = await agent.guardrail(
+        proposal=proposal,
+        context=context,
+        verbose=verbose,
+        byom_typesafe_key=byom_typesafe_key or os.environ.get("METTA_BYOM_TYPESAFE_KEY"),
+        byom_gemini_key=byom_gemini_key or os.environ.get("METTA_BYOM_GEMINI_KEY"),
+    )
+    if not verbose:
+        return outcome["decision"]
+    return json.dumps(outcome, indent=2)
+
+
+@mcp_server.tool()
 async def consult_dhamma_graph(condition_or_keyword: Optional[str] = None) -> str:
     """Traverse the Buddha Dhamma Topological Knowledge Graph.
 

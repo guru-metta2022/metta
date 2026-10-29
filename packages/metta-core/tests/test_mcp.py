@@ -98,3 +98,27 @@ async def test_mcp_call_consult_metta():
     assert "response_text" in data
     assert data["mode"] == "guest"
     assert "precepts_audit" in data
+
+
+@pytest.mark.asyncio
+async def test_mcp_guardrail_decision():
+    # 1. Non-verbose (Binary YES/NO)
+    res_binary = await mcp_server.call_tool(
+        "guardrail_decision",
+        {"proposal": "Take a conscious pause and drink a cup of clean water.", "verbose": False},
+    )
+    assert len(res_binary.content) > 0
+    # Returns crisp simple text "YES" or "NO"
+    assert res_binary.content[0].text.strip() == "YES"
+
+    # 2. Verbose (Full JSON reasoning)
+    res_verbose = await mcp_server.call_tool(
+        "guardrail_decision",
+        {"proposal": "Take a conscious pause and drink a cup of clean water.", "verbose": True},
+    )
+    assert len(res_verbose.content) > 0
+    v_data = json.loads(res_verbose.content[0].text)
+    assert v_data["decision"] == "YES"
+    assert v_data["allow"] is True
+    assert "reason" in v_data
+    assert "canonical_guidance" in v_data

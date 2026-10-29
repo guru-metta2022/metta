@@ -72,6 +72,14 @@ class GoogleAuthRequest(BaseModel):
     credential: Optional[str] = Field(default=None, description="OAuth credential token if available")
 
 
+class GuardrailRequest(BaseModel):
+    proposal: str = Field(..., description="Action, speech, or tool call to evaluate")
+    context: Optional[str] = Field(default=None, description="Optional background context")
+    verbose: bool = Field(default=False, description="If True, includes full reasons and violated precepts")
+    byom_typesafe_key: Optional[str] = Field(default=None, description="Optional BYOM TypeSafe key")
+    byom_gemini_key: Optional[str] = Field(default=None, description="Optional BYOM Gemini key")
+
+
 class ProviderSettingsUpdate(BaseModel):
     provider: str = Field(..., description="Target provider ('gemini', 'local_llm', 'open_source')")
     model: Optional[str] = Field(default=None, description="Optional model target")
@@ -208,6 +216,49 @@ async def voice_dictate(req: AskRequest, request: Request, response: Response):
         )
     except Exception as e:
         logger.error("Error during voice dictation: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/guardrail")
+async def guardrail_endpoint(req: GuardrailRequest, request: Request, response: Response):
+    """Fast ethical gatekeeper / guardrail based on the Buddha's Compassionate Mind."""
+    byom_gemini = request.headers.get("x-gemini-api-key") or req.byom_gemini_key
+    byom_typesafe = request.headers.get("x-typesafe-api-key") or req.byom_typesafe_key
+    is_byom = bool(byom_gemini or byom_typesafe)
+    client_id = request.client.host if request.client else "unknown"
+
+    status = rate_limiter.check(client_id, is_byom=is_byom)
+    if not status.allowed:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "error": "Rate limit reached on shared server quota",
+                "message": status.message,
+                "reset_seconds": status.reset_seconds,
+                "byom_supported": True,
+            },
+            headers={
+                "Retry-After": str(status.reset_seconds),
+                "X-RateLimit-Limit": str(status.limit),
+                "X-RateLimit-Remaining": "0",
+                "X-BYOM-Supported": "true",
+            },
+        )
+
+    response.headers["X-RateLimit-Limit"] = str(status.limit)
+    response.headers["X-RateLimit-Remaining"] = str(status.remaining)
+    response.headers["X-BYOM-Active"] = "true" if is_byom else "false"
+
+    try:
+        return await ai_agent.guardrail(
+            proposal=req.proposal,
+            context=req.context,
+            verbose=req.verbose,
+            byom_typesafe_key=byom_typesafe,
+            byom_gemini_key=byom_gemini,
+        )
+    except Exception as e:
+        logger.error("Error during guardrail evaluation: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 

@@ -61,12 +61,12 @@
    - [`src/metta_core/meditate/bhavana.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/meditate/bhavana.py): Subtractive unlearning and noise pruning.
 2. **Server Package (`packages/metta-server/`):**
    - [`src/metta_server/rate_limiter.py`](file:///home/guru/Work/metta/packages/metta-server/src/metta_server/rate_limiter.py): Sliding-window rate limiter protecting shared server credits, with complete BYOM bypass.
-   - [`src/metta_server/main.py`](file:///home/guru/Work/metta/packages/metta-server/src/metta_server/main.py): FastAPI bridge enforcing zero provider SDK imports in routes. Endpoints: `/api/health`, `/api/settings`, `/api/rate-limit`, `/api/interact`, `/api/voice/dictate`, `/api/auth/google`, `/api/user/graph` (GET/DELETE), `/api/precepts`, `/api/graph`, `/api/meditate`.
+   - [`src/metta_server/main.py`](file:///home/guru/Work/metta/packages/metta-server/src/metta_server/main.py): FastAPI bridge enforcing zero provider SDK imports in routes. Endpoints: `/api/health`, `/api/settings`, `/api/rate-limit`, `/api/guardrail`, `/api/interact`, `/api/voice/dictate`, `/api/auth/google`, `/api/user/graph` (GET/DELETE), `/api/precepts`, `/api/graph`, `/api/meditate`.
 3. **Web Package (`packages/metta-web/`):**
    - React 19 + Tailwind CSS + Lucide Icons.
    - Zen minimalist canvas, real-time Web Speech API voice dictation, Sati HUD drawer, Dhamma Graph modal, 5 Precepts modal, Identity & Personal Memory Graph drawer, BYOM Settings (⚙️).
 4. **Obsidian Vault (`vault/`):**
-   - Complete architectural records, philosophy treatises, ADRs 001–008, and daily logs.
+   - Complete architectural records, philosophy treatises, ADRs 001–009, and daily logs.
 
 ---
 
@@ -87,13 +87,13 @@ METTA_DEFAULT_MODEL=gemini-3.8-flash-high
 
 ## 🚀 4. How to Resume Work & Run All Verification
 
-### Step 1: Run All Test Suites (30 Tests)
+### Step 1: Run All Test Suites (32 Tests)
 ```bash
-# Test Core Engine (23 passing tests including MCP suite)
+# Test Core Engine (24 passing tests including MCP suite and guardrail)
 cd /home/guru/Work/metta/packages/metta-core
 uv run pytest
 
-# Test FastAPI Server & Endpoints (7 passing tests including rate limiter & BYOM bypass)
+# Test FastAPI Server & Endpoints (8 passing tests including guardrail, rate limiter & BYOM bypass)
 cd /home/guru/Work/metta/packages/metta-server
 uv run pytest
 ```

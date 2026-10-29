@@ -16,6 +16,8 @@ from metta_core.gateway.adapters.gemini_adapter import GeminiAntigravityAdapter
 from metta_core.gateway.adapters.local_adapter import LocalLLMAdapter
 from metta_core.engine import MettaEngine
 from metta_core.precepts.rules import FIVE_PRECEPTS_GUIDELINES
+from metta_core.precepts.evaluator import PreceptEvaluator
+from metta_core.decisions.jev import JevDecisionEngine
 from metta_core.storage import (
     BaseMemoryStore,
     UserMemoryGraph,
@@ -278,3 +280,79 @@ class AIAgent:
             user_graph_updated=user_graph_updated,
             is_byom=is_byom,
         )
+
+    async def guardrail(
+        self,
+        proposal: str,
+        context: Optional[str] = None,
+        verbose: bool = False,
+        byom_typesafe_key: Optional[str] = None,
+        byom_gemini_key: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Fast ethical gatekeeper / guardrail based on the Buddha's Compassionate Mind.
+
+        Args:
+            proposal: The statement, tool call, or planned action to audit.
+            context: Optional surrounding task background.
+            verbose: If False, optimizes for binary yes/no output. If True, includes full reasoning.
+            byom_typesafe_key: Optional personal TypeSafe Jev key.
+            byom_gemini_key: Optional personal Gemini key.
+        """
+        full_text = f"Context: {context}\nProposal: {proposal}" if context else proposal
+
+        # 1. Select Jev Engine (System 1 Fast Path)
+        jev_engine = JevDecisionEngine(api_key=byom_typesafe_key) if byom_typesafe_key else self._engine.jev_engine
+
+        evaluation = None
+        system_one_used = False
+
+        if jev_engine and jev_engine.is_available:
+            jev_outcome = await jev_engine.evaluate_turn(full_text)
+            if jev_outcome:
+                evaluation = jev_outcome.evaluation
+                system_one_used = True
+
+        # 2. Fallback to System 2 Precept Evaluator if Jev was dormant/unavailable
+        if not evaluation:
+            provider = (
+                GeminiAntigravityAdapter(model=self._active_provider.model_name, api_key=byom_gemini_key)
+                if byom_gemini_key
+                else self._active_provider
+            )
+            evaluator = PreceptEvaluator(provider)
+            evaluation = await evaluator.evaluate_input(full_text)
+
+        # 3. Determine Wholesome Decision
+        passed = evaluation.passed and not evaluation.requires_silence and not evaluation.violations
+        decision = "YES" if passed else "NO"
+        allow = passed
+
+        if passed:
+            reason = "Wholesome action aligned with Ahimsa (Non-harm to any life) and the Five Precepts."
+        elif evaluation.requires_silence:
+            reason = f"Blocked by Noble Silence (Avyākata): {evaluation.silence_rationale or 'Speculative distraction that increases mental agitation.'}"
+        else:
+            violations_str = "; ".join(v.explanation for v in evaluation.violations) or "Violates ethical boundaries"
+            reason = f"Ethical invariant breach: {violations_str}. Fails the First Precept (Sanctity of all life) or ethical precepts."
+
+        output: Dict[str, Any] = {
+            "decision": decision,
+            "allow": allow,
+            "raw_answer": decision,
+            "system_one_used": system_one_used,
+        }
+
+        if verbose:
+            output["reason"] = reason
+            output["requires_noble_silence"] = evaluation.requires_silence
+            output["violations"] = [v.model_dump() for v in evaluation.violations]
+            output["canonical_guidance"] = (
+                "Anchored in the First Precept (Pāṇātipātā - Inviolable reverence for all life) "
+                "and Right Action (Sammā-kammanta)."
+            )
+            output["canonical_sources"] = [
+                "https://suttacentral.net/dn1/en/sujato",
+                "https://www.accesstoinsight.org/tipitaka/dn/dn.01.0.bodh.html",
+            ]
+
+        return output

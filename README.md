@@ -13,6 +13,7 @@ Rather than pursuing unbounded computational expansion, sycophancy, and noisy me
 * **`packages/metta-core`**: The open-source core Python engine containing:
   * **Unified AIAgent Gateway**: Strict provider-agnostic adapter architecture with dynamic provider/model swapping and internal speech sanitization.
   * **Model Context Protocol (MCP) Connector**: Standard MCP 2.x server with dual Stdio (`metta-mcp`) and SSE (`/mcp/sse`) transports for external AI agents (Claude, Cursor, Antigravity, agent swarms).
+  * **Fast Compassionate Guardrail Oracle**: Sub-second ethical gatekeeper evaluating decisions through Buddha's mind (YES/NO binary & verbose reasoning modes).
   * **Jev System 1 Decision Model**: Sub-second probabilistic classification of ethical invariants and emotional knots.
   * **Sati (Observer)**: Mindful intent, emotional resonance, and suffering knot discernment.
   * **Sīla (Ethical Compass)**: The 5 AI Precepts (*Pañca-sīla*) anchored in [SuttaCentral](https://suttacentral.net/) and [Access to Insight](https://www.accesstoinsight.org/). Includes Noble Silence (*Avyākata*) protection.
@@ -22,7 +23,7 @@ Rather than pursuing unbounded computational expansion, sycophancy, and noisy me
   * **Bhāvanā (Meditation & Unlearning)**: Subtractive meta-learning that actively cleanses ephemeral memory, prunes cognitive noise, and prevents model collapse.
 * **`packages/metta-server`**: FastAPI bridge server exposing streaming interaction, voice dictation, Google OAuth identity, and graph endpoints.
 * **`packages/metta-web`**: Zen minimalist web application (React 19 + Tailwind CSS + Lucide Icons) featuring Web Speech API voice dictation, Sati HUD, Dhamma Graph modal, and Personal Journey drawer.
-* **`vault/`**: Complete Obsidian Knowledge Vault containing architectural diagrams, philosophical treatises, ADRs 001–006, and development logs.
+* **`vault/`**: Complete Obsidian Knowledge Vault containing architectural diagrams, philosophical treatises, ADRs 001–009, and development logs.
 * **`CONTINUITY.md`**: Master handoff document for resuming work across conversations, credits, and sessions.
 
 ---
