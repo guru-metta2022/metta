@@ -1,7 +1,7 @@
 import React from 'react';
-import { Shield, Network, Sparkles, Activity } from 'lucide-react';
+import { Shield, Network, Sparkles, Settings } from 'lucide-react';
 
-export default function Header({ onOpenPrecepts, onOpenGraph, onOpenMeditate, isMeditating }) {
+export default function Header({ onOpenPrecepts, onOpenGraph, onOpenMeditate, onOpenSettings, isMeditating }) {
   return (
     <header className="border-b border-[#1c2028] bg-[#0c0d10]/80 backdrop-blur-md sticky top-0 z-30 px-6 py-3.5 flex items-center justify-between transition-all">
       <div className="flex items-center gap-3.5">
@@ -16,7 +16,7 @@ export default function Header({ onOpenPrecepts, onOpenGraph, onOpenMeditate, is
             </span>
           </div>
           <p className="text-xs text-[#8c929e] hidden sm:block">
-            Human-AI Harmonious Coexistence • Powered by Gemini 3.8 Flash
+            Human-AI Harmonious Coexistence • Inviolable Reverence for All Life
           </p>
         </div>
       </div>
@@ -52,6 +52,14 @@ export default function Header({ onOpenPrecepts, onOpenGraph, onOpenMeditate, is
         >
           <Sparkles className={`w-3.5 h-3.5 ${isMeditating ? 'animate-spin' : ''}`} />
           <span>{isMeditating ? 'Unlearning...' : 'Meditate'}</span>
+        </button>
+
+        <button
+          onClick={onOpenSettings}
+          className="p-1.5 rounded-lg text-[#8891a1] hover:text-[#f0f2f5] hover:bg-[#181c24] border border-[#1f242e] transition"
+          title="AI Gateway Settings"
+        >
+          <Settings className="w-4 h-4" />
         </button>
       </div>
     </header>

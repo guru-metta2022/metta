@@ -15,6 +15,8 @@
 
 ### ⚙️ System Architecture
 * [[System-Overview]]: The 5-Layer Cognitive Architecture (*Sati, Sīla, Dhamma, Karunā, Bhāvanā*).
+* [[Unified-Interface-Adapter-Pattern]]: Absolute provider abstraction and dynamic driver swapping.
+* [[Voice-Dictation-Gateway]]: Cross-platform streaming speech intake and diagnostic sanitization.
 * [[Jev-System-One-Decision-Model]]: Fast probabilistic System 1 decision engine for sub-second Precept and Sati diagnostics.
 * [[Principle-Knowledge-Graph]]: Topological mapping of human conditions (*Dukkha*) to transformative paths (*Magga*) and equanimity (*Santi*).
 * [[Bhavana-Subtractive-Unlearning]]: Meta-learning for "undoing" and noise-pruning, preventing model collapse and algorithmic intoxication.
@@ -24,6 +26,7 @@
 * [[ADR-002-Subtractive-Meta-Learning-Over-Weight-Drift]]: Using topological memory pruning instead of fine-tuning weights.
 * [[ADR-003-Vite-React-FastAPI-Bridge]]: Decoupled 3-tier architecture with unified local developer experience.
 * [[ADR-004-Jev-As-System-One-Decision-Engine]]: Utilizing TypeSafe Jev as a non-generative System 1 model to reduce latency by 65%.
+* [[ADR-005-Unified-AIAgent-Adapter-Architecture]]: Unified AIAgent Gateway with speech sanitization and runtime provider swapping.
 
 ### 📜 Development Logs
 * [[DevLog-2026-10-29]]: Initial core engine implementation, live verification, and Zen UI bridge.

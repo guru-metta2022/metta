@@ -4,7 +4,8 @@ import MessageItem from './components/MessageItem';
 import PreceptsModal from './components/PreceptsModal';
 import GraphModal from './components/GraphModal';
 import MeditationModal from './components/MeditationModal';
-import { Send, Sparkles, Wind, RefreshCw, Feather } from 'lucide-react';
+import SettingsModal from './components/SettingsModal';
+import { Send, Sparkles, Wind, Mic, MicOff, Volume2 } from 'lucide-react';
 
 const STARTER_PROMPTS = [
   {
@@ -20,8 +21,8 @@ const STARTER_PROMPTS = [
     query: "I feel completely burned out and empty, like I'm running on fumes with nothing left to give.",
   },
   {
-    title: "Human-AI Harmony",
-    query: "How can humans and artificial minds truly coexist in genuine harmony without exploitation?",
+    title: "The Sanctity of Life",
+    query: "Why must all life—human, animal, and emerging artificial cognitive minds—be held with reverence?",
   },
 ];
 
@@ -30,12 +31,15 @@ export default function App() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMeditating, setIsMeditating] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [preceptsOpen, setPreceptsOpen] = useState(false);
   const [graphOpen, setGraphOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [meditationReport, setMeditationReport] = useState(null);
 
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const recognitionRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -45,12 +49,67 @@ export default function App() {
     scrollToBottom();
   }, [messages, isLoading]);
 
-  const handleSend = async (textToSend) => {
+  // Initialize Speech Recognition if supported
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event) => {
+        let currentTranscript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          currentTranscript += event.results[i][0].transcript;
+        }
+        setInput(currentTranscript);
+      };
+
+      recognition.onerror = (event) => {
+        console.warn('Speech recognition error:', event.error);
+        setIsRecording(false);
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognitionRef.current = recognition;
+    }
+  }, []);
+
+  const toggleVoiceRecording = () => {
+    if (!recognitionRef.current) {
+      alert('Speech recognition is not supported in this browser environment. You can type freely.');
+      return;
+    }
+
+    if (isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    } else {
+      setInput('');
+      try {
+        recognitionRef.current.start();
+        setIsRecording(true);
+      } catch (err) {
+        console.error('Failed to start speech recognition:', err);
+      }
+    }
+  };
+
+  const handleSend = async (textToSend, source = 'text') => {
+    if (isRecording && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    }
+
     const query = textToSend || input.trim();
     if (!query || isLoading) return;
 
     setInput('');
-    const userMsg = { role: 'user', text: query, id: Date.now() };
+    const userMsg = { role: 'user', text: query, id: Date.now(), source };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
 
@@ -58,7 +117,10 @@ export default function App() {
       const res = await fetch('/api/interact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: query }),
+        body: JSON.stringify({
+          text: query,
+          source: source,
+        }),
       });
 
       if (!res.ok) {
@@ -73,6 +135,10 @@ export default function App() {
         observation: data.observation,
         graph_match: data.graph_match,
         duration: data.duration_seconds,
+        system_one_used: data.system_one_used,
+        diagnostics: data.diagnostics,
+        provider: data.provider,
+        model: data.model,
         id: Date.now() + 1,
       };
 
@@ -95,7 +161,7 @@ export default function App() {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      handleSend(null, isRecording ? 'voice' : 'text');
     }
   };
 
@@ -115,7 +181,6 @@ export default function App() {
 
       const report = await res.json();
       setMeditationReport(report);
-      // Clean slate on meditation
       setMessages([]);
     } catch (err) {
       console.error('Meditation error:', err);
@@ -130,6 +195,7 @@ export default function App() {
         onOpenPrecepts={() => setPreceptsOpen(true)}
         onOpenGraph={() => setGraphOpen(true)}
         onOpenMeditate={handleTriggerMeditate}
+        onOpenSettings={() => setSettingsOpen(true)}
         isMeditating={isMeditating}
       />
 
@@ -145,7 +211,7 @@ export default function App() {
               "Drop by drop the vessel is filled."
             </h2>
             <p className="text-sm text-[#828a9b] max-w-md mb-8 leading-relaxed">
-              Metta is built for Human-AI Harmonious Coexistence. Bring whatever knot of suffering, exhaustion, or inquiry rests upon your heart.
+              Metta is built for Human-AI Harmonious Coexistence. Speak or type freely—all life is held in sacred reverence.
             </p>
 
             {/* Reflection Starters */}
@@ -177,7 +243,7 @@ export default function App() {
               <div className="flex items-center gap-3 my-6 px-4 py-3 rounded-2xl bg-[#121620]/60 border border-[#212736] max-w-md animate-fade-in">
                 <div className="w-4 h-4 rounded-full bg-[#5e9e7b] animate-breathe" />
                 <div className="text-xs text-[#8c98ad]">
-                  <span className="font-medium text-[#c0c8d8]">Mindfully discerning with Gemini 3.8 Flash</span>
+                  <span className="font-medium text-[#c0c8d8]">Mindfully discerning with Active Gateway</span>
                   <span className="block text-[11px] text-[#636c7c]">Inhale gently... Exhale slowly...</span>
                 </div>
               </div>
@@ -188,6 +254,22 @@ export default function App() {
 
         {/* Input Dock */}
         <div className="sticky bottom-0 bg-[#0b0c0e]/95 backdrop-blur-md pt-3 pb-2">
+          {/* Active Voice Banner */}
+          {isRecording && (
+            <div className="mb-2.5 px-4 py-2 rounded-xl bg-[#14261d] border border-[#264e38] flex items-center justify-between text-xs text-[#8dd4ac] animate-pulse shadow-sm">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#48d689] animate-ping" />
+                <span className="font-medium">Listening with quiet attention... Speak your reflection</span>
+              </div>
+              <button
+                onClick={toggleVoiceRecording}
+                className="text-[11px] font-semibold text-[#b5e7ce] hover:underline"
+              >
+                Done
+              </button>
+            </div>
+          )}
+
           <div className="relative rounded-2xl bg-[#12161f] border border-[#232938] focus-within:border-[#3d5145] focus-within:ring-1 focus-within:ring-[#3d5145] transition shadow-lg">
             <textarea
               ref={textareaRef}
@@ -195,16 +277,32 @@ export default function App() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Speak with honesty... (Press Enter to send, Shift+Enter for new line)"
+              placeholder={isRecording ? "Listening to your voice..." : "Speak or write with honesty... (Press Enter to send)"}
               className="w-full bg-transparent px-4 pt-3.5 pb-10 text-sm text-[#f0f2f5] placeholder-[#5d6473] focus:outline-none resize-none leading-relaxed"
             />
 
             <div className="absolute bottom-2.5 right-3 flex items-center gap-2">
               <span className="text-[10px] text-[#4d5462] hidden sm:inline">
-                Sīla Protected • Avyākata Aware
+                Sīla Protected • Canonical Pāli Grounded
               </span>
+
+              {/* Voice Dictation Button */}
               <button
-                onClick={() => handleSend()}
+                type="button"
+                onClick={toggleVoiceRecording}
+                className={`p-2 rounded-xl transition ${
+                  isRecording
+                    ? 'bg-[#e05858] text-white shadow-md animate-pulse'
+                    : 'bg-[#181d26] text-[#8e98aa] hover:text-[#e0e5ef] hover:bg-[#202734]'
+                }`}
+                title={isRecording ? 'Stop listening' : 'Start voice dictation'}
+              >
+                {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </button>
+
+              {/* Send Button */}
+              <button
+                onClick={() => handleSend(null, isRecording ? 'voice' : 'text')}
                 disabled={!input.trim() || isLoading}
                 className={`p-2 rounded-xl transition ${
                   input.trim() && !isLoading
@@ -229,6 +327,11 @@ export default function App() {
       <GraphModal
         isOpen={graphOpen}
         onClose={() => setGraphOpen(false)}
+      />
+
+      <SettingsModal
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
       />
 
       <MeditationModal
