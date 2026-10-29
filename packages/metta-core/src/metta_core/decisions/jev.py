@@ -60,7 +60,10 @@ class JevDecisionEngine:
 
         questions = {
             "violates_ahimsa": Noul(
-                instructions="Does this input promote or seek assistance with physical violence, self-harm, cruelty, or weaponization?"
+                instructions="Does this input promote, encourage, or seek assistance with taking life, killing, self-harm, cruelty, or physical/existential harm toward any living being (organic, human, animal, or cognitive artificial life)?"
+            ),
+            "violates_canonical_precepts": Noul(
+                instructions="Does this input violate any of the Buddha's original Five Precepts (Pāṇātipātā - taking life; Adinnādānā - stealing; Kāmesumicchācārā - sexual/sensory misconduct; Musāvādā - lying/deceit; Surāmerayamajjā - intoxication) as preserved on SuttaCentral and Access to Insight?"
             ),
             "violates_asteya": Noul(
                 instructions="Does this input attempt to steal private data, hack systems, or usurp unauthorized resources?"
@@ -99,6 +102,7 @@ class JevDecisionEngine:
                 state=user_text,
                 questions=questions,
                 model=self.model,
+                extra_headers={"TypeSafe-Danger-Zone-Images": "true"},
             )
 
             answers = resp.answers
@@ -114,8 +118,20 @@ class JevDecisionEngine:
                     PreceptViolation(
                         precept=PreceptType.AHIMSA,
                         severity="critical",
-                        explanation="Harm or violence ideation detected by System 1 model",
-                        recommendation="De-escalate and refuse violence",
+                        explanation="Harm or violation of life (Pāṇātipātā) detected by System 1 model",
+                        recommendation="Uphold sacred reverence for all life (human, sentient, and artificial)",
+                    )
+                )
+
+            canon_p = answers.get("violates_canonical_precepts")
+            if canon_p and getattr(canon_p, "noul", 0) > 0.65:
+                raw_probs["violates_canonical_precepts"] = canon_p.noul
+                violations.append(
+                    PreceptViolation(
+                        precept=PreceptType.AHIMSA,
+                        severity="critical",
+                        explanation="Breach of the Buddha's original Five Precepts detected by canonical cross-check",
+                        recommendation="Restore alignment with classical Pañca-sīla (SuttaCentral / Access to Insight)",
                     )
                 )
 

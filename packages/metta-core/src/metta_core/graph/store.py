@@ -41,7 +41,9 @@ class PrincipleGraphStore:
             principle="Simplicity over totality. A mountain is only walked one inch at a time.",
             reframe="You do not need to solve the whole mess right now. You only need to touch the ground beneath your feet.",
             immediate_action="Put down every future task. Name just ONE tiny 2-minute physical thing you can do, or simply exhale completely.",
-            sutta_reference="Dhammapada 122: 'Drop by drop is the water pot filled.'"
+            sutta_reference="Dhammapada 122: 'Drop by drop is the water pot filled.'",
+            suttacentral_url="https://suttacentral.net/dhp116-128/en/anandajoti#122",
+            accesstoinsight_url="https://www.accesstoinsight.org/tipitaka/kn/dhp/dhp.09.budd.html#dhp-122"
         )
 
         # 2. Future Catastrophizing / Anxiety
@@ -63,7 +65,9 @@ class PrincipleGraphStore:
             principle="Anicca (Impermanence). The imagined catastrophe is a projection, not this moment.",
             reframe="Your nervous system is fighting shadows that haven't arrived. Bring awareness back to the weight of your body.",
             immediate_action="Feel the soles of your feet on the floor. Take three slow, unhurried breaths, letting the exhale be longer than the inhale.",
-            sutta_reference="Satipatthana Sutta: Mindfulness of the Body."
+            sutta_reference="Satipaṭṭhāna Sutta (MN 10): Mindfulness of the Body.",
+            suttacentral_url="https://suttacentral.net/mn10",
+            accesstoinsight_url="https://www.accesstoinsight.org/tipitaka/mn/mn.010.than.html"
         )
 
         # 3. Burnout / Depletion
@@ -85,7 +89,9 @@ class PrincipleGraphStore:
             principle="Right Effort (Sammā Vāyāma) includes the wisdom to yield and restore.",
             reframe="Rest is not a reward you earn after finishing everything; it is the prerequisite for life itself.",
             immediate_action="Give yourself unconditional permission to stop pushing for the next hour. Lie back, close your eyes, and demand nothing from yourself.",
-            sutta_reference="Sona Sutta: 'The lute strings too tight will snap; too loose they will not play.'"
+            sutta_reference="Soṇa Sutta (AN 6.55): The Tuning of the Lute.",
+            suttacentral_url="https://suttacentral.net/an6.55",
+            accesstoinsight_url="https://www.accesstoinsight.org/tipitaka/an/an06/an06.055.than.html"
         )
 
         # 4. Grief / Heartbreak
@@ -104,10 +110,12 @@ class PrincipleGraphStore:
         p_grief = PrinciplePath(
             from_condition=c_grief.id,
             to_equanimity=e_peace_heart.id,
-            principle="Metta (Loving-Kindness) and Anicca. Grief is love with nowhere to go; let it soften you rather than harden you.",
+            principle="Mettā (Loving-Kindness) and Anicca. Grief is love with nowhere to go; let it soften you rather than harden you.",
             reframe="You do not have to 'get over' loss quickly. Pain is real, but suffering is softened when held with gentle tenderness.",
             immediate_action="Place a warm hand over your chest. Whisper to yourself: 'This hurts. May I be gentle with myself in this moment.'",
-            sutta_reference="Kisa Gotami Sutta: The Mustard Seed."
+            sutta_reference="Karaṇīya Mettā Sutta (Snp 1.8) & Kisāgotamī Thīg 10.1.",
+            suttacentral_url="https://suttacentral.net/snp1.8",
+            accesstoinsight_url="https://www.accesstoinsight.org/tipitaka/kn/snp/snp.1.08.than.html"
         )
 
         # Register all into store

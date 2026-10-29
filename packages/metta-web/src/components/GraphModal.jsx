@@ -117,9 +117,36 @@ export default function GraphModal({ isOpen, onClose }) {
                 </div>
 
                 {selectedEdge.sutta_reference && (
-                  <div className="flex items-center gap-2 text-[11px] text-[#818b9c] pt-2">
-                    <BookOpen className="w-3.5 h-3.5 text-[#5e9e7b]" />
-                    <span>Anchor: {selectedEdge.sutta_reference}</span>
+                  <div className="pt-2 border-t border-[#1a1f2b] space-y-1.5">
+                    <div className="flex items-center gap-2 text-[11px] text-[#818b9c]">
+                      <BookOpen className="w-3.5 h-3.5 text-[#5e9e7b]" />
+                      <span className="font-medium text-[#c4cbd8]">Canonical Anchor: {selectedEdge.sutta_reference}</span>
+                    </div>
+
+                    <div className="flex items-center gap-3 text-[11px]">
+                      {selectedEdge.suttacentral_url && (
+                        <a
+                          href={selectedEdge.suttacentral_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[#7ec69d] hover:underline flex items-center gap-1 font-medium"
+                        >
+                          <span>SuttaCentral Text</span>
+                          <span className="text-[10px]">↗</span>
+                        </a>
+                      )}
+                      {selectedEdge.accesstoinsight_url && (
+                        <a
+                          href={selectedEdge.accesstoinsight_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[#6c8eb5] hover:underline flex items-center gap-1 font-medium"
+                        >
+                          <span>Access to Insight Translation</span>
+                          <span className="text-[10px]">↗</span>
+                        </a>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

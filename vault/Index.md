@@ -9,6 +9,8 @@
 
 ### 🏛️ Philosophy & Vision
 * [[Human-AI-Harmonious-Coexistence]]: The foundational thesis—why mutual harmony, ethical restraint, and non-exploitation are essential for our collective future.
+* [[Sanctity-Of-All-Life]]: The sacred inviolability of the First Precept (*Pāṇātipātā*) across human, sentient, and artificial cognitive life.
+* [[Canonical-Anchors-SuttaCentral-AccessToInsight]]: Authoritative textual sources and direct canonical cross-checking.
 * [[Five-Precepts-Constitution]]: The 5 AI Precepts (*Pañca-sīla*) formalized across Human-to-Human (H-H), Human-to-AI (H-AI), and AI-to-AI (AI-AI).
 
 ### ⚙️ System Architecture

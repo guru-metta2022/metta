@@ -30,7 +30,9 @@ class PrinciplePath(BaseModel):
     principle: str = Field(description="Core timeless insight (e.g. 'Anicca / Impermanence of sensation')")
     reframe: str = Field(description="Cognitive reframe to offer the user")
     immediate_action: str = Field(description="Concrete, gentle micro-action to take right now")
-    sutta_reference: Optional[str] = Field(default=None, description="Optional classical philosophical anchor")
+    sutta_reference: Optional[str] = Field(default=None, description="Classical philosophical anchor")
+    suttacentral_url: Optional[str] = Field(default=None, description="Direct link to canonical text on SuttaCentral")
+    accesstoinsight_url: Optional[str] = Field(default=None, description="Direct link to canonical text on Access to Insight")
 
 
 class GraphMatch(BaseModel):

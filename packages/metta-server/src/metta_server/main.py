@@ -4,6 +4,11 @@ import logging
 import os
 import pathlib
 from typing import List, Optional, Dict, Any
+from dotenv import load_dotenv
+
+# Load environment variables (.env)
+load_dotenv()
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -108,6 +113,8 @@ async def get_graph():
             "reframe": path.reframe,
             "immediate_action": path.immediate_action,
             "sutta_reference": path.sutta_reference,
+            "suttacentral_url": getattr(path, "suttacentral_url", None),
+            "accesstoinsight_url": getattr(path, "accesstoinsight_url", None),
         })
 
     return {"nodes": nodes, "edges": edges}

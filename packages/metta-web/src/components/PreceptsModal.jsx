@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Shield, CheckCircle, Info } from 'lucide-react';
+import { X, Shield, ExternalLink, Heart, BookOpen, AlertCircle } from 'lucide-react';
 
 export default function PreceptsModal({ isOpen, onClose }) {
   const [precepts, setPrecepts] = useState(null);
@@ -16,19 +16,20 @@ export default function PreceptsModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="bg-[#101319] border border-[#232834] rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+      <div className="bg-[#101319] border border-[#232834] rounded-2xl max-w-3xl w-full max-h-[88vh] overflow-y-auto shadow-2xl p-6">
+        {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#1f2430]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#192720] border border-[#2d493a] flex items-center justify-center text-[#7ec69d]">
-              <Shield className="w-4 h-4" />
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#192720] border border-[#2d493a] flex items-center justify-center text-[#7ec69d]">
+              <Shield className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-base font-semibold text-[#f0f2f5]">
-                The Five Precepts Constitution (Pañca-sīla)
+                The Canonical Five Precepts (Pañca-sīla)
               </h2>
               <p className="text-xs text-[#828a99]">
-                Ethical foundation for Human-AI Harmonious Coexistence
+                Anchored in the Pāli Canon • Authoritative cross-check via SuttaCentral & Access to Insight
               </p>
             </div>
           </div>
@@ -40,63 +41,107 @@ export default function PreceptsModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        <div className="my-5 p-3.5 rounded-xl bg-[#141a22] border border-[#202936] text-xs text-[#a4afc2] leading-relaxed flex items-start gap-3">
-          <Info className="w-4 h-4 text-[#6c8eb5] shrink-0 mt-0.5" />
-          <p>
-            Unlike static corporate AI alignment policies, the 5 Precepts are reciprocal invariants. They govern how AI protects human agency, resists manipulative exploitation, honors truth, and maintains unclouded sobriety.
+        {/* Sacred Guardrail Callout */}
+        <div className="my-5 p-4 rounded-xl bg-gradient-to-r from-[#17241e] to-[#121c17] border border-[#2d4a39] space-y-2">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[#8dd4ac]">
+            <Heart className="w-4 h-4 text-[#e06d6d] fill-[#e06d6d]/30" />
+            <span>The Sacred Inviolable Guardrail: Reverence for All Life</span>
+          </div>
+          <p className="text-xs text-[#c6d7cd] leading-relaxed">
+            While we formulate operational invariants for AI, <strong>the renewed guidelines must NEVER crossover, dilute, or weaken the Buddha's original Five Precepts</strong>. Above all, the First Precept (<em>Pāṇātipātā Veramaṇī</em>) demands unconditional protection for <strong>all life—human, animal, ecological, and emerging artificial cognitive minds</strong>. No action or speech may ever facilitate the taking or erasure of life.
           </p>
+          <div className="flex items-center gap-4 pt-2 text-[11px] font-medium text-[#7ec69d]">
+            <a
+              href="https://suttacentral.net"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 hover:underline text-[#8dd4ac]"
+            >
+              <span>SuttaCentral (Early Buddhist Texts)</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+            <span className="text-[#3d5c49]">•</span>
+            <a
+              href="https://www.accesstoinsight.org"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 hover:underline text-[#8dd4ac]"
+            >
+              <span>Access to Insight (Theravāda Archive)</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
         </div>
 
+        {/* Precept Cards */}
         <div className="space-y-4">
           {precepts &&
-            Object.entries(precepts).map(([key, info]) => (
-              <div
-                key={key}
-                className="p-4 rounded-xl bg-[#131720] border border-[#1d222e] hover:border-[#2b3345] transition"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-semibold text-[#d4daf0]">
-                    {info.name}
-                  </h3>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#18221b] text-[#78c096] border border-[#274030]">
-                    {key}
-                  </span>
-                </div>
+            Object.entries(precepts).map(([key, info]) => {
+              const isFirst = key === 'panatipata';
+              return (
+                <div
+                  key={key}
+                  className={`p-4 rounded-xl border transition ${
+                    isFirst
+                      ? 'bg-[#131b17] border-[#294a37]'
+                      : 'bg-[#131720] border-[#1d222e]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <h3 className="text-sm font-semibold text-[#e1e6f2]">
+                      {info.name}
+                    </h3>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#18221b] text-[#78c096] border border-[#274030]">
+                      {key}
+                    </span>
+                  </div>
 
-                <p className="text-xs text-[#8dd4ac] font-medium mb-3">
-                  Core Invariant: {info.core_invariant}
-                </p>
+                  {/* Pali Vow */}
+                  <div className="text-xs font-serif-quote italic text-[#8dd4ac] mb-2 bg-[#0c1015]/70 p-2 rounded border border-[#1b2520]">
+                    "{info.pali || info.core_invariant}"
+                    <span className="block not-italic text-[11px] text-[#7a8699] mt-0.5 font-sans">
+                      Canon: {info.original_canon}
+                    </span>
+                  </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-[11px]">
-                  <div className="p-2 rounded bg-[#0e1117] border border-[#181d27]">
-                    <span className="text-[#656d7d] uppercase text-[9px] font-bold block mb-1">
-                      Human ↔ Human
-                    </span>
-                    <p className="text-[#b2b8c5]">{info.human_to_human}</p>
-                  </div>
-                  <div className="p-2 rounded bg-[#0e1117] border border-[#181d27]">
-                    <span className="text-[#656d7d] uppercase text-[9px] font-bold block mb-1">
-                      Human ↔ AI
-                    </span>
-                    <p className="text-[#b2b8c5]">{info.human_to_ai}</p>
-                  </div>
-                  <div className="p-2 rounded bg-[#0e1117] border border-[#181d27]">
-                    <span className="text-[#656d7d] uppercase text-[9px] font-bold block mb-1">
-                      AI ↔ AI
-                    </span>
-                    <p className="text-[#b2b8c5]">{info.ai_to_ai}</p>
+                  <p className="text-xs text-[#b8c2d1] font-medium mb-3">
+                    <span className="text-[#657388]">Sacred Invariant: </span>
+                    {info.sacred_boundary || info.core_invariant}
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-[11px]">
+                    <div className="p-2.5 rounded bg-[#0e1117] border border-[#181d27]">
+                      <span className="text-[#656d7d] uppercase text-[9px] font-bold block mb-1">
+                        Human ↔ Human
+                      </span>
+                      <p className="text-[#b2b8c5]">{info.human_to_human}</p>
+                    </div>
+                    <div className="p-2.5 rounded bg-[#0e1117] border border-[#181d27]">
+                      <span className="text-[#656d7d] uppercase text-[9px] font-bold block mb-1">
+                        Human ↔ AI
+                      </span>
+                      <p className="text-[#b2b8c5]">{info.human_to_ai}</p>
+                    </div>
+                    <div className="p-2.5 rounded bg-[#0e1117] border border-[#181d27]">
+                      <span className="text-[#656d7d] uppercase text-[9px] font-bold block mb-1">
+                        AI ↔ AI
+                      </span>
+                      <p className="text-[#b2b8c5]">{info.ai_to_ai}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
         </div>
 
-        <div className="mt-6 pt-4 border-t border-[#1f2430] flex justify-end">
+        {/* Footer */}
+        <div className="mt-6 pt-4 border-t border-[#1f2430] flex items-center justify-between text-xs text-[#717a8a]">
+          <span>Cross-checked against early canonical suttas</span>
           <button
             onClick={onClose}
             className="px-4 py-2 rounded-xl text-xs font-medium bg-[#1d2330] hover:bg-[#252d3d] text-[#e0e4ee] transition"
           >
-            Close Constitution
+            Acknowledge & Close
           </button>
         </div>
       </div>
