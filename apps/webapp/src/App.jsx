@@ -9,6 +9,7 @@ import MeditationModal from './components/MeditationModal';
 import SettingsModal from './components/SettingsModal';
 import AuthModal from './components/AuthModal';
 import UserGraphModal from './components/UserGraphModal';
+import VoiceOscillator from './components/VoiceOscillator';
 import { useAppDialog } from './components/ToastDialogContext';
 import { Send, Sparkles, Wind, Mic, MicOff, Volume2, Wand2 } from 'lucide-react';
 
@@ -747,27 +748,33 @@ export default function App() {
         )}
 
         {/* Input Dock */}
-        <div className="sticky bottom-0 bg-[#0b0c0e]/95 backdrop-blur-md pt-3 pb-2">
-          {/* Active Voice Banner */}
-          {isRecording && (
-            <div className="mb-2.5 px-4 py-2 rounded-xl bg-[#14261d] border border-[#264e38] flex items-center justify-between text-xs text-[#8dd4ac] animate-pulse shadow-sm">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#48d689] animate-ping" />
-                <span className="font-medium">Listening... Speak clearly to transcribe your situation or decision</span>
-              </div>
-              <button
-                onClick={toggleVoiceRecording}
-                className="text-[11px] font-semibold text-[#b5e7ce] hover:underline"
-              >
-                Done
-              </button>
-            </div>
-          )}
+        <div className="sticky bottom-0 bg-[#0b0c0e]/95 backdrop-blur-md pt-3 pb-3">
+          <div className="rounded-2xl bg-[#10141c] border border-[#202737] p-3.5 shadow-xl space-y-2.5 transition focus-within:border-[#385947]">
+            {/* Control Bar: Prompt Title & Unified VoiceOscillator Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#181f2c] pb-2.5">
+              <label className="text-xs font-medium text-[#9ba6b9] flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#7ec69d]" />
+                <span>Canonical Inquiry, Proposed Decision, or Message:</span>
+              </label>
 
-          <div className="relative rounded-2xl bg-[#12161f] border border-[#232938] focus-within:border-[#3d5145] focus-within:ring-1 focus-within:ring-[#3d5145] transition shadow-lg">
+              <VoiceOscillator
+                isRecording={isRecording}
+                isPolishing={isPolishingVoice}
+                onToggleRecording={toggleVoiceRecording}
+                onPolish={() => handlePolishInput()}
+                onClear={() => {
+                  setInput('');
+                  transcriptBufferRef.current = '';
+                  baseInputRef.current = '';
+                }}
+                hasText={Boolean(input.trim())}
+              />
+            </div>
+
+            {/* Main Textarea */}
             <textarea
               ref={textareaRef}
-              rows={2}
+              rows={3}
               value={input}
               onChange={(e) => {
                 setInput(e.target.value);
@@ -775,77 +782,36 @@ export default function App() {
                 baseInputRef.current = e.target.value;
               }}
               onKeyDown={handleKeyDown}
-              placeholder={isRecording ? "Listening to your voice..." : "Describe a situation, proposed decision, or message to evaluate... (Press Enter to submit)"}
-              className="w-full bg-transparent px-4 pt-3.5 pb-10 text-sm text-[#f0f2f5] placeholder-[#5d6473] focus:outline-none resize-none leading-relaxed"
+              placeholder={
+                isRecording
+                  ? "Listening live... Speak clearly and your words will stream into this box."
+                  : "Describe a situation, proposed decision, or message to evaluate... (Press Enter to submit, Shift+Enter for newline)"
+              }
+              className="w-full bg-transparent px-1 py-1 text-sm text-[#f0f2f5] placeholder-[#5d6473] focus:outline-none resize-none leading-relaxed"
             />
 
-            <div className="absolute bottom-2.5 right-3 flex items-center gap-2">
-              <span className="text-[10px] text-[#4d5462] hidden sm:inline">
-                Decision Safety Layer • Multi-Party Impact Review
+            {/* Bottom Footer: Safety Guardrail Note & Send Button */}
+            <div className="flex items-center justify-between pt-1 border-t border-[#181f2c]">
+              <span className="text-[11px] text-[#555f71] flex items-center gap-1.5 hidden sm:inline-flex">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3d7a57]" />
+                <span>Decision Safety Layer • Multi-Party Impact Review • Sovereign Reflection</span>
               </span>
 
-              {/* Live Audio Oscillator Waveform when listening */}
-              {isRecording && (
-                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-950/80 border border-emerald-500/50 text-emerald-300">
-                  <div className="flex items-end gap-0.5 h-3.5">
-                    <span className="w-0.5 bg-emerald-400 rounded-full animate-pulse" style={{ height: '70%', animationDuration: '0.4s' }} />
-                    <span className="w-0.5 bg-emerald-300 rounded-full animate-pulse" style={{ height: '100%', animationDuration: '0.3s' }} />
-                    <span className="w-0.5 bg-emerald-400 rounded-full animate-pulse" style={{ height: '40%', animationDuration: '0.5s' }} />
-                    <span className="w-0.5 bg-emerald-300 rounded-full animate-pulse" style={{ height: '85%', animationDuration: '0.35s' }} />
-                    <span className="w-0.5 bg-emerald-400 rounded-full animate-pulse" style={{ height: '55%', animationDuration: '0.45s' }} />
-                  </div>
-                  <span className="text-[10px] font-mono font-medium hidden xs:inline">Streaming voice... (auto-stops on 3s silence)</span>
-                </div>
-              )}
-
-              {/* Polishing Indicator */}
-              {isPolishingVoice && (
-                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[#14231b] border border-[#2d523e] text-[#86e2ad] text-[10px] font-mono animate-pulse">
-                  <Sparkles className="w-3 h-3 animate-spin text-[#52b788]" />
-                  <span className="hidden xs:inline">Rephrasing into neat question with AI...</span>
-                </div>
-              )}
-
-              {/* AI Polish Button */}
-              {!isRecording && input.trim() && (
+              <div className="flex items-center gap-2 ml-auto">
                 <button
-                  type="button"
-                  onClick={() => handlePolishInput()}
-                  disabled={isPolishingVoice}
-                  className="p-2 rounded-xl bg-[#181d26] text-[#8dd4ac] hover:bg-[#202734] transition border border-[#232c25]"
-                  title="Sanitize speech disfluencies and polish grammar with AI"
+                  onClick={() => handleSend(null, isRecording ? 'voice' : 'text')}
+                  disabled={!input.trim() || isLoading}
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition shadow-md cursor-pointer ${
+                    input.trim() && !isLoading
+                      ? 'bg-gradient-to-r from-[#1c392b] to-[#254b38] hover:from-[#234736] hover:to-[#2e5d46] text-[#bbf7d0] border border-[#3b7454]'
+                      : 'bg-[#151922] text-[#4d5565] border border-[#1f2533] cursor-not-allowed'
+                  }`}
+                  title="Send inquiry"
                 >
-                  <Wand2 className="w-4 h-4 text-[#7ec69d]" />
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Send</span>
                 </button>
-              )}
-
-              {/* Voice Dictation Button */}
-              <button
-                type="button"
-                onClick={toggleVoiceRecording}
-                className={`p-2 rounded-xl transition ${
-                  isRecording
-                    ? 'bg-rose-900 border border-rose-500 text-white shadow-md animate-pulse hover:bg-rose-800'
-                    : 'bg-[#181d26] text-[#8e98aa] hover:text-[#e0e5ef] hover:bg-[#202734]'
-                }`}
-                title={isRecording ? 'Click red button to stop listening & rephrase with AI immediately' : 'Start voice dictation'}
-              >
-                {isRecording ? <MicOff className="w-4 h-4 text-white" /> : <Mic className="w-4 h-4" />}
-              </button>
-
-              {/* Send Button */}
-              <button
-                onClick={() => handleSend(null, isRecording ? 'voice' : 'text')}
-                disabled={!input.trim() || isLoading}
-                className={`p-2 rounded-xl transition ${
-                  input.trim() && !isLoading
-                    ? 'bg-[#1e382b] hover:bg-[#284938] text-[#93dfb4]'
-                    : 'bg-[#181d26] text-[#484e5c] cursor-not-allowed'
-                }`}
-                title="Send inquiry"
-              >
-                <Send className="w-4 h-4" />
-              </button>
+              </div>
             </div>
           </div>
         </div>

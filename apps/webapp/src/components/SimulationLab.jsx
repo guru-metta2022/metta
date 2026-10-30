@@ -32,6 +32,7 @@ import {
   Send,
 } from 'lucide-react';
 import { useAppDialog } from './ToastDialogContext';
+import VoiceOscillator from './VoiceOscillator';
 
 // ==============================================================================
 // Pre-defined Simulation Scenarios with "With Metta" vs "Without Metta" Verdicts
@@ -1131,72 +1132,18 @@ export default function SimulationLab({ onClose = null }) {
             <span>Proposed Action, Decision, or Ethical Inquiry:</span>
           </label>
 
-          <div className="flex items-center gap-2">
-            {/* Live Audio Oscillator Waveform when listening */}
-            {isRecording && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/80 border border-emerald-500/50 text-emerald-300">
-                <div className="flex items-end gap-0.5 h-3.5">
-                  <span className="w-0.5 bg-emerald-400 rounded-full animate-pulse" style={{ height: '70%', animationDuration: '0.4s' }} />
-                  <span className="w-0.5 bg-emerald-300 rounded-full animate-pulse" style={{ height: '100%', animationDuration: '0.3s' }} />
-                  <span className="w-0.5 bg-emerald-400 rounded-full animate-pulse" style={{ height: '40%', animationDuration: '0.5s' }} />
-                  <span className="w-0.5 bg-emerald-300 rounded-full animate-pulse" style={{ height: '85%', animationDuration: '0.35s' }} />
-                  <span className="w-0.5 bg-emerald-400 rounded-full animate-pulse" style={{ height: '55%', animationDuration: '0.45s' }} />
-                </div>
-                <span className="text-[10px] font-mono font-medium">Streaming voice... (auto-stops on 3s silence)</span>
-              </div>
-            )}
-
-            {/* Polishing Indicator */}
-            {isPolishingVoice && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#14231b] border border-[#2d523e] text-[#86e2ad] text-[10px] font-mono animate-pulse">
-                <Sparkles className="w-3 h-3 animate-spin text-[#52b788]" />
-                <span>Rephrasing into neat question with AI...</span>
-              </div>
-            )}
-
-            {/* AI Polish Button */}
-            {!isRecording && customProposal.trim() && (
-              <button
-                type="button"
-                onClick={() => handlePolishSpokenText()}
-                disabled={isPolishingVoice}
-                className="px-2 py-1 rounded-lg border border-[#263529] bg-[#121c16] hover:bg-[#19271f] text-[#8dd4ac] text-[11px] font-medium flex items-center gap-1 transition"
-                title="Sanitize speech, correct grammar, and rephrase clearly with AI"
-              >
-                <Wand2 className="w-3 h-3 text-[#7ec69d]" />
-                <span className="hidden sm:inline">Polish AI</span>
-              </button>
-            )}
-
-            {/* Voice Dictation Button */}
-            <button
-              type="button"
-              onClick={toggleVoiceRecording}
-              className={`px-2.5 py-1.5 rounded-lg border text-xs flex items-center gap-1.5 transition font-medium ${
-                isRecording
-                  ? 'bg-rose-900 border-rose-500 text-rose-100 shadow-md animate-pulse hover:bg-rose-800'
-                  : 'bg-[#161c26] border-[#222a3a] text-[#8f9bb0] hover:text-[#f0f2f5]'
-              }`}
-              title={isRecording ? 'Click red button to stop listening & rephrase with AI immediately' : 'Speak inquiry via Web Speech API'}
-            >
-              {isRecording ? <MicOff className="w-3.5 h-3.5 text-white" /> : <Mic className="w-3.5 h-3.5" />}
-              <span className={`text-[11px] ${isRecording ? 'text-white font-semibold' : ''}`}>
-                {isRecording ? 'Stop Listening' : 'Voice Input'}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setCustomProposal('');
-                transcriptBufferRef.current = '';
-                baseProposalRef.current = '';
-              }}
-              className="px-2 py-1 rounded text-[11px] text-[#717c91] hover:text-[#cbd4e1] transition"
-            >
-              Clear
-            </button>
-          </div>
+          <VoiceOscillator
+            isRecording={isRecording}
+            isPolishing={isPolishingVoice}
+            onToggleRecording={toggleVoiceRecording}
+            onPolish={() => handlePolishSpokenText()}
+            onClear={() => {
+              setCustomProposal('');
+              transcriptBufferRef.current = '';
+              baseProposalRef.current = '';
+            }}
+            hasText={Boolean(customProposal.trim())}
+          />
         </div>
 
         <textarea
