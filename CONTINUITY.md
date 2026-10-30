@@ -118,14 +118,23 @@ Then visit `http://127.0.0.1:8000` in the browser.
 
 ---
 
-## 📜 5. Git & Collaboration Rules
-* **Strict Rule:** Commit all major milestones locally to `master`.
-* **DO NOT PUSH TO REMOTE:** The user will inform us once they have enabled an empty remote repository. Until then, zero remote pushes.
+## 📜 5. Git & Deployment Reference
+* **Repository:** `https://github.com/guru-metta2022/metta.git` on `main` branch.
+* **Author Identity:** `Guru <guru.metta2022@gmail.com>`.
+* **Production Live App:** `https://metta-webapp.vercel.app`.
+* **CI/CD:** Automatic Vercel deployment on pushes to `main`.
 
 ---
 
-## 🔭 6. Roadmap & Next Horizons for Project Metta
-1. **Streaming Audio Speech Synthesis (TTS):** Add a unified audio synthesizer adapter so Metta can speak aloud with a calm, serene voice.
-2. **Server-Sent Events (SSE) Streaming:** Stream tokens live to the frontend as Gemini 3.8 Flash generates them.
-3. **Multi-Platform Mobile Adapters:** Prepare Flutter or React Native mobile wrappers targeting iOS and Android with the same backend `/api/voice/dictate`.
-4. **Supabase Live Connection:** When the user provides their Supabase project URL and key, run the schema migration provided in [`Personal-Memory-Graph-Supabase.md`](file:///home/guru/Work/metta/vault/Architecture/Personal-Memory-Graph-Supabase.md).
+## 🔭 6. Recent Milestones & Next Horizons for Project Metta
+
+### Completed Milestones (2026-10-30):
+1. **Supabase Cloud Identity**: Pure, branded Metta email/password authentication with custom email templates in `supabase/templates/`.
+2. **Unified Voice Interface**: Real-time Web Audio API frequency analysis oscillator with interim speech stream listener and 3-second auto-stop across both Home Chat and Simulation Lab.
+3. **Voice Polish AI**: BYOM Gemini 3.8 Flash primary pipeline with comprehensive acoustic speech-to-text error reconstruction (eliminated external rate-limited models).
+
+### Upcoming Focus (Tomorrow):
+1. **Reflection, Decision & Resolution Framework UI**:
+   - **Reflection Layer**: Contemplative self-inquiry and distress knot observation widgets.
+   - **Decision Layer**: System 1 (TypeSafe Jev) fast triage evaluation cards, live confidence meters, and transparent five-precept adherence oracles.
+   - **Resolution Layer**: Actionable synthesis cards uniting Karunā speech with Universal Dhamma Graph links and Personal Sovereign Memory.
