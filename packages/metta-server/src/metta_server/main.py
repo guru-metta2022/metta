@@ -247,6 +247,7 @@ async def voice_dictate(req: AskRequest, request: Request, response: Response):
 class VoicePolishRequest(BaseModel):
     raw_transcript: str = Field(..., description="Raw speech recognition transcript")
     mode: Optional[str] = Field(default="simulation", description="'simulation' or 'dialogue'")
+    byom_gemini_key: Optional[str] = None
 
 
 class VoicePolishResponse(BaseModel):
@@ -256,28 +257,18 @@ class VoicePolishResponse(BaseModel):
 
 
 @app.post("/api/voice/polish", response_model=VoicePolishResponse)
-async def polish_voice_transcript(req: VoicePolishRequest):
-    """Sanitize raw speech-to-text transcript: removes filler words, fixes grammar, and reframes clearly."""
-    import re
+async def polish_voice_transcript(req: VoicePolishRequest, request: Request):
+    """Sanitize and rephrase raw speech-to-text transcript using AI into a neat, proper inquiry."""
     raw = req.raw_transcript.strip()
     if not raw:
         return VoicePolishResponse(original="", polished="", auto_execute=False)
 
-    cleaned = re.sub(r"\b(um|uh|er|ah|like|you know|basically|so yeah|i mean)\b", "", raw, flags=re.IGNORECASE)
-    cleaned = re.sub(r"\s+", " ", cleaned).strip()
-
-    if cleaned:
-        cleaned = cleaned[0].upper() + cleaned[1:]
-        if not cleaned.endswith((".", "?", "!")):
-            first_word = cleaned.split()[0].lower() if cleaned else ""
-            if first_word in ["will", "can", "should", "how", "what", "is", "why", "would", "shall"]:
-                cleaned += "?"
-            else:
-                cleaned += "."
+    byom_gemini = request.headers.get("x-gemini-api-key") or req.byom_gemini_key
+    polished = await ai_agent.polish_text(raw, byom_gemini_key=byom_gemini)
 
     return VoicePolishResponse(
         original=raw,
-        polished=cleaned or raw,
+        polished=polished,
         auto_execute=True,
     )
 

@@ -400,3 +400,54 @@ class AIAgent:
         )
 
         return report.model_dump()
+
+    async def polish_text(
+        self,
+        raw_text: str,
+        byom_gemini_key: Optional[str] = None,
+    ) -> str:
+        """Sanitize and rephrase raw spoken text into an articulate, grammatically neat inquiry or question.
+
+        Preserves all intended meaning and domain context while removing verbal fillers and awkward phrasing.
+        """
+        import re
+        raw = (raw_text or "").strip()
+        if not raw:
+            return ""
+
+        # Deterministic cleanup for fallback & pre-sanitization
+        cleaned = re.sub(r"\b(um|uh|er|ah|like|you know|basically|so yeah|i mean)\b", "", raw, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\s+", " ", cleaned).strip()
+
+        # Try AI refinement
+        try:
+            adapter = self._active_provider
+            if byom_gemini_key:
+                adapter = GeminiAntigravityAdapter(model=self._active_provider.model_name, api_key=byom_gemini_key)
+
+            system_instruction = (
+                "You are an expert speech-to-text refiner and grammar editor. "
+                "Your role is to take raw spoken input (which may be appended to an existing inquiry or scenario), "
+                "remove verbal fillers (um, uh, you know, etc.), correct grammar and punctuation, "
+                "and formulate it into a neat, articulate, well-structured inquiry or question. "
+                "Preserve all specific terms, entities, and context. Do NOT answer the question. "
+                "Return ONLY the polished inquiry as a single string, without introductory words, quotes, or conversational filler."
+            )
+            prompt = f"Raw spoken text to polish into a neat inquiry:\n{raw}"
+            res = await adapter.generate(prompt=prompt, system_instruction=system_instruction, effort="low")
+            if res and res.strip():
+                polished = res.strip().strip('"').strip("'")
+                return polished
+        except Exception as e:
+            logger.warning("AI voice polish fallback to regex: %s", e)
+
+        # Fallback formatting
+        if cleaned:
+            cleaned = cleaned[0].upper() + cleaned[1:]
+            if not cleaned.endswith((".", "?", "!")):
+                first_word = cleaned.split()[0].lower() if cleaned else ""
+                if first_word in ["will", "can", "should", "how", "what", "is", "why", "would", "shall", "could"]:
+                    cleaned += "?"
+                else:
+                    cleaned += "."
+        return cleaned or raw

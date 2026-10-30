@@ -525,12 +525,26 @@ export default function SimulationLab({ onClose = null }) {
   const [showMcpHelp, setShowMcpHelp] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isPolishingVoice, setIsPolishingVoice] = useState(false);
-  const [autoSimulateOnVoice, setAutoSimulateOnVoice] = useState(true);
+  const [autoSimulateOnVoice, setAutoSimulateOnVoice] = useState(false);
   const [dbLogStatus, setDbLogStatus] = useState(null); // 'logging' | 'recorded' | 'local_only'
 
   const recognitionRef = useRef(null);
   const transcriptBufferRef = useRef('');
-  const timerRef = useRef(null);
+  const baseProposalRef = useRef('');
+  const silenceTimerRef = useRef(null);
+  const isRecordingRef = useRef(false);
+
+  // Sync ref with state
+  useEffect(() => {
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
+
+  // Clean up timers on unmount
+  useEffect(() => {
+    return () => {
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    };
+  }, []);
 
   // Initialize Speech Recognition for simulation input with live streaming transcript
   useEffect(() => {
@@ -546,33 +560,51 @@ export default function SimulationLab({ onClose = null }) {
         for (let i = 0; i < event.results.length; i++) {
           currentTranscript += event.results[i][0].transcript;
         }
-        transcriptBufferRef.current = currentTranscript;
-        setCustomProposal(currentTranscript);
+
+        const speech = currentTranscript.trim();
+        const base = baseProposalRef.current.trim();
+        const combined = base ? (speech ? `${base} ${speech}` : base) : speech;
+
+        transcriptBufferRef.current = combined;
+        setCustomProposal(combined);
+
+        // Auto-stop listening if no words are spoken for 3 seconds
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = setTimeout(() => {
+          if (isRecordingRef.current) {
+            stopVoiceRecordingAndPolish();
+          }
+        }, 3000);
+      };
+
+      recognition.onspeechend = () => {
+        // Speech paused: give a 3-second grace window before auto-polishing
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = setTimeout(() => {
+          if (isRecordingRef.current) {
+            stopVoiceRecordingAndPolish();
+          }
+        }, 3000);
       };
 
       recognition.onerror = (event) => {
         console.warn('Speech recognition error in Simulation:', event.error);
-        setIsRecording(false);
+        if (event.error !== 'no-speech') {
+          stopVoiceRecordingAndPolish();
+        }
       };
 
       recognition.onend = () => {
-        setIsRecording(false);
-        // Automatically polish transcript when user finishes speaking
-        const raw = transcriptBufferRef.current;
-        if (raw && raw.trim().length > 3) {
-          handlePolishSpokenText(raw);
+        if (isRecordingRef.current) {
+          stopVoiceRecordingAndPolish();
         }
       };
 
       recognitionRef.current = recognition;
     }
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
   }, []);
 
-  // Voice Polish & Rephrase handler
+  // Voice Polish & Rephrase handler using AI to construct the neatest articulate question
   const handlePolishSpokenText = async (rawToPolish) => {
     const raw = rawToPolish || customProposal;
     if (!raw.trim()) return;
@@ -580,29 +612,62 @@ export default function SimulationLab({ onClose = null }) {
     setIsPolishingVoice(true);
     let polished = sanitizeSpeechText(raw);
 
-    // Try server-side polish API for LLM-level fluency
+    // Try server-side AI polish API for LLM-level fluency
     try {
+      const byomGeminiKey = localStorage.getItem('metta_byom_gemini_key') || '';
+      const headers = { 'Content-Type': 'application/json' };
+      if (byomGeminiKey) headers['X-Gemini-Api-Key'] = byomGeminiKey;
+
       const res = await fetch('/api/voice/polish', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ raw_transcript: raw, mode: 'simulation' }),
+        headers,
+        body: JSON.stringify({
+          raw_transcript: raw,
+          mode: 'simulation',
+          byom_gemini_key: byomGeminiKey || null,
+        }),
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.polished) {
-          polished = data.polished;
+        if (data.polished && data.polished.trim()) {
+          polished = data.polished.trim();
         }
       }
-    } catch {
-      // Fallback already computed via sanitizeSpeechText
+    } catch (err) {
+      console.warn('Backend AI polish unavailable, using client speech sanitizer:', err);
     }
 
     setCustomProposal(polished);
+    transcriptBufferRef.current = polished;
+    baseProposalRef.current = polished;
     setIsPolishingVoice(false);
 
-    // If auto-simulate is enabled, trigger simulation immediately
+    // If auto-simulate is explicitly enabled by user, trigger simulation
     if (autoSimulateOnVoice && polished.trim().length > 5) {
       runSimulation(polished);
+    }
+  };
+
+  const stopVoiceRecordingAndPolish = async () => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+
+    if (recognitionRef.current && isRecordingRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {
+        // Recognition already stopped
+      }
+    }
+
+    setIsRecording(false);
+    isRecordingRef.current = false;
+
+    const raw = transcriptBufferRef.current || customProposal;
+    if (raw && raw.trim().length > 0) {
+      await handlePolishSpokenText(raw);
     }
   };
 
@@ -613,14 +678,26 @@ export default function SimulationLab({ onClose = null }) {
     }
 
     if (isRecording) {
-      recognitionRef.current.stop();
-      setIsRecording(false);
+      // User clicked the red stop listening button
+      stopVoiceRecordingAndPolish();
     } else {
-      setCustomProposal('');
-      transcriptBufferRef.current = '';
+      // Preserve existing text (such as a selected predefined simulation tab or typed text)
+      const current = customProposal.trim();
+      baseProposalRef.current = current;
+      transcriptBufferRef.current = current;
+
       try {
         recognitionRef.current.start();
         setIsRecording(true);
+        isRecordingRef.current = true;
+
+        // Auto-stop if no speech is detected at all after 6 seconds
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = setTimeout(() => {
+          if (isRecordingRef.current) {
+            stopVoiceRecordingAndPolish();
+          }
+        }, 6000);
       } catch (err) {
         console.error('Failed to start speech recognition in simulation:', err);
       }
@@ -995,15 +1072,15 @@ export default function SimulationLab({ onClose = null }) {
                   <span className="w-0.5 bg-emerald-300 rounded-full animate-pulse" style={{ height: '85%', animationDuration: '0.35s' }} />
                   <span className="w-0.5 bg-emerald-400 rounded-full animate-pulse" style={{ height: '55%', animationDuration: '0.45s' }} />
                 </div>
-                <span className="text-[10px] font-mono font-medium animate-pulse">Streaming Voice...</span>
+                <span className="text-[10px] font-mono font-medium">Streaming voice... (auto-stops on 3s silence)</span>
               </div>
             )}
 
             {/* Polishing Indicator */}
             {isPolishingVoice && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#14231b] border border-[#2d523e] text-[#86e2ad] text-[10px] font-mono">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#14231b] border border-[#2d523e] text-[#86e2ad] text-[10px] font-mono animate-pulse">
                 <Sparkles className="w-3 h-3 animate-spin text-[#52b788]" />
-                <span>Polishing grammar...</span>
+                <span>Rephrasing into neat question with AI...</span>
               </div>
             )}
 
@@ -1014,7 +1091,7 @@ export default function SimulationLab({ onClose = null }) {
                 onClick={() => handlePolishSpokenText()}
                 disabled={isPolishingVoice}
                 className="px-2 py-1 rounded-lg border border-[#263529] bg-[#121c16] hover:bg-[#19271f] text-[#8dd4ac] text-[11px] font-medium flex items-center gap-1 transition"
-                title="Sanitize speech, correct grammar, and reframe clearly with AI"
+                title="Sanitize speech, correct grammar, and rephrase clearly with AI"
               >
                 <Wand2 className="w-3 h-3 text-[#7ec69d]" />
                 <span className="hidden sm:inline">Polish AI</span>
@@ -1027,13 +1104,15 @@ export default function SimulationLab({ onClose = null }) {
               onClick={toggleVoiceRecording}
               className={`px-2.5 py-1.5 rounded-lg border text-xs flex items-center gap-1.5 transition font-medium ${
                 isRecording
-                  ? 'bg-rose-950/80 border-rose-500/50 text-rose-300 animate-pulse'
+                  ? 'bg-rose-900 border-rose-500 text-rose-100 shadow-md animate-pulse hover:bg-rose-800'
                   : 'bg-[#161c26] border-[#222a3a] text-[#8f9bb0] hover:text-[#f0f2f5]'
               }`}
-              title={isRecording ? 'Click to stop listening & polish' : 'Speak inquiry via Web Speech API'}
+              title={isRecording ? 'Click red button to stop listening & rephrase with AI immediately' : 'Speak inquiry via Web Speech API'}
             >
-              {isRecording ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
-              <span className="text-[11px]">{isRecording ? 'Stop Voice' : 'Voice Input'}</span>
+              {isRecording ? <MicOff className="w-3.5 h-3.5 text-white" /> : <Mic className="w-3.5 h-3.5" />}
+              <span className={`text-[11px] ${isRecording ? 'text-white font-semibold' : ''}`}>
+                {isRecording ? 'Stop Listening' : 'Voice Input'}
+              </span>
             </button>
 
             <button
@@ -1074,7 +1153,7 @@ export default function SimulationLab({ onClose = null }) {
                 onChange={(e) => setAutoSimulateOnVoice(e.target.checked)}
                 className="rounded border-[#293242] bg-[#0c1017] text-[#52b788] focus:ring-0 w-3 h-3 cursor-pointer"
               />
-              <span>Auto-simulate after voice</span>
+              <span>Auto-run simulation after voice (optional)</span>
             </label>
           </div>
 

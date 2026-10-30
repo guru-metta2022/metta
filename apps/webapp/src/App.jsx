@@ -70,6 +70,19 @@ export default function App() {
   const [isRecording, setIsRecording] = useState(false);
   const [isPolishingVoice, setIsPolishingVoice] = useState(false);
   const transcriptBufferRef = useRef('');
+  const baseInputRef = useRef('');
+  const silenceTimerRef = useRef(null);
+  const isRecordingRef = useRef(false);
+
+  useEffect(() => {
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
+
+  useEffect(() => {
+    return () => {
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    };
+  }, []);
   const [preceptsOpen, setPreceptsOpen] = useState(false);
   const [graphOpen, setGraphOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -210,20 +223,43 @@ export default function App() {
         for (let i = 0; i < event.results.length; i++) {
           currentTranscript += event.results[i][0].transcript;
         }
-        transcriptBufferRef.current = currentTranscript;
-        setInput(currentTranscript);
+
+        const speech = currentTranscript.trim();
+        const base = baseInputRef.current.trim();
+        const combined = base ? (speech ? `${base} ${speech}` : base) : speech;
+
+        transcriptBufferRef.current = combined;
+        setInput(combined);
+
+        // Auto-stop listening if no words are spoken for 3 seconds
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = setTimeout(() => {
+          if (isRecordingRef.current) {
+            stopVoiceRecordingAndPolish();
+          }
+        }, 3000);
+      };
+
+      recognition.onspeechend = () => {
+        // Speech paused: give a 3-second grace window before auto-polishing
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = setTimeout(() => {
+          if (isRecordingRef.current) {
+            stopVoiceRecordingAndPolish();
+          }
+        }, 3000);
       };
 
       recognition.onerror = (event) => {
         console.warn('Speech recognition error:', event.error);
-        setIsRecording(false);
+        if (event.error !== 'no-speech') {
+          stopVoiceRecordingAndPolish();
+        }
       };
 
       recognition.onend = () => {
-        setIsRecording(false);
-        const raw = transcriptBufferRef.current;
-        if (raw && raw.trim().length > 3) {
-          handlePolishInput(raw);
+        if (isRecordingRef.current) {
+          stopVoiceRecordingAndPolish();
         }
       };
 
@@ -231,7 +267,7 @@ export default function App() {
     }
   }, []);
 
-  // Voice Polish & Grammar Rephrase handler for chat
+  // Voice Polish & Grammar Rephrase handler for chat using AI to formulate a neat inquiry
   const handlePolishInput = async (rawToPolish) => {
     const raw = rawToPolish || input;
     if (!raw.trim()) return;
@@ -240,15 +276,23 @@ export default function App() {
     let polished = sanitizeSpeechText(raw);
 
     try {
+      const byomGeminiKey = localStorage.getItem('metta_byom_gemini_key') || '';
+      const headers = { 'Content-Type': 'application/json' };
+      if (byomGeminiKey) headers['X-Gemini-Api-Key'] = byomGeminiKey;
+
       const res = await fetch('/api/voice/polish', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ raw_transcript: raw, mode: 'chat' }),
+        headers,
+        body: JSON.stringify({
+          raw_transcript: raw,
+          mode: 'chat',
+          byom_gemini_key: byomGeminiKey || null,
+        }),
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.polished) {
-          polished = data.polished;
+        if (data.polished && data.polished.trim()) {
+          polished = data.polished.trim();
         }
       }
     } catch {
@@ -256,7 +300,32 @@ export default function App() {
     }
 
     setInput(polished);
+    transcriptBufferRef.current = polished;
+    baseInputRef.current = polished;
     setIsPolishingVoice(false);
+  };
+
+  const stopVoiceRecordingAndPolish = async () => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+
+    if (recognitionRef.current && isRecordingRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {
+        // Ignore if already stopping
+      }
+    }
+
+    setIsRecording(false);
+    isRecordingRef.current = false;
+
+    const raw = transcriptBufferRef.current || input;
+    if (raw && raw.trim().length > 0) {
+      await handlePolishInput(raw);
+    }
   };
 
   const toggleVoiceRecording = () => {
@@ -266,18 +335,26 @@ export default function App() {
     }
 
     if (isRecording) {
-      recognitionRef.current.stop();
-      setIsRecording(false);
-      const raw = transcriptBufferRef.current;
-      if (raw && raw.trim().length > 3) {
-        handlePolishInput(raw);
-      }
+      // User clicked the red stop listening button
+      stopVoiceRecordingAndPolish();
     } else {
-      setInput('');
-      transcriptBufferRef.current = '';
+      // Preserve existing text in the input box so user can speak and append words
+      const current = input.trim();
+      baseInputRef.current = current;
+      transcriptBufferRef.current = current;
+
       try {
         recognitionRef.current.start();
         setIsRecording(true);
+        isRecordingRef.current = true;
+
+        // Auto-stop if no speech is detected at all after 6 seconds
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = setTimeout(() => {
+          if (isRecordingRef.current) {
+            stopVoiceRecordingAndPolish();
+          }
+        }, 6000);
       } catch (err) {
         console.error('Failed to start speech recognition:', err);
       }
@@ -594,15 +671,15 @@ export default function App() {
                     <span className="w-0.5 bg-emerald-300 rounded-full animate-pulse" style={{ height: '85%', animationDuration: '0.35s' }} />
                     <span className="w-0.5 bg-emerald-400 rounded-full animate-pulse" style={{ height: '55%', animationDuration: '0.45s' }} />
                   </div>
-                  <span className="text-[10px] font-mono font-medium animate-pulse hidden xs:inline">Listening...</span>
+                  <span className="text-[10px] font-mono font-medium hidden xs:inline">Streaming voice... (auto-stops on 3s silence)</span>
                 </div>
               )}
 
               {/* Polishing Indicator */}
               {isPolishingVoice && (
-                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[#14231b] border border-[#2d523e] text-[#86e2ad] text-[10px] font-mono">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[#14231b] border border-[#2d523e] text-[#86e2ad] text-[10px] font-mono animate-pulse">
                   <Sparkles className="w-3 h-3 animate-spin text-[#52b788]" />
-                  <span className="hidden xs:inline">Polishing...</span>
+                  <span className="hidden xs:inline">Rephrasing into neat question with AI...</span>
                 </div>
               )}
 
@@ -625,12 +702,12 @@ export default function App() {
                 onClick={toggleVoiceRecording}
                 className={`p-2 rounded-xl transition ${
                   isRecording
-                    ? 'bg-[#e05858] text-white shadow-md animate-pulse'
+                    ? 'bg-rose-900 border border-rose-500 text-white shadow-md animate-pulse hover:bg-rose-800'
                     : 'bg-[#181d26] text-[#8e98aa] hover:text-[#e0e5ef] hover:bg-[#202734]'
                 }`}
-                title={isRecording ? 'Stop listening & polish' : 'Start voice dictation'}
+                title={isRecording ? 'Click red button to stop listening & rephrase with AI immediately' : 'Start voice dictation'}
               >
-                {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                {isRecording ? <MicOff className="w-4 h-4 text-white" /> : <Mic className="w-4 h-4" />}
               </button>
 
               {/* Send Button */}
