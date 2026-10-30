@@ -417,6 +417,31 @@ class AIAgent:
 
         # Deterministic cleanup for fallback & pre-sanitization
         cleaned = re.sub(r"\b(um|uh|er|ah|like|you know|basically|so yeah|i mean)\b", "", raw, flags=re.IGNORECASE)
+        cleaned = re.sub(r"^(okay|ok|well|hey|look|listen|so|actually|literally|honestly|right)[,\s]+", "", cleaned, flags=re.IGNORECASE)
+
+        # Question opener misrecognitions
+        cleaned = re.sub(r"\bwho\s+you\s+going\s+to\b", "how are we going to", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\bwho\s+we\s+going\s+to\b", "how are we going to", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\bhow\s+you\s+going\s+to\b", "how are you going to", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\bhow\s+we\s+going\s+to\b", "how are we going to", cleaned, flags=re.IGNORECASE)
+
+        # Societal, economic, and acoustic typo replacements
+        cleaned = re.sub(r"\bthe\s+inquality\s+in\s+the\s+society\b", "inequality in society", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\binquality\s+in\s+the\s+society\b", "inequality in society", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\bin\s+the\s+society\b", "in society", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\binquality\b", "inequality", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\b(?:the\s+)?jobalertness\s+and\s+(?:the\s+)?cap\b", ", joblessness, and the gap", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\b(?:the\s+)?joblessness\s+and\s+(?:the\s+)?cap\b", ", joblessness, and the gap", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\bjobalertness\b", "joblessness", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\band\s+cap\b", "and the gap", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\bread\s+them\s+a\b", "treat them as", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\bMr\.?\s*Bean\s*\d*\s*them as\b", "instead treat them as", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\bMr\.?\s*Bean\b", "instead", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\b\?\s*(instead|rather|but)\b", r", \1", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\bwe\s+should\s+not\b", "should we not", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\ssimilarity\b", "singularity", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\s+,", ",", cleaned)
+        cleaned = re.sub(r",\s*,+", ",", cleaned)
         cleaned = re.sub(r"\s+", " ", cleaned).strip()
 
         # Try AI refinement

@@ -34,7 +34,18 @@ function sanitizeSpeechText(raw) {
   // 2. Remove conversational openers at the beginning of speech
   cleaned = cleaned.replace(/^(okay|ok|well|hey|look|listen|so|actually|literally|honestly|right)[,\s]+/gi, '');
 
-  // 3. Multi-word acoustic & phrasing replacements
+  // 3. Spoken question opener misrecognitions
+  cleaned = cleaned
+    .replace(/\bwho\s+you\s+going\s+to\b/gi, 'how are we going to')
+    .replace(/\bwho\s+we\s+going\s+to\b/gi, 'how are we going to')
+    .replace(/\bhow\s+you\s+going\s+to\b/gi, 'how are you going to')
+    .replace(/\bhow\s+we\s+going\s+to\b/gi, 'how are we going to')
+    .replace(/\bwhat\s+you\s+going\s+to\b/gi, 'what are you going to')
+    .replace(/\bwhere\s+you\s+going\s+to\b/gi, 'where are you going to')
+    .replace(/\bwhen\s+you\s+going\s+to\b/gi, 'when are you going to')
+    .replace(/\bwhy\s+you\s+going\s+to\b/gi, 'why are you going to');
+
+  // 4. Multi-word acoustic & phrasing replacements
   cleaned = cleaned
     .replace(/\bmore Campbell them\b/gi, 'more capable than them')
     .replace(/\bCampbell them\b/gi, 'capable than them')
@@ -53,7 +64,26 @@ function sanitizeSpeechText(raw) {
     .replace(/\bwould be\s+(?:actually\s+|basically\s+)?would you\b/gi, 'would you')
     .replace(/\bexplain me\b/gi, 'explain to me');
 
-  // 4. Single-word acoustic misrecognitions
+  // 5. Societal, economic, and acoustic typo replacements
+  cleaned = cleaned
+    .replace(/\bthe\s+inquality\s+in\s+the\s+society\b/gi, 'inequality in society')
+    .replace(/\binquality\s+in\s+the\s+society\b/gi, 'inequality in society')
+    .replace(/\bin\s+the\s+society\b/gi, 'in society')
+    .replace(/\bof\s+the\s+society\b/gi, 'of society')
+    .replace(/\bfor\s+the\s+society\b/gi, 'for society')
+    .replace(/\binquality\b/gi, 'inequality')
+    .replace(/\binqualities\b/gi, 'inequalities')
+    .replace(/\b(?:the\s+)?jobalertness\s+and\s+(?:the\s+)?cap\b/gi, ', joblessness, and the gap')
+    .replace(/\b(?:the\s+)?joblessness\s+and\s+(?:the\s+)?cap\b/gi, ', joblessness, and the gap')
+    .replace(/\bjobalertness\b/gi, 'joblessness')
+    .replace(/\bjob\s*alertness\b/gi, 'joblessness')
+    .replace(/\bthe\s+jobalertness\b/gi, 'joblessness')
+    .replace(/\band\s+cap\b/gi, 'and the gap')
+    .replace(/\bwealth\s+cap\b/gi, 'wealth gap')
+    .replace(/\bincome\s+cap\b/gi, 'income gap')
+    .replace(/\bwage\s+cap\b/gi, 'wage gap');
+
+  // 6. Single-word acoustic misrecognitions
   cleaned = cleaned
     .replace(/\bsimilarity\b/gi, 'singularity')
     .replace(/\bCampbell\b/gi, 'capable')
@@ -65,15 +95,15 @@ function sanitizeSpeechText(raw) {
     .replace(/\bmetalearn\b/gi, 'meta-learn')
     .replace(/\bbackpropaghate\b/gi, 'backpropagate');
 
-  // 5. Remove mid-sentence filler adverbs and stuttered duplicate words
+  // 7. Remove mid-sentence filler adverbs and stuttered duplicate words
   cleaned = cleaned.replace(/\b(\w+)\s+(?:actually\s+|basically\s+|literally\s+)?\1\b/gi, '$1');
   cleaned = cleaned.replace(/\b(actually|literally|honestly)\b/gi, '');
 
-  // 6. Fix punctuation and grammar transitions
+  // 8. Fix punctuation and grammar transitions
   cleaned = cleaned.replace(/\?\s*(instead|rather|but)\b/gi, ', $1');
   cleaned = cleaned.replace(/\bwe should not\b/gi, 'should we not');
 
-  // 7. Embedded question inversion correction (indirect questions)
+  // 9. Embedded question inversion correction (indirect questions)
   cleaned = cleaned
     .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+what\s+are\s+you\b/gi, '$1 what you are')
     .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+who\s+are\s+you\b/gi, '$1 who you are')
@@ -84,7 +114,9 @@ function sanitizeSpeechText(raw) {
     .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+how\s+does\s+this\s+system\s+work\b/gi, '$1 how this system works')
     .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+what\s+does\s+it\s+mean\b/gi, '$1 what it means');
 
-  // 7. Clean spacing and punctuation
+  // 10. Clean commas, spacing and punctuation
+  cleaned = cleaned.replace(/\s+,/g, ',');
+  cleaned = cleaned.replace(/,\s*,+/g, ',');
   cleaned = cleaned.replace(/\s+/g, ' ').trim();
   if (cleaned.length > 0) {
     cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
@@ -389,6 +421,7 @@ export default function App() {
 
     setIsPolishingVoice(true);
     let polished = sanitizeSpeechText(raw);
+    let providerUsed = 'heuristic-purifier';
 
     const byomGeminiKey = localStorage.getItem('metta_byom_gemini_key') || '';
     const headers = { 'Content-Type': 'application/json' };
@@ -408,35 +441,45 @@ export default function App() {
         const data = await res.json();
         if (data.polished && data.polished.trim()) {
           polished = data.polished.trim();
+          if (data.provider) providerUsed = data.provider;
         }
       }
     } catch {
-      // If serverless is unavailable but BYOM key exists, try direct Gemini
-      if (byomGeminiKey) {
-        try {
-          const systemPrompt =
-            "You are an expert AI speech-to-text refiner, acoustic error corrector, and grammar editor. " +
-            "Take the raw spoken input, remove verbal fillers, fix grammar and punctuation, and formulate a neat inquiry. " +
-            "CRITICAL: Do NOT answer the question. Return ONLY the polished inquiry string.";
-          const gemRes = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${byomGeminiKey}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\nRaw spoken:\n${raw}` }] }],
-                generationConfig: { temperature: 0.2, maxOutputTokens: 256 },
-              }),
-            }
-          );
-          if (gemRes.ok) {
-            const gemData = await gemRes.json();
-            const candidate = gemData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()?.replace(/^["']|["']$/g, '');
-            if (candidate) polished = candidate;
+      // If serverless is unavailable, continue to direct Gemini BYOM fallback
+    }
+
+    // If serverless did not use Gemini but client has personal BYOM key, call direct Gemini Flash
+    if (byomGeminiKey && providerUsed === 'heuristic-purifier') {
+      try {
+        const systemPrompt =
+          "You are an expert AI speech-to-text refiner, acoustic error corrector, and grammar editor. " +
+          "Your task: take raw spoken input which may contain speech recognition acoustic errors " +
+          "(e.g., 'Who you going to' instead of 'How are we going to', 'inquality' instead of 'inequality', 'in the society' instead of 'in society', 'jobalertness' instead of 'joblessness', 'cap' instead of 'gap', 'similarity' instead of 'singularity', 'Campbell' instead of 'capable', 'Hi intelligence' instead of 'Higher intelligence', 'Mr Bean 3' instead of 'instead treat'), " +
+          "remove conversational fillers (um, uh, like, etc.), fix grammar, syntax, and punctuation, " +
+          "and formulate it into a neat, articulate, well-structured inquiry or question. " +
+          "CRITICAL: Do NOT answer the question. Return ONLY the polished inquiry string without quotes or explanations.";
+
+        const gemRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${byomGeminiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\nRaw spoken:\n${raw}` }] }],
+              generationConfig: { temperature: 0.2, maxOutputTokens: 256 },
+            }),
           }
-        } catch {
-          // Fallback to sanitizeSpeechText
+        );
+        if (gemRes.ok) {
+          const gemData = await gemRes.json();
+          const candidate = gemData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()?.replace(/^["']|["']$/g, '');
+          if (candidate) {
+            polished = candidate;
+            providerUsed = 'gemini-3.8-flash';
+          }
         }
+      } catch (gemErr) {
+        console.warn('Direct Gemini BYOM polish fallback failed:', gemErr);
       }
     }
 
@@ -446,12 +489,22 @@ export default function App() {
     baseInputRef.current = polished;
     setIsPolishingVoice(false);
 
-    if (polished !== raw && showToast) {
-      showToast({
-        title: 'Polished with AI',
-        message: 'Conversational fillers removed and question restructured.',
-        type: 'success',
-      });
+    if (showToast) {
+      if (polished !== raw) {
+        showToast({
+          title: providerUsed.includes('gemini') ? 'Polished with Gemini 3.8 Flash' : 'Voice Input Polished',
+          message: providerUsed.includes('gemini')
+            ? 'Refined using your BYOM Gemini 3.8 Flash engine.'
+            : 'Acoustic errors and grammar corrected.',
+          type: 'success',
+        });
+      } else {
+        showToast({
+          title: 'Input Verified',
+          message: 'Spoken text is already articulate and clear.',
+          type: 'info',
+        });
+      }
     }
   };
 

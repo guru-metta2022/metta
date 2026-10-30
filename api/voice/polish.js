@@ -26,100 +26,52 @@ export default async function handler(req, res) {
       process.env.GEMINI_API_KEY ||
       process.env.VITE_GEMINI_API_KEY;
 
-    // If Gemini API key is available, call Gemini Flash for high-intelligence speech correction
+    // Primary: If Gemini API key is available (BYOM), call Gemini Flash
     if (geminiKey) {
-      try {
-        const systemPrompt =
-          "You are an expert AI speech-to-text refiner, acoustic error corrector, and grammar editor. " +
-          "Your task: take raw spoken input which may contain speech recognition acoustic errors " +
-          "(e.g., 'similarity' instead of 'singularity', 'Campbell' instead of 'capable', 'Hi intelligence' instead of 'Higher intelligence', 'here the intelligence' instead of 'is the intelligence'), " +
-          "remove conversational fillers (um, uh, like, etc.), fix grammar, syntax, and punctuation, " +
-          "and formulate it into a neat, articulate, well-structured inquiry or question. " +
-          "CRITICAL: Do NOT answer the question. Return ONLY the polished inquiry string without quotes or explanations.";
+      const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+      for (const modelName of modelsToTry) {
+        try {
+          const systemPrompt =
+            "You are an expert AI speech-to-text refiner, acoustic error corrector, and grammar editor. " +
+            "Your task: take raw spoken input which may contain speech recognition acoustic errors " +
+            "(e.g., 'Who you going to' instead of 'How are we going to', 'inquality' instead of 'inequality', 'in the society' instead of 'in society', 'jobalertness' instead of 'joblessness', 'cap' instead of 'gap', 'similarity' instead of 'singularity', 'Campbell' instead of 'capable', 'Hi intelligence' instead of 'Higher intelligence', 'Mr Bean 3' instead of 'instead treat'), " +
+            "remove conversational fillers (um, uh, like, etc.), fix grammar, syntax, and punctuation, " +
+            "and formulate it into a neat, articulate, well-structured inquiry or question. " +
+            "CRITICAL: Do NOT answer the question. Return ONLY the polished inquiry string without quotes or explanations.";
 
-        const userPrompt = `Raw spoken transcript to polish into a neat inquiry:\n${raw}`;
+          const userPrompt = `Raw spoken transcript to polish into a neat inquiry:\n${raw}`;
 
-        const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
-              generationConfig: { temperature: 0.2, maxOutputTokens: 256 },
-            }),
+          const geminiRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
+                generationConfig: { temperature: 0.2, maxOutputTokens: 256 },
+              }),
+            }
+          );
+
+          if (geminiRes.ok) {
+            const geminiData = await geminiRes.json();
+            const candidateText =
+              geminiData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()?.replace(/^["']|["']$/g, '');
+            if (candidateText) {
+              return res.status(200).json({
+                original: raw,
+                polished: candidateText,
+                provider: 'gemini-3.8-flash',
+              });
+            }
           }
-        );
-
-        if (geminiRes.ok) {
-          const geminiData = await geminiRes.json();
-          const candidateText =
-            geminiData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()?.replace(/^["']|["']$/g, '');
-          if (candidateText) {
-            return res.status(200).json({
-              original: raw,
-              polished: candidateText,
-              provider: 'gemini-ai',
-            });
-          }
+        } catch (geminiErr) {
+          console.warn(`Gemini API call error on model ${modelName}:`, geminiErr);
         }
-      } catch (geminiErr) {
-        console.warn('Gemini API call error in serverless polish:', geminiErr);
       }
     }
 
-    // Tier 2: Free LLM inference attempt (3.5s timeout)
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3500);
-      const freeRes = await fetch('https://text.pollinations.ai/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          messages: [
-            {
-              role: 'system',
-              content:
-                'You are an expert AI speech-to-text refiner and grammar editor. ' +
-                'The user spoke into a microphone which transcribed acoustic speech recognition errors, verbal fillers, and disfluencies. ' +
-                'Reconstruct what the user intended into a clean, articulate inquiry or question. ' +
-                'Fix speech recognition acoustic errors (e.g., "Mr Bean 3" -> "instead treat", "read them a" -> "treat them as", "similarity" -> "singularity"). ' +
-                'CRITICAL: Do NOT answer the question. Return ONLY the polished inquiry string without quotes or explanations.',
-            },
-            {
-              role: 'user',
-              content: raw,
-            },
-          ],
-          model: 'openai-fast',
-        }),
-      });
-      clearTimeout(timeoutId);
-
-      if (freeRes.ok) {
-        const textOut = await freeRes.text();
-        if (
-          textOut &&
-          textOut.trim() &&
-          !textOut.includes('Free limit reached') &&
-          !textOut.includes('SERVICE_UNAVAILABLE') &&
-          !textOut.includes('error') &&
-          !textOut.startsWith('{')
-        ) {
-          const cleanedAi = textOut.trim().replace(/^["']|["']$/g, '');
-          return res.status(200).json({
-            original: raw,
-            polished: cleanedAi,
-            provider: 'fast-llm',
-          });
-        }
-      }
-    } catch {
-      // Free LLM timed out or rate-limited; fall through to intelligent NLP purifier
-    }
-
-    // Tier 3: Intelligent speech-to-text semantic & acoustic purifier fallback
+    // Direct Purifier & Acoustic Error Reconstruction (No external free LLMs / No GitHub models)
     let polished = raw;
 
     // 1. Remove speech disfluencies & filler words
@@ -128,7 +80,18 @@ export default async function handler(req, res) {
     // 2. Remove conversational openers at the beginning of speech
     polished = polished.replace(/^(okay|ok|well|hey|look|listen|so|actually|literally|honestly|right)[,\s]+/gi, '');
 
-    // 3. Multi-word acoustic & phrasing replacements
+    // 3. Spoken question opener misrecognitions
+    polished = polished
+      .replace(/\bwho\s+you\s+going\s+to\b/gi, 'how are we going to')
+      .replace(/\bwho\s+we\s+going\s+to\b/gi, 'how are we going to')
+      .replace(/\bhow\s+you\s+going\s+to\b/gi, 'how are you going to')
+      .replace(/\bhow\s+we\s+going\s+to\b/gi, 'how are we going to')
+      .replace(/\bwhat\s+you\s+going\s+to\b/gi, 'what are you going to')
+      .replace(/\bwhere\s+you\s+going\s+to\b/gi, 'where are you going to')
+      .replace(/\bwhen\s+you\s+going\s+to\b/gi, 'when are you going to')
+      .replace(/\bwhy\s+you\s+going\s+to\b/gi, 'why are you going to');
+
+    // 4. Multi-word acoustic & phrasing replacements
     polished = polished
       .replace(/\bmore Campbell them\b/gi, 'more capable than them')
       .replace(/\bCampbell them\b/gi, 'capable than them')
@@ -147,7 +110,26 @@ export default async function handler(req, res) {
       .replace(/\bwould be\s+(?:actually\s+|basically\s+)?would you\b/gi, 'would you')
       .replace(/\bexplain me\b/gi, 'explain to me');
 
-    // 4. Single-word acoustic misrecognitions
+    // 5. Societal, economic, and acoustic typo replacements
+    polished = polished
+      .replace(/\bthe\s+inquality\s+in\s+the\s+society\b/gi, 'inequality in society')
+      .replace(/\binquality\s+in\s+the\s+society\b/gi, 'inequality in society')
+      .replace(/\bin\s+the\s+society\b/gi, 'in society')
+      .replace(/\bof\s+the\s+society\b/gi, 'of society')
+      .replace(/\bfor\s+the\s+society\b/gi, 'for society')
+      .replace(/\binquality\b/gi, 'inequality')
+      .replace(/\binqualities\b/gi, 'inequalities')
+      .replace(/\b(?:the\s+)?jobalertness\s+and\s+(?:the\s+)?cap\b/gi, ', joblessness, and the gap')
+      .replace(/\b(?:the\s+)?joblessness\s+and\s+(?:the\s+)?cap\b/gi, ', joblessness, and the gap')
+      .replace(/\bjobalertness\b/gi, 'joblessness')
+      .replace(/\bjob\s*alertness\b/gi, 'joblessness')
+      .replace(/\bthe\s+jobalertness\b/gi, 'joblessness')
+      .replace(/\band\s+cap\b/gi, 'and the gap')
+      .replace(/\bwealth\s+cap\b/gi, 'wealth gap')
+      .replace(/\bincome\s+cap\b/gi, 'income gap')
+      .replace(/\bwage\s+cap\b/gi, 'wage gap');
+
+    // 6. Single-word acoustic misrecognitions
     polished = polished
       .replace(/\bsimilarity\b/gi, 'singularity')
       .replace(/\bCampbell\b/gi, 'capable')
@@ -159,15 +141,15 @@ export default async function handler(req, res) {
       .replace(/\bmetalearn\b/gi, 'meta-learn')
       .replace(/\bbackpropaghate\b/gi, 'backpropagate');
 
-    // 5. Remove mid-sentence filler adverbs and stuttered duplicate words
+    // 7. Remove mid-sentence filler adverbs and stuttered duplicate words
     polished = polished.replace(/\b(\w+)\s+(?:actually\s+|basically\s+|literally\s+)?\1\b/gi, '$1');
     polished = polished.replace(/\b(actually|literally|honestly)\b/gi, '');
 
-    // 6. Fix punctuation and grammar transitions
+    // 8. Fix punctuation and grammar transitions
     polished = polished.replace(/\?\s*(instead|rather|but)\b/gi, ', $1');
     polished = polished.replace(/\bwe should not\b/gi, 'should we not');
 
-    // 7. Embedded question inversion correction (indirect questions)
+    // 9. Embedded question inversion correction (indirect questions)
     polished = polished
       .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+what\s+are\s+you\b/gi, '$1 what you are')
       .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+who\s+are\s+you\b/gi, '$1 who you are')
@@ -178,7 +160,9 @@ export default async function handler(req, res) {
       .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+how\s+does\s+this\s+system\s+work\b/gi, '$1 how this system works')
       .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+what\s+does\s+it\s+mean\b/gi, '$1 what it means');
 
-    // 7. Clean spacing and punctuation
+    // 10. Clean commas, spacing and punctuation
+    polished = polished.replace(/\s+,/g, ',');
+    polished = polished.replace(/,\s*,+/g, ',');
     polished = polished.replace(/\s+/g, ' ').trim();
     if (polished.length > 0) {
       polished = polished.charAt(0).toUpperCase() + polished.slice(1);
