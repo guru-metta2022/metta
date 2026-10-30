@@ -114,7 +114,7 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
                 <span className="text-[11px] opacity-80">
                   {hasByomActive
                     ? 'Unlimited throughput • Server rate limiter completely bypassed'
-                    : 'Protected by shared rate limiter (10 req/min). Enter keys below to remove limits.'}
+                    : 'Configured dynamically via Supabase PostgreSQL. Enter keys below to remove limits.'}
                 </span>
               </div>
             </div>

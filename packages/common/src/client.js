@@ -124,6 +124,44 @@ export class MettaClient {
   }
 
   /**
+   * Get sovereign user profile from Supabase
+   */
+  async getUserProfile(userId) {
+    const res = await fetch(`${this.baseUrl}/api/user/profile?user_id=${encodeURIComponent(userId)}`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) throw new Error(`Failed to fetch user profile: ${res.statusText}`);
+    return res.json();
+  }
+
+  /**
+   * Get configurable rate limit tiers from Supabase
+   */
+  async getRateLimitConfigs() {
+    const res = await fetch(`${this.baseUrl}/api/rate-limit/configs`);
+    if (!res.ok) throw new Error(`Failed to fetch rate limit configs: ${res.statusText}`);
+    return res.json();
+  }
+
+  /**
+   * Update rate limit tier in Supabase
+   */
+  async updateRateLimitConfig({ tier, maxPerMinute, maxPerHour, description = null }) {
+    const res = await fetch(`${this.baseUrl}/api/rate-limit/configs`, {
+      method: "POST",
+      headers: this.getHeaders(),
+      body: JSON.stringify({
+        tier,
+        max_per_minute: maxPerMinute,
+        max_per_hour: maxPerHour,
+        description,
+      }),
+    });
+    if (!res.ok) throw new Error(`Failed to update rate limit config: ${res.statusText}`);
+    return res.json();
+  }
+
+  /**
    * Trigger subtractive unlearning meditation audit
    */
   async meditate() {

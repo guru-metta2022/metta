@@ -246,3 +246,159 @@ class SupabaseMemoryStore(BaseMemoryStore):
         except Exception as e:
             logger.error("Supabase clear_user_graph failed: %s", e)
             return False
+
+    async def get_user_profile(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """Fetch user profile and tier from Supabase."""
+        if not self.is_configured:
+            return None
+
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(
+                    f"{self.url}/rest/v1/user_profiles?user_id=eq.{user_id}",
+                    headers=self.headers,
+                )
+                if resp.status_code == 200:
+                    rows = resp.json()
+                    if rows:
+                        return rows[0]
+            return None
+        except Exception as e:
+            logger.error("Supabase get_user_profile failed: %s", e)
+            return None
+
+    async def upsert_user_profile(
+        self,
+        user_id: str,
+        email: str,
+        display_name: str,
+        avatar_url: Optional[str] = None,
+        tier: str = "standard",
+    ) -> Dict[str, Any]:
+        """Create or update authenticated user profile in Supabase."""
+        now = time.time()
+        payload = {
+            "user_id": user_id,
+            "email": email,
+            "display_name": display_name,
+            "avatar_url": avatar_url or f"https://api.dicebear.com/7.x/bottts/svg?seed={user_id}",
+            "tier": tier,
+            "last_seen_at": now,
+        }
+        if not self.is_configured:
+            return {**payload, "created_at": now}
+
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.post(
+                    f"{self.url}/rest/v1/user_profiles",
+                    headers={**self.headers, "Prefer": "resolution=merge-duplicates,return=representation"},
+                    json=payload,
+                )
+                if resp.status_code in (200, 201):
+                    rows = resp.json()
+                    if rows:
+                        return rows[0]
+        except Exception as e:
+            logger.error("Supabase upsert_user_profile failed: %s", e)
+
+        return {**payload, "created_at": now}
+
+    async def get_rate_limit_configs(self) -> List[Dict[str, Any]]:
+        """Fetch all dynamic rate limit tier configurations from Supabase."""
+        if not self.is_configured:
+            return [
+                {"tier": "global_default", "max_per_minute": 15, "max_per_hour": 60, "description": "Local fallback"},
+                {"tier": "guest", "max_per_minute": 10, "max_per_hour": 40, "description": "Local guest fallback"},
+                {"tier": "standard", "max_per_minute": 25, "max_per_hour": 120, "description": "Local standard fallback"},
+                {"tier": "contributor", "max_per_minute": 60, "max_per_hour": 300, "description": "Local contributor fallback"},
+            ]
+
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(
+                    f"{self.url}/rest/v1/rate_limit_configs?order=max_per_minute.asc",
+                    headers=self.headers,
+                )
+                if resp.status_code == 200:
+                    return resp.json()
+        except Exception as e:
+            logger.error("Supabase get_rate_limit_configs failed: %s", e)
+
+        return []
+
+    async def get_user_rate_limit(self, user_id: Optional[str] = None) -> Dict[str, Any]:
+        """Resolve effective rate limit (per minute and per hour) for user from Supabase."""
+        default_limits = {
+            "tier": "guest" if not user_id else "standard",
+            "max_per_minute": 10 if not user_id else 25,
+            "max_per_hour": 40 if not user_id else 120,
+            "description": "Default tier",
+        }
+        if not self.is_configured:
+            return default_limits
+
+        try:
+            tier = "guest"
+            custom_min = None
+            custom_hr = None
+
+            if user_id:
+                profile = await self.get_user_profile(user_id)
+                if profile:
+                    tier = profile.get("tier", "standard")
+                    custom_min = profile.get("custom_max_per_minute")
+                    custom_hr = profile.get("custom_max_per_hour")
+                else:
+                    tier = "standard"
+
+            # Fetch tier config from Supabase
+            configs = await self.get_rate_limit_configs()
+            tier_config = next((c for c in configs if c["tier"] == tier), None)
+            if not tier_config:
+                tier_config = next((c for c in configs if c["tier"] == "global_default"), default_limits)
+
+            max_min = custom_min if custom_min is not None else tier_config.get("max_per_minute", 15)
+            max_hr = custom_hr if custom_hr is not None else tier_config.get("max_per_hour", 60)
+
+            return {
+                "tier": tier,
+                "max_per_minute": max_min,
+                "max_per_hour": max_hr,
+                "description": tier_config.get("description", ""),
+            }
+        except Exception as e:
+            logger.error("Error resolving rate limit from Supabase: %s", e)
+            return default_limits
+
+    async def update_rate_limit_config(
+        self,
+        tier: str,
+        max_per_minute: int,
+        max_per_hour: int,
+        description: Optional[str] = None,
+    ) -> bool:
+        """Update or create a rate limit tier in Supabase."""
+        if not self.is_configured:
+            return False
+
+        try:
+            payload = {
+                "tier": tier,
+                "max_per_minute": max_per_minute,
+                "max_per_hour": max_per_hour,
+                "updated_at": time.time(),
+            }
+            if description:
+                payload["description"] = description
+
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.post(
+                    f"{self.url}/rest/v1/rate_limit_configs",
+                    headers={**self.headers, "Prefer": "resolution=merge-duplicates"},
+                    json=payload,
+                )
+                return resp.status_code in (200, 201)
+        except Exception as e:
+            logger.error("Supabase update_rate_limit_config failed: %s", e)
+            return False

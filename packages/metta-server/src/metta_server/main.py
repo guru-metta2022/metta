@@ -20,10 +20,14 @@ from pydantic import BaseModel, Field
 from metta_core.gateway.agent import AIAgent, UnifiedResponse
 from metta_core.gateway.interfaces import AgentSettings, VoiceDiagnostics
 from metta_core.mcp.server import mcp_server
+from metta_core.storage.supabase_store import SupabaseMemoryStore
 from metta_server.rate_limiter import SlidingWindowRateLimiter, RateLimitStatus
 
-# Load environment variables (.env)
+# Load environment variables (.env from current dir or monorepo root)
 load_dotenv()
+_root_env = pathlib.Path(__file__).parent.parent.parent.parent.parent / ".env"
+if _root_env.exists():
+    load_dotenv(dotenv_path=_root_env)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("metta.server")
@@ -43,15 +47,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Initialize Supabase storage adapter (for user memory graphs, profiles, and dynamic rate limits)
+supabase_store = SupabaseMemoryStore()
+
 # Initialize the Unified AI Gateway (Provider-Agnostic)
 ai_agent = AIAgent(
     default_provider=os.environ.get("METTA_DEFAULT_PROVIDER", "gemini"),
     default_model=os.environ.get("METTA_DEFAULT_MODEL", "gemini-3.8-flash-high"),
     typesafe_api_key=os.environ.get("TYPESAFE_API_KEY"),
+    memory_store=supabase_store,
 )
 
-# Initialize Sliding-Window Rate Limiter (with BYOM unlimited bypass)
-rate_limiter = SlidingWindowRateLimiter()
+# Initialize Sliding-Window Rate Limiter (backed dynamically by Supabase PostgreSQL)
+rate_limiter = SlidingWindowRateLimiter(supabase_store=supabase_store)
 
 
 # Request & Response Schemas
@@ -76,6 +84,7 @@ class GuardrailRequest(BaseModel):
     proposal: str = Field(..., description="Action, speech, or tool call to evaluate")
     context: Optional[str] = Field(default=None, description="Optional background context")
     verbose: bool = Field(default=False, description="If True, includes full reasons and violated precepts")
+    user_id: Optional[str] = Field(default=None, description="Optional user identifier for authenticated rate limits")
     byom_typesafe_key: Optional[str] = Field(default=None, description="Optional BYOM TypeSafe key")
     byom_gemini_key: Optional[str] = Field(default=None, description="Optional BYOM Gemini key")
 
@@ -124,12 +133,12 @@ async def update_settings(update: ProviderSettingsUpdate):
 
 @app.get("/api/rate-limit", response_model=RateLimitStatus)
 async def get_rate_limit_status(request: Request, user_id: Optional[str] = None):
-    """Retrieve current client rate limit status and remaining quota."""
+    """Retrieve current client rate limit status and remaining quota from Supabase."""
     byom_gemini = request.headers.get("x-gemini-api-key")
     byom_typesafe = request.headers.get("x-typesafe-api-key")
     is_byom = bool(byom_gemini or byom_typesafe)
     client_id = user_id or (request.client.host if request.client else "unknown")
-    return rate_limiter.check(client_id, is_byom=is_byom)
+    return await rate_limiter.check_async(client_id, is_byom=is_byom, user_id=user_id)
 
 
 @app.post("/api/interact", response_model=UnifiedResponse)
@@ -140,8 +149,8 @@ async def interact(req: AskRequest, request: Request, response: Response):
     is_byom = bool(byom_gemini or byom_typesafe)
     client_id = req.user_id or (request.client.host if request.client else "unknown")
 
-    # Rate Limiting Check (BYOM is completely exempt)
-    status = rate_limiter.check(client_id, is_byom=is_byom)
+    # Rate Limiting Check (dynamically resolved from Supabase, BYOM is completely exempt)
+    status = await rate_limiter.check_async(client_id, is_byom=is_byom, user_id=req.user_id)
     if not status.allowed:
         raise HTTPException(
             status_code=429,
@@ -149,12 +158,14 @@ async def interact(req: AskRequest, request: Request, response: Response):
                 "error": "Rate limit reached on shared server quota",
                 "message": status.message,
                 "reset_seconds": status.reset_seconds,
+                "tier": status.tier,
                 "byom_supported": True,
             },
             headers={
                 "Retry-After": str(status.reset_seconds),
                 "X-RateLimit-Limit": str(status.limit),
                 "X-RateLimit-Remaining": "0",
+                "X-RateLimit-Tier": str(status.tier),
                 "X-BYOM-Supported": "true",
             },
         )
@@ -162,6 +173,7 @@ async def interact(req: AskRequest, request: Request, response: Response):
     # Attach quota telemetry headers
     response.headers["X-RateLimit-Limit"] = str(status.limit)
     response.headers["X-RateLimit-Remaining"] = str(status.remaining)
+    response.headers["X-RateLimit-Tier"] = str(status.tier)
     response.headers["X-BYOM-Active"] = "true" if is_byom else "false"
 
     try:
@@ -188,7 +200,7 @@ async def voice_dictate(req: AskRequest, request: Request, response: Response):
     is_byom = bool(byom_gemini or byom_typesafe)
     client_id = req.user_id or (request.client.host if request.client else "unknown")
 
-    status = rate_limiter.check(client_id, is_byom=is_byom)
+    status = await rate_limiter.check_async(client_id, is_byom=is_byom, user_id=req.user_id)
     if not status.allowed:
         raise HTTPException(
             status_code=429,
@@ -196,18 +208,21 @@ async def voice_dictate(req: AskRequest, request: Request, response: Response):
                 "error": "Rate limit reached on shared server quota",
                 "message": status.message,
                 "reset_seconds": status.reset_seconds,
+                "tier": status.tier,
                 "byom_supported": True,
             },
             headers={
                 "Retry-After": str(status.reset_seconds),
                 "X-RateLimit-Limit": str(status.limit),
                 "X-RateLimit-Remaining": "0",
+                "X-RateLimit-Tier": str(status.tier),
                 "X-BYOM-Supported": "true",
             },
         )
 
     response.headers["X-RateLimit-Limit"] = str(status.limit)
     response.headers["X-RateLimit-Remaining"] = str(status.remaining)
+    response.headers["X-RateLimit-Tier"] = str(status.tier)
     response.headers["X-BYOM-Active"] = "true" if is_byom else "false"
 
     try:
@@ -238,7 +253,7 @@ async def guardrail_endpoint(req: GuardrailRequest, request: Request, response: 
     is_byom = bool(byom_gemini or byom_typesafe)
     client_id = request.client.host if request.client else "unknown"
 
-    status = rate_limiter.check(client_id, is_byom=is_byom)
+    status = await rate_limiter.check_async(client_id, is_byom=is_byom, user_id=req.user_id)
     if not status.allowed:
         raise HTTPException(
             status_code=429,
@@ -246,18 +261,21 @@ async def guardrail_endpoint(req: GuardrailRequest, request: Request, response: 
                 "error": "Rate limit reached on shared server quota",
                 "message": status.message,
                 "reset_seconds": status.reset_seconds,
+                "tier": status.tier,
                 "byom_supported": True,
             },
             headers={
                 "Retry-After": str(status.reset_seconds),
                 "X-RateLimit-Limit": str(status.limit),
                 "X-RateLimit-Remaining": "0",
+                "X-RateLimit-Tier": str(status.tier),
                 "X-BYOM-Supported": "true",
             },
         )
 
     response.headers["X-RateLimit-Limit"] = str(status.limit)
     response.headers["X-RateLimit-Remaining"] = str(status.remaining)
+    response.headers["X-RateLimit-Tier"] = str(status.tier)
     response.headers["X-BYOM-Active"] = "true" if is_byom else "false"
 
     try:
@@ -275,16 +293,68 @@ async def guardrail_endpoint(req: GuardrailRequest, request: Request, response: 
 
 @app.post("/api/auth/google")
 async def authenticate_google(req: GoogleAuthRequest):
-    """Simulate/handle Google OAuth authentication for personal memory graphs."""
+    """Authenticate Google OAuth user and persist/sync sovereign profile in Supabase."""
     email = req.email or "seeker.bodhi@gmail.com"
     name = req.name or email.split("@")[0].capitalize()
     user_id = f"google:{email.lower().replace('.', '_')}"
+
+    profile = await supabase_store.upsert_user_profile(
+        user_id=user_id,
+        email=email,
+        display_name=name,
+        tier="standard",
+    )
+
     return {
         "user_id": user_id,
         "email": email,
-        "name": name,
-        "avatar": f"https://api.dicebear.com/7.x/bottts/svg?seed={user_id}",
+        "name": profile.get("display_name", name),
+        "avatar": profile.get("avatar_url", f"https://api.dicebear.com/7.x/bottts/svg?seed={user_id}"),
+        "tier": profile.get("tier", "standard"),
         "mode": "authenticated",
+    }
+
+
+@app.get("/api/user/profile")
+async def get_user_profile(user_id: str):
+    """Retrieve sovereign user profile and tier directly from Supabase."""
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id query parameter is required")
+    profile = await supabase_store.get_user_profile(user_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="User profile not found in Supabase")
+    return profile
+
+
+@app.get("/api/rate-limit/configs")
+async def list_rate_limit_configs():
+    """Retrieve all configurable rate limit tiers directly from Supabase."""
+    return await supabase_store.get_rate_limit_configs()
+
+
+class UpdateRateLimitConfigRequest(BaseModel):
+    tier: str
+    max_per_minute: int
+    max_per_hour: int
+    description: Optional[str] = None
+
+
+@app.post("/api/rate-limit/configs")
+async def update_rate_limit_configs(req: UpdateRateLimitConfigRequest):
+    """Update or configure a rate limit tier directly in Supabase PostgreSQL."""
+    success = await supabase_store.update_rate_limit_config(
+        tier=req.tier,
+        max_per_minute=req.max_per_minute,
+        max_per_hour=req.max_per_hour,
+        description=req.description,
+    )
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to update rate limit config in Supabase")
+    return {
+        "status": "updated",
+        "tier": req.tier,
+        "max_per_minute": req.max_per_minute,
+        "max_per_hour": req.max_per_hour,
     }
 
 

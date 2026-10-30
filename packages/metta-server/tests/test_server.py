@@ -222,3 +222,39 @@ async def test_canonical_verify_endpoint():
         assert poison_data["tamper_detected"] is True
         assert poison_data["contradicts_ahimsa"] is True
         assert "Pāṇātipātā" in poison_data["primary_canon_fallback"]
+
+
+@pytest.mark.asyncio
+async def test_supabase_user_profiles_and_rate_limit_configs():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        # 1. Fetch dynamic rate limit configs from Supabase
+        res = await ac.get("/api/rate-limit/configs")
+        assert res.status_code == 200
+        configs = res.json()
+        assert len(configs) >= 4
+        tiers = {c["tier"] for c in configs}
+        assert "standard" in tiers
+        assert "guest" in tiers
+        assert "contributor" in tiers
+
+        # 2. Authenticate user & verify profile stored in Supabase
+        auth_res = await ac.post("/api/auth/google", json={"email": "dynamic.supa@gmail.com", "name": "Dynamic Seeker"})
+        assert auth_res.status_code == 200
+        auth_data = auth_res.json()
+        user_id = auth_data["user_id"]
+        assert auth_data["tier"] == "standard"
+
+        # 3. Retrieve user profile directly from Supabase endpoint
+        profile_res = await ac.get(f"/api/user/profile?user_id={user_id}")
+        assert profile_res.status_code == 200
+        profile = profile_res.json()
+        assert profile["user_id"] == user_id
+        assert profile["email"] == "dynamic.supa@gmail.com"
+        assert profile["tier"] == "standard"
+
+        # 4. Check user rate limit status reflects standard tier limits
+        rate_res = await ac.get(f"/api/rate-limit?user_id={user_id}")
+        assert rate_res.status_code == 200
+        rate_data = rate_res.json()
+        assert rate_data["tier"] == "standard"
+        assert rate_data["limit"] >= 15

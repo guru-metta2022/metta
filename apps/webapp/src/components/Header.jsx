@@ -47,10 +47,11 @@ export default function Header({
             <button
               onClick={onOpenAuthModal}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#c0c7d4] hover:text-[#f0f2f5] hover:bg-[#181d28] border border-[#232b3b] transition"
-              title="Identity & Mode Settings"
+              title="Identity & Mode Settings (Supabase Cloud Identity)"
             >
               <span className="w-2 h-2 rounded-full bg-[#48d689]" />
               <span className="max-w-[110px] truncate">{userProfile?.name || 'Seeker'}</span>
+              <span className="text-[10px] font-mono uppercase text-[#34d399] px-1.5 py-0.5 rounded bg-[#102419] border border-[#1b3d2b]">{userProfile?.tier || 'standard'}</span>
             </button>
           </div>
         ) : (
