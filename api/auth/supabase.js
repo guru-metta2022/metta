@@ -115,52 +115,58 @@ export default async function handler(req, res) {
       }
 
       let authUser = null;
-      let emailConfirmed = false;
 
-      // 1. Try standard Supabase signup (triggers verification email)
-      const signupRes = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+      // 1. Provision user via Admin API with email_confirm: true (avoids missing SMTP emails / delays)
+      const adminCreateRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
         method: 'POST',
-        headers: anonHeaders,
+        headers: adminHeaders,
         body: JSON.stringify({
           email,
           password,
-          data: { full_name: name, name },
+          email_confirm: true,
+          user_metadata: { full_name: name, name },
         }),
       });
 
-      if (signupRes.ok) {
-        const signupData = await signupRes.json();
-        authUser = signupData.user || signupData;
-        emailConfirmed = !!authUser.email_confirmed_at;
+      if (adminCreateRes.ok) {
+        authUser = await adminCreateRes.json();
       } else {
-        const errData = await signupRes.json();
+        const adminErr = await adminCreateRes.json().catch(() => ({}));
+        const errMsg = (adminErr.msg || adminErr.message || '').toLowerCase();
 
-        // If free tier email rate limit reached, auto-confirm via admin API so user is not blocked
-        if (signupRes.status === 429 || errData.error_code === 'over_email_send_rate_limit') {
-          console.info('Email rate limit reached; provisioning user via admin API with auto-confirmation...');
-          const adminCreateRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+        // If user already exists, check if they can be signed in or auto-confirmed
+        if (errMsg.includes('already') || adminCreateRes.status === 422) {
+          const testLoginRes = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
             method: 'POST',
-            headers: adminHeaders,
-            body: JSON.stringify({
-              email,
-              password,
-              email_confirm: true,
-              user_metadata: { full_name: name, name },
-            }),
+            headers: anonHeaders,
+            body: JSON.stringify({ email, password }),
           });
-          if (adminCreateRes.ok) {
-            authUser = await adminCreateRes.json();
-            emailConfirmed = true;
+
+          if (testLoginRes.ok) {
+            const loginData = await testLoginRes.json();
+            authUser = loginData.user;
           } else {
-            const adminErr = await adminCreateRes.json();
-            return res.status(adminCreateRes.status).json({
-              error: adminErr.msg || 'Unable to create account. User may already exist.',
+            return res.status(400).json({
+              error: 'An account with this email already exists. Please switch to the Sign In tab to enter your password.',
             });
           }
         } else {
-          return res.status(signupRes.status).json({
-            error: errData.msg || errData.error_description || 'Unable to complete sign-up.',
+          return res.status(adminCreateRes.status || 400).json({
+            error: adminErr.msg || adminErr.message || 'Unable to create account. Please try again.',
           });
+        }
+      }
+
+      // Ensure user is confirmed in Supabase
+      if (authUser?.id && !authUser.email_confirmed_at) {
+        try {
+          await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${authUser.id}`, {
+            method: 'PUT',
+            headers: adminHeaders,
+            body: JSON.stringify({ email_confirm: true }),
+          });
+        } catch (e) {
+          console.warn('Auto-confirm warning on signup:', e);
         }
       }
 
@@ -185,24 +191,24 @@ export default async function handler(req, res) {
         console.warn('user_profiles sync warning on signup:', err);
       }
 
-      // If already confirmed, auto-login by generating a token
+      // Auto-login to obtain session access token
       let tokenData = null;
-      if (emailConfirmed) {
-        try {
-          const autoLoginRes = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-            method: 'POST',
-            headers: anonHeaders,
-            body: JSON.stringify({ email, password }),
-          });
-          if (autoLoginRes.ok) {
-            tokenData = await autoLoginRes.json();
-          }
-        } catch {}
+      try {
+        const tokenRes = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+          method: 'POST',
+          headers: anonHeaders,
+          body: JSON.stringify({ email, password }),
+        });
+        if (tokenRes.ok) {
+          tokenData = await tokenRes.json();
+        }
+      } catch (err) {
+        console.warn('Token generation warning on signup:', err);
       }
 
       return res.status(200).json({
         success: true,
-        confirmed: emailConfirmed,
+        confirmed: true,
         user_id: userId,
         supabase_auth_id: authUser?.id,
         email,
@@ -210,9 +216,7 @@ export default async function handler(req, res) {
         avatar,
         access_token: tokenData?.access_token || null,
         refresh_token: tokenData?.refresh_token || null,
-        message: emailConfirmed
-          ? 'Account successfully created and confirmed!'
-          : 'Verification email sent! Please check your inbox (and spam folder) to confirm your email, then sign in.',
+        message: 'Account successfully created and verified!',
       });
     }
 

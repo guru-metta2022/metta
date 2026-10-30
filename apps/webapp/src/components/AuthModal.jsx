@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   User,
@@ -26,13 +26,32 @@ export default function AuthModal({
   onSelectGuest,
 }) {
   const [authTab, setAuthTab] = useState('signin'); // 'signin' | 'signup'
-  const [email, setEmail] = useState(userProfile?.email || '');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusNotice, setStatusNotice] = useState(null); // { type: 'success' | 'error' | 'info', message: '' }
   const { showToast } = useAppDialog();
+
+  // Reset fields whenever modal opens/closes or auth state changes
+  useEffect(() => {
+    if (isOpen) {
+      setPassword('');
+      setShowPassword(false);
+      setStatusNotice(null);
+      if (currentMode === 'authenticated') {
+        setEmail(userProfile?.email || '');
+      } else {
+        setEmail('');
+        setName('');
+      }
+    } else {
+      setPassword('');
+      setShowPassword(false);
+      setStatusNotice(null);
+    }
+  }, [isOpen, currentMode, userProfile]);
 
   if (!isOpen) return null;
 
@@ -86,6 +105,8 @@ export default function AuthModal({
       localStorage.setItem('metta_user_profile', JSON.stringify(profileData));
       localStorage.setItem('metta_identity_mode', 'authenticated');
 
+      setPassword('');
+      setStatusNotice(null);
       onLogin(profileData);
       onClose();
 
@@ -161,6 +182,9 @@ export default function AuthModal({
         localStorage.setItem('metta_user_profile', JSON.stringify(profileData));
         localStorage.setItem('metta_identity_mode', 'authenticated');
 
+        setPassword('');
+        setName('');
+        setStatusNotice(null);
         onLogin(profileData);
         onClose();
 
@@ -170,12 +194,12 @@ export default function AuthModal({
           type: 'success',
         });
       } else {
-        // Verification email sent via Supabase
+        // Verification email fallback
         setStatusNotice({
-          type: 'success',
+          type: 'info',
           message:
             data.message ||
-            'Verification email sent! Please check your inbox (and spam folder) to confirm your account, then sign in.',
+            'Verification email sent. Please check your inbox to confirm your account, then sign in.',
         });
       }
     } catch (err) {
@@ -228,6 +252,10 @@ export default function AuthModal({
   };
 
   const handleGuestChoice = () => {
+    setEmail('');
+    setPassword('');
+    setName('');
+    setStatusNotice(null);
     onSelectGuest();
     onClose();
     showToast({
@@ -238,6 +266,10 @@ export default function AuthModal({
   };
 
   const handleLogoutChoice = () => {
+    setEmail('');
+    setPassword('');
+    setName('');
+    setStatusNotice(null);
     onLogout();
     onClose();
     showToast({
