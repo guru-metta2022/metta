@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Settings, Cpu, Zap, Check, AlertCircle, Volume2, Key, ShieldCheck } from 'lucide-react';
+import { useAppDialog } from './ToastDialogContext';
 
 export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
   const [settings, setSettings] = useState(null);
@@ -10,6 +11,7 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
   const [showKeys, setShowKeys] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const { showToast, showAlert } = useAppDialog();
 
   useEffect(() => {
     if (isOpen) {
@@ -61,9 +63,19 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
       setSettings(updated);
       setSaveSuccess(true);
       if (onSettingsUpdated) onSettingsUpdated(updated);
+      showToast({
+        title: 'Settings Saved',
+        message: 'AI Provider configurations and BYOM API keys updated successfully.',
+        type: 'success',
+      });
       setTimeout(() => setSaveSuccess(false), 2000);
     } catch (err) {
       console.error('Settings update error:', err);
+      showAlert({
+        title: 'Settings Error',
+        message: 'Failed to update settings: ' + err.message,
+        type: 'error',
+      });
     } finally {
       setIsSaving(false);
     }

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { X, Network, Trash2, Sparkles, ExternalLink, RefreshCw, Activity, Layers } from 'lucide-react';
+import { useAppDialog } from './ToastDialogContext';
 
 export default function UserGraphModal({ isOpen, onClose, userProfile }) {
   const [graphData, setGraphData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [error, setError] = useState(null);
+  const { showConfirm, showAlert, showToast } = useAppDialog();
 
   const fetchUserGraph = async () => {
     if (!userProfile?.user_id) return;
@@ -31,9 +33,14 @@ export default function UserGraphModal({ isOpen, onClose, userProfile }) {
   }, [isOpen, userProfile]);
 
   const handleClearMemory = async () => {
-    if (!window.confirm("Delete Saved Journey Data?\n\nThis will permanently delete all recorded decision themes, observed patterns, and milestones for your account. This action cannot be undone.")) {
-      return;
-    }
+    const confirmed = await showConfirm({
+      title: "Delete Saved Journey Data?",
+      message: "This will permanently delete all recorded decision themes, observed patterns, and milestones for your account.\n\nThis sovereign release cannot be undone.",
+      confirmText: "Permanently Delete Data",
+      cancelText: "Keep Data",
+      danger: true,
+    });
+    if (!confirmed) return;
 
     setClearing(true);
     try {
@@ -42,8 +49,17 @@ export default function UserGraphModal({ isOpen, onClose, userProfile }) {
       });
       if (!res.ok) throw new Error('Failed to purge memory graph');
       await fetchUserGraph();
+      showToast({
+        title: "Journey Data Purged",
+        message: "Your personal decision patterns and memory graph have been released.",
+        type: "success",
+      });
     } catch (err) {
-      alert("Error deleting saved data: " + err.message);
+      showAlert({
+        title: "Error Purging Data",
+        message: "Unable to delete saved data: " + err.message,
+        type: "error",
+      });
     } finally {
       setClearing(false);
     }

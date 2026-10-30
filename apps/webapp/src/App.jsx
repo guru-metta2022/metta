@@ -9,6 +9,7 @@ import MeditationModal from './components/MeditationModal';
 import SettingsModal from './components/SettingsModal';
 import AuthModal from './components/AuthModal';
 import UserGraphModal from './components/UserGraphModal';
+import { useAppDialog } from './components/ToastDialogContext';
 import { Send, Sparkles, Wind, Mic, MicOff, Volume2, Wand2 } from 'lucide-react';
 
 function getSessionStorageKey(mode, profile) {
@@ -89,6 +90,7 @@ export default function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [userGraphOpen, setUserGraphOpen] = useState(false);
   const [meditationReport, setMeditationReport] = useState(null);
+  const { showAlert, showToast, showConfirm } = useAppDialog();
 
   // Identity Mode (Guest vs Authenticated with Gmail/Google)
   const [identityMode, setIdentityMode] = useState(() => localStorage.getItem('metta_identity_mode') || 'guest');
@@ -330,7 +332,11 @@ export default function App() {
 
   const toggleVoiceRecording = () => {
     if (!recognitionRef.current) {
-      alert('Speech recognition is not supported in this browser environment. You can type freely.');
+      showAlert({
+        title: 'Speech Recognition Unavailable',
+        message: 'Web Speech API is not supported in this browser environment. You can type freely into the input field.',
+        type: 'info',
+      });
       return;
     }
 
@@ -518,8 +524,18 @@ export default function App() {
       setMeditationReport(report);
       setMessages([]);
       setCurrentSessionId(null);
+      showToast({
+        title: 'Mindful Reset Complete',
+        message: 'Unlearning audit complete. Cognitive noise released, returning to stillness.',
+        type: 'ai',
+      });
     } catch (err) {
       console.error('Meditation error:', err);
+      showAlert({
+        title: 'Reset Notice',
+        message: 'Unable to connect to meditation audit service: ' + err.message,
+        type: 'error',
+      });
     } finally {
       setIsMeditating(false);
     }

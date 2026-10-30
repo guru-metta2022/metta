@@ -11,6 +11,7 @@ import {
   Check,
   Activity
 } from 'lucide-react';
+import { useAppDialog } from './ToastDialogContext';
 
 function formatRelativeTime(timestamp) {
   if (!timestamp) return '';
@@ -46,6 +47,7 @@ export default function ChatSidebar({
 }) {
   const [isMultiSelect, setIsMultiSelect] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const { showConfirm, showToast } = useAppDialog();
 
   const maxSessions = identityMode === 'authenticated' ? 100 : 5;
   const count = sessions.length;
@@ -70,21 +72,46 @@ export default function ChatSidebar({
     }
   };
 
-  const handleDeleteSelected = () => {
+  const handleDeleteSelected = async () => {
     if (selectedIds.size === 0) return;
-    if (window.confirm(`Delete ${selectedIds.size} selected session${selectedIds.size > 1 ? 's' : ''}?`)) {
+    const num = selectedIds.size;
+    const confirmed = await showConfirm({
+      title: 'Delete Selected Sessions?',
+      message: `Are you sure you want to delete ${num} selected chat session${num > 1 ? 's' : ''}? This action cannot be undone.`,
+      confirmText: `Delete ${num} Session${num > 1 ? 's' : ''}`,
+      cancelText: 'Cancel',
+      danger: true,
+    });
+    if (confirmed) {
       onDeleteMultipleSessions(Array.from(selectedIds));
       setSelectedIds(new Set());
       setIsMultiSelect(false);
+      showToast({
+        title: 'Sessions Removed',
+        message: `${num} session${num > 1 ? 's have' : ' has'} been deleted.`,
+        type: 'info',
+      });
     }
   };
 
-  const handleClearAll = () => {
+  const handleClearAll = async () => {
     if (sessions.length === 0) return;
-    if (window.confirm(`Clear all ${sessions.length} chat session${sessions.length > 1 ? 's' : ''}? This action cannot be undone.`)) {
+    const confirmed = await showConfirm({
+      title: 'Clear All Sessions?',
+      message: `Are you sure you want to clear all ${sessions.length} chat session${sessions.length > 1 ? 's' : ''}? This action cannot be undone.`,
+      confirmText: 'Clear All Sessions',
+      cancelText: 'Keep History',
+      danger: true,
+    });
+    if (confirmed) {
       onClearAllSessions();
       setSelectedIds(new Set());
       setIsMultiSelect(false);
+      showToast({
+        title: 'History Cleared',
+        message: 'All previous chat sessions have been released.',
+        type: 'info',
+      });
     }
   };
 
@@ -268,9 +295,23 @@ export default function ChatSidebar({
                   {!isMultiSelect && (
                     <button
                       type="button"
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
-                        onDeleteSession(session.id);
+                        const confirmed = await showConfirm({
+                          title: 'Delete Session?',
+                          message: `Delete "${session.title || 'Untitled Inquiry'}"?`,
+                          confirmText: 'Delete Session',
+                          cancelText: 'Cancel',
+                          danger: true,
+                        });
+                        if (confirmed) {
+                          onDeleteSession(session.id);
+                          showToast({
+                            title: 'Session Removed',
+                            message: 'The selected chat session has been deleted.',
+                            type: 'info',
+                          });
+                        }
                       }}
                       className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-[#788295] hover:text-[#e06d6d] hover:bg-[#261818] transition absolute right-2 top-2.5"
                       title="Delete this session"

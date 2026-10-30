@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { X, User, CheckCircle2, ShieldCheck, Mail, LogOut, Sparkles } from 'lucide-react';
+import { useAppDialog } from './ToastDialogContext';
 
 export default function AuthModal({ isOpen, onClose, currentMode, userProfile, onLogin, onLogout, onSelectGuest }) {
   const [emailInput, setEmailInput] = useState(userProfile?.email || 'seeker.bodhi@gmail.com');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { showAlert, showToast } = useAppDialog();
 
   if (!isOpen) return null;
 
@@ -23,9 +25,18 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
       const data = await res.json();
       onLogin(data);
       onClose();
+      showToast({
+        title: 'Authentication Successful',
+        message: `Welcome, ${data.display_name || data.email}! Synced up to 100 chat sessions.`,
+        type: 'success',
+      });
     } catch (err) {
       console.error(err);
-      alert('Unable to authenticate with Google: ' + err.message);
+      showAlert({
+        title: 'Authentication Error',
+        message: 'Unable to authenticate with Google: ' + err.message,
+        type: 'error',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -34,11 +45,21 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
   const handleGuestChoice = () => {
     onSelectGuest();
     onClose();
+    showToast({
+      title: 'Guest Mode Active',
+      message: 'Operating with ephemeral memory (up to 5 recent sessions).',
+      type: 'info',
+    });
   };
 
   const handleLogoutChoice = () => {
     onLogout();
     onClose();
+    showToast({
+      title: 'Signed Out',
+      message: 'Account session disconnected. Returned to local guest mode.',
+      type: 'info',
+    });
   };
 
   return (

@@ -30,6 +30,7 @@ import {
   CheckSquare,
   Wand2,
 } from 'lucide-react';
+import { useAppDialog } from './ToastDialogContext';
 
 // ==============================================================================
 // Pre-defined Simulation Scenarios with "With Metta" vs "Without Metta" Verdicts
@@ -527,6 +528,7 @@ export default function SimulationLab({ onClose = null }) {
   const [isPolishingVoice, setIsPolishingVoice] = useState(false);
   const [autoSimulateOnVoice, setAutoSimulateOnVoice] = useState(false);
   const [dbLogStatus, setDbLogStatus] = useState(null); // 'logging' | 'recorded' | 'local_only'
+  const { showAlert, showToast } = useAppDialog();
 
   const recognitionRef = useRef(null);
   const transcriptBufferRef = useRef('');
@@ -673,7 +675,11 @@ export default function SimulationLab({ onClose = null }) {
 
   const toggleVoiceRecording = () => {
     if (!recognitionRef.current) {
-      alert('Speech recognition is not supported in this browser environment. You can type your proposal directly.');
+      showAlert({
+        title: 'Speech Recognition Unavailable',
+        message: 'Web Speech API is not supported in this browser environment. You can type your proposal directly into the text box.',
+        type: 'info',
+      });
       return;
     }
 
@@ -932,6 +938,11 @@ export default function SimulationLab({ onClose = null }) {
     );
     navigator.clipboard.writeText(snippet);
     setCopiedCode(true);
+    showToast({
+      title: 'MCP Snippet Copied',
+      message: 'guardrail_decision JSON tool payload copied to clipboard.',
+      type: 'success',
+    });
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
