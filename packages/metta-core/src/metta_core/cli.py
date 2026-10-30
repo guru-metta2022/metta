@@ -50,7 +50,7 @@ def show_graph(engine: MettaEngine):
     console.print(table)
 
 
-async def main():
+async def async_main():
     console.print(ZEN_BANNER)
     console.print("[dim]Type your inquiry or distress. Commands: [bold]/meditate[/bold], [bold]/graph[/bold], [bold]/precepts[/bold], [bold]/exit[/bold][/dim]\n")
 
@@ -118,5 +118,13 @@ async def main():
             console.print(f"[bold red]Error:[/bold red] {e}")
 
 
+def main():
+    """CLI synchronous runner."""
+    try:
+        asyncio.run(async_main())
+    except (KeyboardInterrupt, EOFError):
+        pass
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
