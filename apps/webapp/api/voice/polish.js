@@ -71,10 +71,13 @@ export default async function handler(req, res) {
     // Heuristic speech-to-text semantic & acoustic purifier fallback
     let polished = raw;
 
-    // 1. Remove speech disfluencies
+    // 1. Remove speech disfluencies & filler words
     polished = polished.replace(/\b(um|uh|er|ah|like|you know|basically|so yeah|i mean)\b/gi, '');
 
-    // 2. Fix multi-word acoustic misrecognitions first
+    // 2. Remove conversational openers at the beginning of speech
+    polished = polished.replace(/^(okay|ok|well|hey|look|listen|so|actually|literally|honestly|right)[,\s]+/gi, '');
+
+    // 3. Multi-word acoustic & phrasing replacements
     polished = polished
       .replace(/\bmore Campbell them\b/gi, 'more capable than them')
       .replace(/\bCampbell them\b/gi, 'capable than them')
@@ -84,7 +87,13 @@ export default async function handler(req, res) {
       .replace(/\bhi intelligence\b/gi, 'higher intelligence')
       .replace(/\bsuper intelligence\b/gi, 'superintelligence')
       .replace(/\bmeta learn\b/gi, 'meta-learn')
-      // 3. Fix single-word acoustic misrecognitions
+      .replace(/\bcan be\s+(?:actually\s+|basically\s+)?can you\b/gi, 'can you')
+      .replace(/\bcould be\s+(?:actually\s+|basically\s+)?could you\b/gi, 'could you')
+      .replace(/\bwould be\s+(?:actually\s+|basically\s+)?would you\b/gi, 'would you')
+      .replace(/\bexplain me\b/gi, 'explain to me');
+
+    // 4. Single-word acoustic misrecognitions
+    polished = polished
       .replace(/\bsimilarity\b/gi, 'singularity')
       .replace(/\bCampbell\b/gi, 'capable')
       .replace(/\bintellelgence\b/gi, 'intelligence')
@@ -95,16 +104,31 @@ export default async function handler(req, res) {
       .replace(/\bmetalearn\b/gi, 'meta-learn')
       .replace(/\bbackpropaghate\b/gi, 'backpropagate');
 
-    // 4. Clean spacing and capitalize
+    // 5. Remove mid-sentence filler adverbs and stuttered duplicate words
+    polished = polished.replace(/\b(\w+)\s+(?:actually\s+|basically\s+|literally\s+)?\1\b/gi, '$1');
+    polished = polished.replace(/\b(actually|literally|honestly)\b/gi, '');
+
+    // 6. Embedded question inversion correction (indirect questions)
+    polished = polished
+      .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+what\s+are\s+you\b/gi, '$1 what you are')
+      .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+who\s+are\s+you\b/gi, '$1 who you are')
+      .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+what\s+is\s+([a-zA-Z0-9_\-]+)\b/gi, '$1 what $2 is')
+      .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+why\s+is\s+it\b/gi, '$1 why it is')
+      .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+how\s+is\s+it\b/gi, '$1 how it is')
+      .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+how\s+does\s+it\s+work\b/gi, '$1 how it works')
+      .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+how\s+does\s+this\s+system\s+work\b/gi, '$1 how this system works')
+      .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+what\s+does\s+it\s+mean\b/gi, '$1 what it means');
+
+    // 7. Clean spacing and punctuation
     polished = polished.replace(/\s+/g, ' ').trim();
     if (polished.length > 0) {
       polished = polished.charAt(0).toUpperCase() + polished.slice(1);
       if (polished.endsWith('.')) {
-        if (/\b(is|can|will|should|how|what|why|would|could|singularity)\b/i.test(polished)) {
+        if (/\b(is|can|will|should|how|what|why|would|could|are|do|does|tell me)\b/i.test(polished)) {
           polished = polished.slice(0, -1) + '?';
         }
       } else if (!polished.endsWith('?') && !polished.endsWith('!')) {
-        if (/\b(is|can|will|should|how|what|why|would|could|singularity)\b/i.test(polished)) {
+        if (/\b(is|can|will|should|how|what|why|would|could|are|do|does|tell me)\b/i.test(polished)) {
           polished += '?';
         } else {
           polished += '.';

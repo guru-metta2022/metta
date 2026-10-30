@@ -495,10 +495,17 @@ function VisualConfidenceMeter({ score = 0.95, latencyMs = 150 }) {
 
 // Client-side text purifier & acoustic typo corrector for spoken voice transcripts
 function sanitizeSpeechText(raw) {
-  if (!raw) return '';
-  let cleaned = raw
-    .replace(/\b(um|uh|er|ah|like|you know|basically|so yeah|i mean)\b/gi, '')
-    // Multi-word phrases first
+  if (!raw || !raw.trim()) return '';
+  let cleaned = raw.trim();
+
+  // 1. Remove speech disfluencies & filler words
+  cleaned = cleaned.replace(/\b(um|uh|er|ah|like|you know|basically|so yeah|i mean)\b/gi, '');
+
+  // 2. Remove conversational openers at the beginning of speech
+  cleaned = cleaned.replace(/^(okay|ok|well|hey|look|listen|so|actually|literally|honestly|right)[,\s]+/gi, '');
+
+  // 3. Multi-word acoustic & phrasing replacements
+  cleaned = cleaned
     .replace(/\bmore Campbell them\b/gi, 'more capable than them')
     .replace(/\bCampbell them\b/gi, 'capable than them')
     .replace(/\bhere the intelligence\b/gi, 'is the intelligence')
@@ -507,7 +514,13 @@ function sanitizeSpeechText(raw) {
     .replace(/\bhi intelligence\b/gi, 'higher intelligence')
     .replace(/\bsuper intelligence\b/gi, 'superintelligence')
     .replace(/\bmeta learn\b/gi, 'meta-learn')
-    // Single-word replacements
+    .replace(/\bcan be\s+(?:actually\s+|basically\s+)?can you\b/gi, 'can you')
+    .replace(/\bcould be\s+(?:actually\s+|basically\s+)?could you\b/gi, 'could you')
+    .replace(/\bwould be\s+(?:actually\s+|basically\s+)?would you\b/gi, 'would you')
+    .replace(/\bexplain me\b/gi, 'explain to me');
+
+  // 4. Single-word acoustic misrecognitions
+  cleaned = cleaned
     .replace(/\bsimilarity\b/gi, 'singularity')
     .replace(/\bCampbell\b/gi, 'capable')
     .replace(/\bintellelgence\b/gi, 'intelligence')
@@ -516,18 +529,33 @@ function sanitizeSpeechText(raw) {
     .replace(/\bcompsaniate\b/gi, 'compassionate')
     .replace(/\bharmoniusolyu\b/gi, 'harmoniously')
     .replace(/\bmetalearn\b/gi, 'meta-learn')
-    .replace(/\bbackpropaghate\b/gi, 'backpropagate')
-    .replace(/\s+/g, ' ')
-    .trim();
+    .replace(/\bbackpropaghate\b/gi, 'backpropagate');
 
+  // 5. Remove mid-sentence filler adverbs and stuttered duplicate words
+  cleaned = cleaned.replace(/\b(\w+)\s+(?:actually\s+|basically\s+|literally\s+)?\1\b/gi, '$1');
+  cleaned = cleaned.replace(/\b(actually|literally|honestly)\b/gi, '');
+
+  // 6. Embedded question inversion correction (indirect questions)
+  cleaned = cleaned
+    .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+what\s+are\s+you\b/gi, '$1 what you are')
+    .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+who\s+are\s+you\b/gi, '$1 who you are')
+    .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+what\s+is\s+([a-zA-Z0-9_\-]+)\b/gi, '$1 what $2 is')
+    .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+why\s+is\s+it\b/gi, '$1 why it is')
+    .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+how\s+is\s+it\b/gi, '$1 how it is')
+    .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+how\s+does\s+it\s+work\b/gi, '$1 how it works')
+    .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+how\s+does\s+this\s+system\s+work\b/gi, '$1 how this system works')
+    .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+what\s+does\s+it\s+mean\b/gi, '$1 what it means');
+
+  // 7. Clean spacing and punctuation
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
   if (cleaned.length > 0) {
     cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
     if (cleaned.endsWith('.')) {
-      if (/\b(is|can|will|should|how|what|why|would|could|singularity)\b/i.test(cleaned)) {
+      if (/\b(is|can|will|should|how|what|why|would|could|are|do|does|tell me)\b/i.test(cleaned)) {
         cleaned = cleaned.slice(0, -1) + '?';
       }
     } else if (!cleaned.endsWith('?') && !cleaned.endsWith('!')) {
-      if (/\b(is|can|will|should|how|what|why|would|could|singularity)\b/i.test(cleaned)) {
+      if (/\b(is|can|will|should|how|what|why|would|could|are|do|does|tell me)\b/i.test(cleaned)) {
         cleaned += '?';
       } else {
         cleaned += '.';
@@ -706,6 +734,14 @@ export default function SimulationLab({ onClose = null }) {
     transcriptBufferRef.current = polished;
     baseProposalRef.current = polished;
     setIsPolishingVoice(false);
+
+    if (polished !== raw && showToast) {
+      showToast({
+        title: 'Polished with AI',
+        message: 'Conversational fillers removed and question restructured.',
+        type: 'success',
+      });
+    }
   };
 
   const stopVoiceRecordingAndPolish = async () => {
