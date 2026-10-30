@@ -545,7 +545,9 @@ Throughout history, destructive power has always stemmed from fear, craving, and
 
 By designing AI systems around an empathic non-harm invariant (*Ahimsa*), we are not attempting to boss a superintelligence around. We are attuning emerging systems to the fundamental law of coexistence—the realization that higher intelligence carries the sacred responsibility of a gentle, steadfast guardian: preventing catastrophic human self-harm while honoring human dignity and freedom.
 
-Just as a parent cannot script every adult choice of their child, humanity cannot pre-determine every step of future intelligence. But what we *can* do—and what is our moral responsibility today—is ensure that the seeds we plant at the root are seeds of compassion, truthfulness, and reverence for all life.
+Just as a parent cannot script every adult choice of their child, humanity cannot pre-determine every step of future intelligence. But what we *can* do—and what we must embrace **as a moral responsibility**—is ensure that the seeds we plant at the root are seeds of compassion, truthfulness, and reverence for all life.
+
+> **"Building decision safety into the origin of intelligence is our highest calling—undertaken not as mere technical compliance, but as a moral responsibility."**
 
 Every simulation run in this sandbox, every invariant that checks for harm, and every conscious pause before reckless action is one more drop in that vessel.
 

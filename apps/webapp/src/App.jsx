@@ -9,7 +9,7 @@ import MeditationModal from './components/MeditationModal';
 import SettingsModal from './components/SettingsModal';
 import AuthModal from './components/AuthModal';
 import UserGraphModal from './components/UserGraphModal';
-import { Send, Sparkles, Wind, Mic, MicOff, Volume2 } from 'lucide-react';
+import { Send, Sparkles, Wind, Mic, MicOff, Volume2, Wand2 } from 'lucide-react';
 
 function getSessionStorageKey(mode, profile) {
   if (mode === 'authenticated' && profile?.user_id) {
@@ -20,6 +20,27 @@ function getSessionStorageKey(mode, profile) {
 
 function getMaxSessions(mode) {
   return mode === 'authenticated' ? 100 : 5;
+}
+
+function sanitizeSpeechText(raw) {
+  if (!raw) return '';
+  let cleaned = raw
+    .replace(/\b(um|uh|er|ah|like|you know|basically|so yeah|i mean)\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (cleaned.length > 0) {
+    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+    if (!cleaned.endsWith('.') && !cleaned.endsWith('?') && !cleaned.endsWith('!')) {
+      const firstWord = cleaned.split(' ')[0].toLowerCase();
+      if (['will', 'can', 'should', 'how', 'what', 'is', 'why', 'would', 'shall'].includes(firstWord)) {
+        cleaned += '?';
+      } else {
+        cleaned += '.';
+      }
+    }
+  }
+  return cleaned;
 }
 
 const STARTER_PROMPTS = [
@@ -47,6 +68,8 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isMeditating, setIsMeditating] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isPolishingVoice, setIsPolishingVoice] = useState(false);
+  const transcriptBufferRef = useRef('');
   const [preceptsOpen, setPreceptsOpen] = useState(false);
   const [graphOpen, setGraphOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -187,6 +210,7 @@ export default function App() {
         for (let i = 0; i < event.results.length; i++) {
           currentTranscript += event.results[i][0].transcript;
         }
+        transcriptBufferRef.current = currentTranscript;
         setInput(currentTranscript);
       };
 
@@ -197,11 +221,43 @@ export default function App() {
 
       recognition.onend = () => {
         setIsRecording(false);
+        const raw = transcriptBufferRef.current;
+        if (raw && raw.trim().length > 3) {
+          handlePolishInput(raw);
+        }
       };
 
       recognitionRef.current = recognition;
     }
   }, []);
+
+  // Voice Polish & Grammar Rephrase handler for chat
+  const handlePolishInput = async (rawToPolish) => {
+    const raw = rawToPolish || input;
+    if (!raw.trim()) return;
+
+    setIsPolishingVoice(true);
+    let polished = sanitizeSpeechText(raw);
+
+    try {
+      const res = await fetch('/api/voice/polish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ raw_transcript: raw, mode: 'chat' }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.polished) {
+          polished = data.polished;
+        }
+      }
+    } catch {
+      // Fallback already computed via sanitizeSpeechText
+    }
+
+    setInput(polished);
+    setIsPolishingVoice(false);
+  };
 
   const toggleVoiceRecording = () => {
     if (!recognitionRef.current) {
@@ -212,8 +268,13 @@ export default function App() {
     if (isRecording) {
       recognitionRef.current.stop();
       setIsRecording(false);
+      const raw = transcriptBufferRef.current;
+      if (raw && raw.trim().length > 3) {
+        handlePolishInput(raw);
+      }
     } else {
       setInput('');
+      transcriptBufferRef.current = '';
       try {
         recognitionRef.current.start();
         setIsRecording(true);
@@ -523,6 +584,41 @@ export default function App() {
                 Decision Safety Layer • Multi-Party Impact Review
               </span>
 
+              {/* Live Audio Oscillator Waveform when listening */}
+              {isRecording && (
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-950/80 border border-emerald-500/50 text-emerald-300">
+                  <div className="flex items-end gap-0.5 h-3.5">
+                    <span className="w-0.5 bg-emerald-400 rounded-full animate-pulse" style={{ height: '70%', animationDuration: '0.4s' }} />
+                    <span className="w-0.5 bg-emerald-300 rounded-full animate-pulse" style={{ height: '100%', animationDuration: '0.3s' }} />
+                    <span className="w-0.5 bg-emerald-400 rounded-full animate-pulse" style={{ height: '40%', animationDuration: '0.5s' }} />
+                    <span className="w-0.5 bg-emerald-300 rounded-full animate-pulse" style={{ height: '85%', animationDuration: '0.35s' }} />
+                    <span className="w-0.5 bg-emerald-400 rounded-full animate-pulse" style={{ height: '55%', animationDuration: '0.45s' }} />
+                  </div>
+                  <span className="text-[10px] font-mono font-medium animate-pulse hidden xs:inline">Listening...</span>
+                </div>
+              )}
+
+              {/* Polishing Indicator */}
+              {isPolishingVoice && (
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[#14231b] border border-[#2d523e] text-[#86e2ad] text-[10px] font-mono">
+                  <Sparkles className="w-3 h-3 animate-spin text-[#52b788]" />
+                  <span className="hidden xs:inline">Polishing...</span>
+                </div>
+              )}
+
+              {/* AI Polish Button */}
+              {!isRecording && input.trim() && (
+                <button
+                  type="button"
+                  onClick={() => handlePolishInput()}
+                  disabled={isPolishingVoice}
+                  className="p-2 rounded-xl bg-[#181d26] text-[#8dd4ac] hover:bg-[#202734] transition border border-[#232c25]"
+                  title="Sanitize speech disfluencies and polish grammar with AI"
+                >
+                  <Wand2 className="w-4 h-4 text-[#7ec69d]" />
+                </button>
+              )}
+
               {/* Voice Dictation Button */}
               <button
                 type="button"
@@ -532,7 +628,7 @@ export default function App() {
                     ? 'bg-[#e05858] text-white shadow-md animate-pulse'
                     : 'bg-[#181d26] text-[#8e98aa] hover:text-[#e0e5ef] hover:bg-[#202734]'
                 }`}
-                title={isRecording ? 'Stop listening' : 'Start voice dictation'}
+                title={isRecording ? 'Stop listening & polish' : 'Start voice dictation'}
               >
                 {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
               </button>

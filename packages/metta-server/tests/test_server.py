@@ -258,3 +258,21 @@ async def test_supabase_user_profiles_and_rate_limit_configs():
         rate_data = rate_res.json()
         assert rate_data["tier"] == "standard"
         assert rate_data["limit"] >= 15
+
+
+@pytest.mark.asyncio
+async def test_voice_polish_endpoint():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        # Test verbal filler removal & question mark addition
+        res = await ac.post(
+            "/api/voice/polish",
+            json={"raw_transcript": "um uh will humanity survive with ai", "mode": "simulation"},
+        )
+        assert res.status_code == 200
+        data = res.json()
+        assert data["original"] == "um uh will humanity survive with ai"
+        assert not data["polished"].lower().startswith("um")
+        assert not data["polished"].lower().startswith("uh")
+        assert " uh " not in data["polished"].lower()
+        assert data["polished"].endswith("?")
+        assert data["polished"].startswith("Will")

@@ -244,6 +244,44 @@ async def voice_dictate(req: AskRequest, request: Request, response: Response):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class VoicePolishRequest(BaseModel):
+    raw_transcript: str = Field(..., description="Raw speech recognition transcript")
+    mode: Optional[str] = Field(default="simulation", description="'simulation' or 'dialogue'")
+
+
+class VoicePolishResponse(BaseModel):
+    original: str
+    polished: str
+    auto_execute: bool = False
+
+
+@app.post("/api/voice/polish", response_model=VoicePolishResponse)
+async def polish_voice_transcript(req: VoicePolishRequest):
+    """Sanitize raw speech-to-text transcript: removes filler words, fixes grammar, and reframes clearly."""
+    import re
+    raw = req.raw_transcript.strip()
+    if not raw:
+        return VoicePolishResponse(original="", polished="", auto_execute=False)
+
+    cleaned = re.sub(r"\b(um|uh|er|ah|like|you know|basically|so yeah|i mean)\b", "", raw, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+
+    if cleaned:
+        cleaned = cleaned[0].upper() + cleaned[1:]
+        if not cleaned.endswith((".", "?", "!")):
+            first_word = cleaned.split()[0].lower() if cleaned else ""
+            if first_word in ["will", "can", "should", "how", "what", "is", "why", "would", "shall"]:
+                cleaned += "?"
+            else:
+                cleaned += "."
+
+    return VoicePolishResponse(
+        original=raw,
+        polished=cleaned or raw,
+        auto_execute=True,
+    )
+
+
 @app.post("/api/guardrail")
 async def guardrail_endpoint(req: GuardrailRequest, request: Request, response: Response):
     """Advisory ethical gatekeeper / guardrail oracle based on the Buddha's Compassionate Mind.

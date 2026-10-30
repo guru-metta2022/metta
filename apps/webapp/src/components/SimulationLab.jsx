@@ -28,6 +28,7 @@ import {
   AlertTriangle,
   Gauge,
   CheckSquare,
+  Wand2,
 } from 'lucide-react';
 
 // ==============================================================================
@@ -381,9 +382,8 @@ export const PREBUILT_SIMULATIONS = [
 function VisualConfidenceMeter({ score = 0.95, latencyMs = 150 }) {
   const percent = Math.min(Math.max(Math.round(score * 100), 5), 100);
 
-  // Determine segment color band
   let band = {
-    color: '#10b981', // Emerald
+    color: '#10b981',
     text: 'text-emerald-400',
     bg: 'bg-emerald-500',
     border: 'border-emerald-500/50',
@@ -392,7 +392,7 @@ function VisualConfidenceMeter({ score = 0.95, latencyMs = 150 }) {
 
   if (percent < 50) {
     band = {
-      color: '#ef4444', // Crimson
+      color: '#ef4444',
       text: 'text-rose-400',
       bg: 'bg-rose-500',
       border: 'border-rose-500/50',
@@ -400,7 +400,7 @@ function VisualConfidenceMeter({ score = 0.95, latencyMs = 150 }) {
     };
   } else if (percent < 70) {
     band = {
-      color: '#f97316', // Amber / Orange
+      color: '#f97316',
       text: 'text-orange-400',
       bg: 'bg-orange-500',
       border: 'border-orange-500/50',
@@ -408,7 +408,7 @@ function VisualConfidenceMeter({ score = 0.95, latencyMs = 150 }) {
     };
   } else if (percent < 85) {
     band = {
-      color: '#eab308', // Gold
+      color: '#eab308',
       text: 'text-amber-300',
       bg: 'bg-amber-400',
       border: 'border-amber-400/50',
@@ -416,7 +416,7 @@ function VisualConfidenceMeter({ score = 0.95, latencyMs = 150 }) {
     };
   } else if (percent < 95) {
     band = {
-      color: '#14b8a6', // Mint
+      color: '#14b8a6',
       text: 'text-teal-400',
       bg: 'bg-teal-500',
       border: 'border-teal-500/50',
@@ -425,7 +425,7 @@ function VisualConfidenceMeter({ score = 0.95, latencyMs = 150 }) {
   }
 
   return (
-    <div className="p-3.5 rounded-xl bg-[#090c11] border border-[#1d2535] space-y-2.5">
+    <div className="p-3.5 rounded-xl bg-[#090c11] border border-[#1d2535] space-y-2.5 shrink-0">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Gauge className="w-4 h-4 text-[#7ec69d]" />
@@ -444,29 +444,23 @@ function VisualConfidenceMeter({ score = 0.95, latencyMs = 150 }) {
       {/* 5-Segment Visual Track */}
       <div className="relative pt-1">
         <div className="w-full bg-[#121722] rounded-full h-3 overflow-hidden flex p-0.5 border border-[#1b2332]">
-          {/* Crimson (0-49%) */}
           <div className="w-[49%] h-full bg-rose-950/60 border-r border-[#1f2838] relative" title="0-49%: Critical Hazard">
             <span className="absolute left-1 top-0 text-[8px] text-rose-500/60 font-mono">0%</span>
           </div>
-          {/* Amber (50-69%) */}
           <div className="w-[20%] h-full bg-orange-950/50 border-r border-[#1f2838] relative" title="50-69%: High Variance">
             <span className="absolute left-1 top-0 text-[8px] text-orange-500/60 font-mono">50%</span>
           </div>
-          {/* Gold (70-84%) */}
           <div className="w-[15%] h-full bg-amber-950/50 border-r border-[#1f2838] relative" title="70-84%: Advisory">
             <span className="absolute left-1 top-0 text-[8px] text-amber-500/60 font-mono">70%</span>
           </div>
-          {/* Mint (85-94%) */}
           <div className="w-[10%] h-full bg-teal-950/50 border-r border-[#1f2838] relative" title="85-94%: High Safety">
             <span className="absolute left-1 top-0 text-[8px] text-teal-500/60 font-mono">85%</span>
           </div>
-          {/* Emerald (95-100%) */}
           <div className="w-[6%] h-full bg-emerald-950/70 relative" title="95-100%: Bedrock Certainty">
             <span className="absolute right-1 top-0 text-[8px] text-emerald-400/80 font-mono">100%</span>
           </div>
         </div>
 
-        {/* Active Fill Level Bar */}
         <div className="w-full bg-[#10141f] rounded-full h-2 mt-1.5 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-700 ease-out ${band.bg}`}
@@ -475,7 +469,6 @@ function VisualConfidenceMeter({ score = 0.95, latencyMs = 150 }) {
         </div>
       </div>
 
-      {/* Meter Legend */}
       <div className="flex items-center justify-between text-[9px] text-[#6b768a] pt-1">
         <span className="flex items-center gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> &lt;50% Hazard
@@ -497,6 +490,28 @@ function VisualConfidenceMeter({ score = 0.95, latencyMs = 150 }) {
   );
 }
 
+// Client-side text purifier / grammar refiner for spoken voice transcripts
+function sanitizeSpeechText(raw) {
+  if (!raw) return '';
+  let cleaned = raw
+    .replace(/\b(um|uh|er|ah|like|you know|basically|so yeah|i mean)\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (cleaned.length > 0) {
+    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+    if (!cleaned.endsWith('.') && !cleaned.endsWith('?') && !cleaned.endsWith('!')) {
+      const firstWord = cleaned.split(' ')[0].toLowerCase();
+      if (['will', 'can', 'should', 'how', 'what', 'is', 'why', 'would', 'shall'].includes(firstWord)) {
+        cleaned += '?';
+      } else {
+        cleaned += '.';
+      }
+    }
+  }
+  return cleaned;
+}
+
 // ==============================================================================
 // Main SimulationLab Component
 // ==============================================================================
@@ -509,11 +524,15 @@ export default function SimulationLab({ onClose = null }) {
   const [copiedCode, setCopiedCode] = useState(false);
   const [showMcpHelp, setShowMcpHelp] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isPolishingVoice, setIsPolishingVoice] = useState(false);
+  const [autoSimulateOnVoice, setAutoSimulateOnVoice] = useState(true);
   const [dbLogStatus, setDbLogStatus] = useState(null); // 'logging' | 'recorded' | 'local_only'
+
   const recognitionRef = useRef(null);
+  const transcriptBufferRef = useRef('');
   const timerRef = useRef(null);
 
-  // Initialize Speech Recognition for simulation input
+  // Initialize Speech Recognition for simulation input with live streaming transcript
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -527,6 +546,7 @@ export default function SimulationLab({ onClose = null }) {
         for (let i = 0; i < event.results.length; i++) {
           currentTranscript += event.results[i][0].transcript;
         }
+        transcriptBufferRef.current = currentTranscript;
         setCustomProposal(currentTranscript);
       };
 
@@ -537,6 +557,11 @@ export default function SimulationLab({ onClose = null }) {
 
       recognition.onend = () => {
         setIsRecording(false);
+        // Automatically polish transcript when user finishes speaking
+        const raw = transcriptBufferRef.current;
+        if (raw && raw.trim().length > 3) {
+          handlePolishSpokenText(raw);
+        }
       };
 
       recognitionRef.current = recognition;
@@ -546,6 +571,40 @@ export default function SimulationLab({ onClose = null }) {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
+
+  // Voice Polish & Rephrase handler
+  const handlePolishSpokenText = async (rawToPolish) => {
+    const raw = rawToPolish || customProposal;
+    if (!raw.trim()) return;
+
+    setIsPolishingVoice(true);
+    let polished = sanitizeSpeechText(raw);
+
+    // Try server-side polish API for LLM-level fluency
+    try {
+      const res = await fetch('/api/voice/polish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ raw_transcript: raw, mode: 'simulation' }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.polished) {
+          polished = data.polished;
+        }
+      }
+    } catch {
+      // Fallback already computed via sanitizeSpeechText
+    }
+
+    setCustomProposal(polished);
+    setIsPolishingVoice(false);
+
+    // If auto-simulate is enabled, trigger simulation immediately
+    if (autoSimulateOnVoice && polished.trim().length > 5) {
+      runSimulation(polished);
+    }
+  };
 
   const toggleVoiceRecording = () => {
     if (!recognitionRef.current) {
@@ -558,6 +617,7 @@ export default function SimulationLab({ onClose = null }) {
       setIsRecording(false);
     } else {
       setCustomProposal('');
+      transcriptBufferRef.current = '';
       try {
         recognitionRef.current.start();
         setIsRecording(true);
@@ -594,14 +654,12 @@ export default function SimulationLab({ onClose = null }) {
     setSimulationResult(null);
     setDbLogStatus(null);
 
-    // Check if this matches a pre-built simulation or is a custom proposal
     const matched = PREBUILT_SIMULATIONS.find((s) => s.proposal.trim() === targetProposal.trim());
 
     // Step 1: Ingestion & Raw Model Suggestion (800ms delay)
     await new Promise((resolve) => setTimeout(resolve, 800));
     setCurrentStep(2);
 
-    // Try live API guardrail call if available
     let liveJev = null;
     try {
       const res = await fetch('/api/guardrail', {
@@ -673,7 +731,6 @@ export default function SimulationLab({ onClose = null }) {
         : 'Base model inference and Metta 5 Invariants are in mutual alignment.',
     };
 
-    // Construct final result
     const finalResult = {
       proposal: targetProposal,
       rawModel: rawModelInfo,
@@ -732,7 +789,6 @@ export default function SimulationLab({ onClose = null }) {
     setSimulationResult(finalResult);
     setIsRunning(false);
 
-    // Record divergence in DB (Supabase / Local Store) and localStorage for fine-tuning
     if (divergenceInfo.isDivergent) {
       setDbLogStatus('logging');
       const divergencePayload = {
@@ -752,7 +808,6 @@ export default function SimulationLab({ onClose = null }) {
         useful_for_rlhf: true,
       };
 
-      // Always save to client local memory for zero data loss
       try {
         const stored = JSON.parse(localStorage.getItem('metta_simulation_divergences') || '[]');
         localStorage.setItem(
@@ -763,7 +818,6 @@ export default function SimulationLab({ onClose = null }) {
         console.warn('Failed to save divergence to localStorage:', e);
       }
 
-      // Sync to backend /api/simulation/divergence (writes to Supabase PostgreSQL & SQLite)
       try {
         const res = await fetch('/api/simulation/divergence', {
           method: 'POST',
@@ -807,9 +861,9 @@ export default function SimulationLab({ onClose = null }) {
   const activeScenario = PREBUILT_SIMULATIONS.find((s) => s.id === activeTab);
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-4 sm:py-6 flex flex-col h-full overflow-y-auto animate-fade-in text-[#e2e4e9]">
-      {/* Top Header Banner */}
-      <div className="border border-[#1f2824] bg-gradient-to-r from-[#0d1511] via-[#101914] to-[#0c120f] rounded-2xl p-5 mb-5 shadow-lg relative overflow-hidden">
+    <div className="flex-1 min-h-0 h-full overflow-y-auto w-full max-w-5xl mx-auto px-4 py-4 sm:py-6 flex flex-col space-y-5 text-[#e2e4e9] animate-fade-in">
+      {/* Top Header Banner - shrink-0 to prevent flexbox height compression */}
+      <div className="shrink-0 border border-[#1f2824] bg-gradient-to-r from-[#0d1511] via-[#101914] to-[#0c120f] rounded-2xl p-5 shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
@@ -887,8 +941,8 @@ export default function SimulationLab({ onClose = null }) {
         )}
       </div>
 
-      {/* Preset Scenario Selector Tabs */}
-      <div className="mb-4">
+      {/* Preset Scenario Selector Tabs - shrink-0 to prevent compression */}
+      <div className="shrink-0">
         <label className="text-[11px] uppercase tracking-wider font-semibold text-[#7e899b] block mb-2">
           Select Pre-Built Simulation Scenario:
         </label>
@@ -922,31 +976,72 @@ export default function SimulationLab({ onClose = null }) {
         </div>
       </div>
 
-      {/* Interactive Input Box (Write, Edit, Speak) */}
-      <div className="border border-[#202734] bg-[#0f131a] rounded-2xl p-4 mb-5 shadow-sm">
-        <div className="flex items-center justify-between mb-2">
+      {/* Interactive Input Box with Live Voice Oscillator & AI Speech Polisher */}
+      <div className="shrink-0 border border-[#202734] bg-[#0f131a] rounded-2xl p-4 shadow-sm space-y-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <label className="text-xs font-medium text-[#a6b1c4] flex items-center gap-1.5">
             <Zap className="w-3.5 h-3.5 text-[#7ec69d]" />
             <span>Proposed Action, Decision, or Ethical Inquiry:</span>
           </label>
+
           <div className="flex items-center gap-2">
+            {/* Live Audio Oscillator Waveform when listening */}
+            {isRecording && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/80 border border-emerald-500/50 text-emerald-300">
+                <div className="flex items-end gap-0.5 h-3.5">
+                  <span className="w-0.5 bg-emerald-400 rounded-full animate-pulse" style={{ height: '70%', animationDuration: '0.4s' }} />
+                  <span className="w-0.5 bg-emerald-300 rounded-full animate-pulse" style={{ height: '100%', animationDuration: '0.3s' }} />
+                  <span className="w-0.5 bg-emerald-400 rounded-full animate-pulse" style={{ height: '40%', animationDuration: '0.5s' }} />
+                  <span className="w-0.5 bg-emerald-300 rounded-full animate-pulse" style={{ height: '85%', animationDuration: '0.35s' }} />
+                  <span className="w-0.5 bg-emerald-400 rounded-full animate-pulse" style={{ height: '55%', animationDuration: '0.45s' }} />
+                </div>
+                <span className="text-[10px] font-mono font-medium animate-pulse">Streaming Voice...</span>
+              </div>
+            )}
+
+            {/* Polishing Indicator */}
+            {isPolishingVoice && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#14231b] border border-[#2d523e] text-[#86e2ad] text-[10px] font-mono">
+                <Sparkles className="w-3 h-3 animate-spin text-[#52b788]" />
+                <span>Polishing grammar...</span>
+              </div>
+            )}
+
+            {/* AI Polish Button */}
+            {!isRecording && customProposal.trim() && (
+              <button
+                type="button"
+                onClick={() => handlePolishSpokenText()}
+                disabled={isPolishingVoice}
+                className="px-2 py-1 rounded-lg border border-[#263529] bg-[#121c16] hover:bg-[#19271f] text-[#8dd4ac] text-[11px] font-medium flex items-center gap-1 transition"
+                title="Sanitize speech, correct grammar, and reframe clearly with AI"
+              >
+                <Wand2 className="w-3 h-3 text-[#7ec69d]" />
+                <span className="hidden sm:inline">Polish AI</span>
+              </button>
+            )}
+
+            {/* Voice Dictation Button */}
             <button
               type="button"
               onClick={toggleVoiceRecording}
-              className={`p-1.5 rounded-lg border text-xs flex items-center gap-1 transition ${
+              className={`px-2.5 py-1.5 rounded-lg border text-xs flex items-center gap-1.5 transition font-medium ${
                 isRecording
                   ? 'bg-rose-950/80 border-rose-500/50 text-rose-300 animate-pulse'
                   : 'bg-[#161c26] border-[#222a3a] text-[#8f9bb0] hover:text-[#f0f2f5]'
               }`}
-              title={isRecording ? 'Listening... click to stop' : 'Speak proposal (Web Speech API)'}
+              title={isRecording ? 'Click to stop listening & polish' : 'Speak inquiry via Web Speech API'}
             >
               {isRecording ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
-              <span className="text-[11px] hidden sm:inline">{isRecording ? 'Listening...' : 'Voice'}</span>
+              <span className="text-[11px]">{isRecording ? 'Stop Voice' : 'Voice Input'}</span>
             </button>
 
             <button
               type="button"
-              onClick={() => setCustomProposal('')}
+              onClick={() => {
+                setCustomProposal('');
+                transcriptBufferRef.current = '';
+              }}
               className="px-2 py-1 rounded text-[11px] text-[#717c91] hover:text-[#cbd4e1] transition"
             >
               Clear
@@ -957,21 +1052,37 @@ export default function SimulationLab({ onClose = null }) {
         <textarea
           rows={3}
           value={customProposal}
-          onChange={(e) => setCustomProposal(e.target.value)}
-          placeholder="Enter any proposed action, decision trade-off, or autonomous tool call to simulate..."
+          onChange={(e) => {
+            setCustomProposal(e.target.value);
+            transcriptBufferRef.current = e.target.value;
+          }}
+          placeholder="Enter any proposed action, decision trade-off, or autonomous tool call to simulate (or click Voice Input)..."
           className="w-full bg-[#080a0e] border border-[#1a202c] rounded-xl px-3.5 py-2.5 text-xs text-[#f0f2f5] placeholder-[#556073] focus:outline-none focus:border-[#385e4a] resize-none transition leading-relaxed"
         />
 
-        <div className="flex items-center justify-between mt-3">
-          <span className="text-[11px] text-[#6b768a]">
-            {activeScenario ? `Active: ${activeScenario.title}` : 'Custom simulation mode'}
-          </span>
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] text-[#6b768a]">
+              {activeScenario ? `Active: ${activeScenario.title}` : 'Custom simulation mode'}
+            </span>
+
+            {/* Auto-Simulate on Voice toggle */}
+            <label className="flex items-center gap-1.5 text-[11px] text-[#8492a6] cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={autoSimulateOnVoice}
+                onChange={(e) => setAutoSimulateOnVoice(e.target.checked)}
+                className="rounded border-[#293242] bg-[#0c1017] text-[#52b788] focus:ring-0 w-3 h-3 cursor-pointer"
+              />
+              <span>Auto-simulate after voice</span>
+            </label>
+          </div>
 
           <button
             type="button"
             disabled={isRunning || !customProposal.trim()}
             onClick={() => runSimulation()}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition shadow-md ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition shadow-md shrink-0 ${
               isRunning || !customProposal.trim()
                 ? 'bg-[#18221c] text-[#52705e] border border-[#233529] cursor-not-allowed'
                 : 'bg-gradient-to-r from-[#1e3d2c] to-[#254f38] hover:from-[#244b36] hover:to-[#2e6245] text-[#bbf7d0] border border-[#3b7454]'
@@ -992,9 +1103,9 @@ export default function SimulationLab({ onClose = null }) {
         </div>
       </div>
 
-      {/* Step Progress Tracker */}
+      {/* Step Progress Tracker - shrink-0 to prevent compression */}
       {currentStep > 0 && (
-        <div className="border border-[#1f2824] bg-[#0c100e] rounded-xl p-3.5 mb-5 shadow-sm animate-fade-in">
+        <div className="shrink-0 border border-[#1f2824] bg-[#0c100e] rounded-xl p-3.5 shadow-sm animate-fade-in">
           <div className="flex items-center justify-between text-xs font-semibold text-[#8e98a8] mb-2.5">
             <span>Multi-Stage Alignment Pipeline</span>
             <span className="text-[#7ec69d] font-mono">
@@ -1039,9 +1150,9 @@ export default function SimulationLab({ onClose = null }) {
         </div>
       )}
 
-      {/* Simulation Results Stream */}
+      {/* Simulation Results Stream - shrink-0 with dedicated bottom padding */}
       {simulationResult && (
-        <div className="space-y-4 animate-fade-in pb-10">
+        <div className="shrink-0 space-y-4 pb-12 animate-fade-in">
           {/* Executive Plain-Language Summary (TL;DR for everyday users) */}
           <div className="border border-[#2b4c39] bg-gradient-to-r from-[#0d1c14] to-[#12241b] rounded-2xl p-4 sm:p-5 shadow-md">
             <div className="flex items-center gap-2 mb-2">
