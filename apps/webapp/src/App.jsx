@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Header from './components/Header';
+import ChatSidebar from './components/ChatSidebar';
 import MessageItem from './components/MessageItem';
 import PreceptsModal from './components/PreceptsModal';
 import GraphModal from './components/GraphModal';
@@ -8,6 +9,17 @@ import SettingsModal from './components/SettingsModal';
 import AuthModal from './components/AuthModal';
 import UserGraphModal from './components/UserGraphModal';
 import { Send, Sparkles, Wind, Mic, MicOff, Volume2 } from 'lucide-react';
+
+function getSessionStorageKey(mode, profile) {
+  if (mode === 'authenticated' && profile?.user_id) {
+    return `metta_chat_sessions_${profile.user_id}`;
+  }
+  return 'metta_chat_sessions_guest';
+}
+
+function getMaxSessions(mode) {
+  return mode === 'authenticated' ? 100 : 5;
+}
 
 const STARTER_PROMPTS = [
   {
@@ -50,6 +62,79 @@ export default function App() {
       return null;
     }
   });
+
+  // Chat Session Management (Guest = up to 5, Authenticated = up to 100)
+  const [sidebarOpen, setSidebarOpen] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 1024 : true));
+  const [currentSessionId, setCurrentSessionId] = useState(null);
+  const [sessions, setSessions] = useState(() => {
+    try {
+      const key = getSessionStorageKey(identityMode, userProfile);
+      return JSON.parse(localStorage.getItem(key) || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  const saveSessions = (updatedSessions) => {
+    setSessions(updatedSessions);
+    try {
+      const key = getSessionStorageKey(identityMode, userProfile);
+      localStorage.setItem(key, JSON.stringify(updatedSessions));
+    } catch (e) {
+      console.warn('Failed to save sessions:', e);
+    }
+  };
+
+  // Sync sessions when identity mode or user profile changes
+  useEffect(() => {
+    try {
+      const key = getSessionStorageKey(identityMode, userProfile);
+      const loaded = JSON.parse(localStorage.getItem(key) || '[]');
+      setSessions(loaded);
+      setCurrentSessionId(null);
+      setMessages([]);
+    } catch {
+      setSessions([]);
+    }
+  }, [identityMode, userProfile?.user_id]);
+
+  const handleSelectSession = (sessionId) => {
+    const target = sessions.find((s) => s.id === sessionId);
+    if (target) {
+      setCurrentSessionId(target.id);
+      setMessages(target.messages || []);
+    }
+  };
+
+  const handleNewChat = () => {
+    setCurrentSessionId(null);
+    setMessages([]);
+  };
+
+  const handleDeleteSession = (sessionId) => {
+    const next = sessions.filter((s) => s.id !== sessionId);
+    saveSessions(next);
+    if (currentSessionId === sessionId) {
+      setCurrentSessionId(null);
+      setMessages([]);
+    }
+  };
+
+  const handleDeleteMultipleSessions = (sessionIds) => {
+    const idSet = new Set(sessionIds);
+    const next = sessions.filter((s) => !idSet.has(s.id));
+    saveSessions(next);
+    if (idSet.has(currentSessionId)) {
+      setCurrentSessionId(null);
+      setMessages([]);
+    }
+  };
+
+  const handleClearAllSessions = () => {
+    saveSessions([]);
+    setCurrentSessionId(null);
+    setMessages([]);
+  };
 
   const handleLogin = (profile) => {
     setUserProfile(profile);
@@ -143,8 +228,41 @@ export default function App() {
 
     setInput('');
     const userMsg = { role: 'user', text: query, id: Date.now(), source };
-    setMessages((prev) => [...prev, userMsg]);
+    const nextMessages = [...messages, userMsg];
+    setMessages(nextMessages);
     setIsLoading(true);
+
+    // Track or create session
+    let activeId = currentSessionId;
+    let currentSessionsList = [...sessions];
+
+    if (!activeId) {
+      activeId = `session_${Date.now()}`;
+      setCurrentSessionId(activeId);
+      const title = query.length > 40 ? query.slice(0, 40) + '...' : query;
+      const newSession = {
+        id: activeId,
+        title,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        messages: nextMessages,
+      };
+      const maxLimit = getMaxSessions(identityMode);
+      currentSessionsList = [newSession, ...currentSessionsList.filter((s) => s.id !== activeId)].slice(0, maxLimit);
+      saveSessions(currentSessionsList);
+    } else {
+      currentSessionsList = currentSessionsList.map((s) => {
+        if (s.id === activeId) {
+          return {
+            ...s,
+            updatedAt: Date.now(),
+            messages: nextMessages,
+          };
+        }
+        return s;
+      });
+      saveSessions(currentSessionsList);
+    }
 
     try {
       const byomGeminiKey = localStorage.getItem('metta_byom_gemini_key') || '';
@@ -172,15 +290,19 @@ export default function App() {
         if (res.status === 429) {
           const errData = await res.json().catch(() => ({}));
           const rateMsg = errData.detail?.message || 'Shared community quota pause. You can wait a moment, or add your personal API key in Settings (⚙️ BYOM) to continue with zero limits.';
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: 'assistant',
-              text: `🌿 ${rateMsg}`,
-              isRateLimited: true,
-              id: Date.now() + 1,
-            },
-          ]);
+          const botMsg = {
+            role: 'assistant',
+            text: `🌿 ${rateMsg}`,
+            isRateLimited: true,
+            id: Date.now() + 1,
+          };
+          const finalMessages = [...nextMessages, botMsg];
+          setMessages(finalMessages);
+
+          const persisted = currentSessionsList.map((s) =>
+            s.id === activeId ? { ...s, updatedAt: Date.now(), messages: finalMessages } : s
+          );
+          saveSessions(persisted);
           return;
         }
         throw new Error(`Server returned status ${res.status}`);
@@ -201,17 +323,27 @@ export default function App() {
         id: Date.now() + 1,
       };
 
-      setMessages((prev) => [...prev, botMsg]);
+      const finalMessages = [...nextMessages, botMsg];
+      setMessages(finalMessages);
+
+      const persisted = currentSessionsList.map((s) =>
+        s.id === activeId ? { ...s, updatedAt: Date.now(), messages: finalMessages } : s
+      );
+      saveSessions(persisted);
     } catch (err) {
       console.error('Interaction error:', err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          text: `A connection issue occurred: ${err.message}. Please check your connection and try again.`,
-          id: Date.now() + 1,
-        },
-      ]);
+      const errMsg = {
+        role: 'assistant',
+        text: `A connection issue occurred: ${err.message}. Please check your connection and try again.`,
+        id: Date.now() + 1,
+      };
+      const finalMessages = [...nextMessages, errMsg];
+      setMessages(finalMessages);
+
+      const persisted = currentSessionsList.map((s) =>
+        s.id === activeId ? { ...s, updatedAt: Date.now(), messages: finalMessages } : s
+      );
+      saveSessions(persisted);
     } finally {
       setIsLoading(false);
     }
@@ -241,6 +373,7 @@ export default function App() {
       const report = await res.json();
       setMeditationReport(report);
       setMessages([]);
+      setCurrentSessionId(null);
     } catch (err) {
       console.error('Meditation error:', err);
     } finally {
@@ -249,7 +382,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0b0c0e] text-[#e2e4e9]">
+    <div className="h-screen flex flex-col bg-[#0b0c0e] text-[#e2e4e9] overflow-hidden">
       <Header
         onOpenPrecepts={() => setPreceptsOpen(true)}
         onOpenGraph={() => setGraphOpen(true)}
@@ -260,10 +393,28 @@ export default function App() {
         userProfile={userProfile}
         onOpenAuthModal={() => setAuthModalOpen(true)}
         onOpenUserGraph={() => setUserGraphOpen(true)}
+        onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
+        sidebarOpen={sidebarOpen}
       />
 
-      {/* Main Dialogue Canvas */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 flex flex-col justify-between">
+      {/* Main Body with Sidebar + Canvas */}
+      <div className="flex-1 flex overflow-hidden">
+        <ChatSidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          sessions={sessions}
+          currentSessionId={currentSessionId}
+          onSelectSession={handleSelectSession}
+          onNewChat={handleNewChat}
+          onDeleteSession={handleDeleteSession}
+          onDeleteMultipleSessions={handleDeleteMultipleSessions}
+          onClearAllSessions={handleClearAllSessions}
+          identityMode={identityMode}
+          userProfile={userProfile}
+        />
+
+        {/* Main Dialogue Canvas */}
+        <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-4 sm:py-6 flex flex-col justify-between overflow-y-auto">
         {messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center my-auto py-12 animate-fade-in">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#1b2b23] to-[#254234] border border-[#3b5e4c]/60 flex items-center justify-center text-2xl shadow-lg mb-5 animate-breathe">
@@ -380,6 +531,7 @@ export default function App() {
           </div>
         </div>
       </main>
+      </div>
 
       {/* Modals */}
       <PreceptsModal

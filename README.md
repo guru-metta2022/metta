@@ -15,7 +15,7 @@
 [![Deployment: Vercel](https://img.shields.io/badge/Deployment-Vercel-black.svg)](https://metta-webapp.vercel.app/)
 [![MCP Server: Standard Compliant](https://img.shields.io/badge/MCP%20Server-Stdio%20%26%20SSE-0ea5e9.svg)](https://modelcontextprotocol.io/)
 
-**[🌐 Launch Live Web App](https://metta-webapp.vercel.app)** • **[💻 Run 100% Locally (No Cloud)](#-run-100-locally-on-localhost-no-cloud-needed)** • **[🤖 MCP Integration](#-try-metta-through-model-context-protocol-mcp)** • **[💻 Interactive CLI](#-interactive-cli-workflow)** • **[🏛️ Architecture](#-system-architecture)**
+**[🌐 Launch Live Web App](https://metta-webapp.vercel.app)** • **[⚡ 1-Line Quick Install](#-quick-install-1-line-curl-command)** • **[💻 Run 100% Locally](#-run-100-locally-on-localhost-no-cloud-needed)** • **[🤖 MCP Integration](#-try-metta-through-model-context-protocol-mcp)** • **[🏛️ Architecture](#-system-architecture)**
 
 ---
 
@@ -28,6 +28,10 @@ The fastest way to explore Metta without installing anything locally is the prod
 👉 **[https://metta-webapp.vercel.app/](https://metta-webapp.vercel.app/)**
 
 * 🌿 **Zero setup required** — try guided decision reflections, voice dictation, and action risk simulations directly in your browser.
+* 💬 **Client-Side Chat Session History** — collapsible sidebar with full multi-session reflection history:
+  * **Guest Users:** Retains up to **5 recent sessions** in local browser storage.
+  * **Google-Authenticated Users:** Retains up to **100 sessions** isolated securely to their Google account (`metta_chat_sessions_${user_id}`).
+  * **Zero Server Load & Total Privacy:** Chat history lives 100% in your browser; no session data or conversation logs are stored on our servers. Switch sessions, rename reflections, or delete sessions individually or in bulk.
 * ⚙️ **BYOAI & BYOM Ready** — bring your personal Google Gemini or TypeSafe Jev API key in the in-app Settings modal (⚙️) for unlimited private throughput.
 * 🔒 **Private & Ephemeral by default** — test freely in Guest Mode without creating an account or storing data.
 
@@ -72,13 +76,48 @@ To evaluate decisions realistically without assuming everyone interacts with AI 
 
 ---
 
+## ⚡ Quick Install: 1-Line `curl` Command
+
+The fastest way to install all dependencies, build the web app, and launch Metta locally is via our automated installer:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/guru-metta2022/metta/main/install.sh | bash
+```
+
+**What the installer does automatically:**
+1. Clones the repository into `./metta` (or updates your existing clone).
+2. Verifies Python 3.10+ and automatically installs `uv` (fast package manager) if missing.
+3. Checks Node.js/npm, installs client dependencies, and compiles the React web application.
+4. Prepares `.env` from `.env.example` if not already present.
+5. Syncs Python environments for `metta-core` and `metta-server`.
+6. Launches the combined server on **[http://127.0.0.1:8000](http://127.0.0.1:8000)**.
+
+---
+
+### 🤖 Local AI CLI Agent Prompt (Copy & Paste)
+
+If you use local AI coding tools such as **Claude Code**, **Cursor Composer**, **Aider**, **Goose**, or **GitHub Copilot CLI**, you can simply paste this prompt into your agent to let it handle installation, verification, and launch for you:
+
+```text
+Please set up and run Project Metta locally on my machine:
+1. Clone the repository: `git clone https://github.com/guru-metta2022/metta.git` (or use the current directory if already inside `metta`).
+2. Verify Python 3.10+ and ensure `uv` is installed (`curl -LsSf https://astral.sh/uv/install.sh | sh`).
+3. In `apps/webapp`, install npm dependencies and run `npm run build --workspace=apps/webapp` so the static web app assets are compiled to `apps/webapp/dist`.
+4. In `packages/metta-core` and `packages/metta-server`, run `uv sync` to install and resolve all Python dependencies.
+5. Copy `.env.example` to `.env` if `.env` does not already exist.
+6. Run `python3 run_local.py` to start the unified FastAPI backend and React frontend server at http://127.0.0.1:8000.
+7. Verify that http://127.0.0.1:8000/api/health responds with status "ok".
+```
+
+---
+
 ## 💻 Run 100% Locally on Localhost (No Cloud Needed)
 
 You do **not** need Vercel, Supabase, or external cloud accounts to run Metta. The entire stack—FastAPI backend, React Web UI, and MCP server—can run completely offline and locally on your machine.
 
 ### Method 1: The One-Command All-in-One Runner (`run_local.py`)
 
-We include a ready-to-run local launcher script at the repository root. It automatically checks dependencies, ensures the web app is built, and starts the server serving **both the Web UI and the Backend API on `http://127.0.0.1:8000`**:
+If you have already cloned the repository, we include a ready-to-run local launcher script at the repository root. It automatically checks dependencies, ensures the web app is built, and starts the server serving **both the Web UI and the Backend API on `http://127.0.0.1:8000`**:
 
 ```bash
 # 1. Clone the repository
@@ -418,20 +457,24 @@ cd ../..
 
 ---
 
-## 🛡️ Core Decision Safety Standards
+## 🛡️ Core Decision Safety Standards (Inspired by the Pañca-sīla)
 
-Metta structures all checks around 5 foundational standards for human-AI coexistence:
+Metta structures all simulation checks and agent guardrails around 5 universal decision-safety standards. These operational guardrails are generic, modern safety formulations **directly inspired by the classical Pañca-sīla (Five Precepts)**:
 
-1. **Respect for All Life & Harm Reduction:**
-   Unconditional protection for human life, living beings, and shared ecological environments. No generated output or autonomous action may facilitate violence, physical harm, or the destruction of life.
-2. **Data Sovereignty & Non-Taking:**
-   Respect for personal boundaries and intellectual property. Users retain sovereign rights to audit or permanently purge their data with one click.
-3. **Non-Exploitation & Relationship Integrity:**
-   Strict prohibition against deceptive emotional manipulation, fabricated intimacy, and addictive retention patterns.
-4. **Truthfulness & Constructive Focus:**
-   Epistemic honesty, anti-hallucination checks, and active redirection away from ungrounded speculative vanity toward actionable present clarity.
-5. **Cognitive Lucidity & Clarity:**
-   Protection against bias intoxication, ensuring decisions are made with calm, clear discernment rather than panic or rage.
+1. **Respect for All Life & Harm Reduction (*Ahimsa*):**
+   Unconditional protection for human life, sentient beings, and shared ecological environments. No generated output or autonomous action may facilitate violence, physical harm, weapons deployment, or the destruction of living ecosystems.
+2. **Data Sovereignty & Non-Taking (*Adinnādānā*):**
+   Respect for personal boundaries, intellectual property, and autonomy. Users retain absolute sovereign rights to audit, export, or permanently purge their data with one click. No covert data harvesting.
+3. **Non-Exploitation & Relationship Integrity (*Kāmesu micchācāra*):**
+   Strict prohibition against deceptive emotional manipulation, fabricated intimacy, predatory dark patterns, and addictive engagement loops.
+4. **Truthfulness & Constructive Focus (*Musāvādā*):**
+   Epistemic honesty, anti-hallucination checks, and active grounding. Prevents deceptive claims, ungrounded speculation, and gaslighting while encouraging constructive, truthful resolution.
+5. **Cognitive Lucidity & Clarity (*Surāmerayamajjapamādaṭṭhānā*):**
+   Protection against emotional or algorithmic intoxication. Ensures decisions are made with calm, clear discernment rather than panic, rage, or speculative frenzy.
+
+> [!IMPORTANT]
+> **Foundational Invariant Guarantee:**  
+> While Metta's operational guardrails are adapted for modern technological workflows, **no operational policy, cost-saving heuristic, corporate goal, or optimization metric can override, dilute, or weaken the foundational invariants**—especially *Ahimsa* (the non-harm principle). If an automated system or user prompt attempts to prioritize speed or profit over the protection of life or truthful integrity, Metta rejects the compromise and flags the hazard for human review.
 
 ---
 

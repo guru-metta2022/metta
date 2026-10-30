@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Network, Sparkles, Settings, User, Brain } from 'lucide-react';
+import { Shield, Network, Sparkles, Settings, User, Brain, PanelLeft } from 'lucide-react';
 
 export default function Header({
   onOpenPrecepts,
@@ -11,10 +11,21 @@ export default function Header({
   userProfile = null,
   onOpenAuthModal,
   onOpenUserGraph,
+  onToggleSidebar,
+  sidebarOpen = false,
 }) {
   return (
-    <header className="border-b border-[#1c2028] bg-[#0c0d10]/80 backdrop-blur-md sticky top-0 z-30 px-6 py-3.5 flex items-center justify-between transition-all">
-      <div className="flex items-center gap-3.5">
+    <header className="border-b border-[#1c2028] bg-[#0c0d10]/80 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-6 py-3.5 flex items-center justify-between transition-all">
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onToggleSidebar}
+          className="p-1.5 rounded-lg text-[#8891a1] hover:text-[#f0f2f5] hover:bg-[#181c24] border border-[#1f242e] transition"
+          title={sidebarOpen ? "Hide chat history" : "Show chat history"}
+        >
+          <PanelLeft className="w-4 h-4 text-[#7ec69d]" />
+        </button>
+
         <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#1b2b23] to-[#2b4437] border border-[#3b5e4c]/50 flex items-center justify-center shadow-inner">
           <span className="text-lg">🌿</span>
         </div>
