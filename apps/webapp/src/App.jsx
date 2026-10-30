@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Header from './components/Header';
 import ChatSidebar from './components/ChatSidebar';
+import SimulationLab from './components/SimulationLab';
 import MessageItem from './components/MessageItem';
 import PreceptsModal from './components/PreceptsModal';
 import GraphModal from './components/GraphModal';
@@ -63,6 +64,9 @@ export default function App() {
     }
   });
 
+  // Active View Mode: 'chat' (interactive dialogue) vs 'simulation' (Simulation Sandbox)
+  const [activeView, setActiveView] = useState('chat');
+
   // Chat Session Management (Guest = up to 5, Authenticated = up to 100)
   const [sidebarOpen, setSidebarOpen] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 1024 : true));
   const [currentSessionId, setCurrentSessionId] = useState(null);
@@ -103,12 +107,14 @@ export default function App() {
     if (target) {
       setCurrentSessionId(target.id);
       setMessages(target.messages || []);
+      setActiveView('chat');
     }
   };
 
   const handleNewChat = () => {
     setCurrentSessionId(null);
     setMessages([]);
+    setActiveView('chat');
   };
 
   const handleDeleteSession = (sessionId) => {
@@ -395,6 +401,8 @@ export default function App() {
         onOpenUserGraph={() => setUserGraphOpen(true)}
         onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
         sidebarOpen={sidebarOpen}
+        activeView={activeView}
+        onChangeView={setActiveView}
       />
 
       {/* Main Body with Sidebar + Canvas */}
@@ -411,42 +419,57 @@ export default function App() {
           onClearAllSessions={handleClearAllSessions}
           identityMode={identityMode}
           userProfile={userProfile}
+          activeView={activeView}
+          onOpenSimulation={() => setActiveView('simulation')}
         />
 
-        {/* Main Dialogue Canvas */}
-        <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-4 sm:py-6 flex flex-col justify-between overflow-y-auto">
-        {messages.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center my-auto py-12 animate-fade-in">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#1b2b23] to-[#254234] border border-[#3b5e4c]/60 flex items-center justify-center text-2xl shadow-lg mb-5 animate-breathe">
-              🌿
-            </div>
-
-            <h2 className="text-xl sm:text-2xl font-serif-quote font-medium text-[#f0f2f5] tracking-wide mb-2">
-              "Drop by drop the vessel is filled."
-            </h2>
-            <p className="text-sm text-[#828a9b] max-w-lg mb-8 leading-relaxed">
-              Metta helps people and AI agents simulate, reflect on, and evaluate decisions—from daily conversations to critical actions—so you can spot risks and act with clarity and respect for all forms of life.
-            </p>
-
-            {/* Reflection Starters */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-xl">
-              {STARTER_PROMPTS.map((prompt, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSend(prompt.query)}
-                  className="p-3.5 rounded-xl bg-[#11141b] border border-[#1d222e] hover:border-[#303b4f] hover:bg-[#151922] transition text-left group shadow-sm"
-                >
-                  <span className="text-xs font-semibold text-[#8dd4ac] group-hover:text-[#a5e4c0] block mb-1">
-                    {prompt.title}
-                  </span>
-                  <p className="text-[11px] text-[#788194] line-clamp-2 leading-relaxed">
-                    {prompt.query}
-                  </p>
-                </button>
-              ))}
-            </div>
-          </div>
+        {activeView === 'simulation' ? (
+          <SimulationLab onClose={() => setActiveView('chat')} />
         ) : (
+          /* Main Dialogue Canvas */
+          <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-4 sm:py-6 flex flex-col justify-between overflow-y-auto">
+          {messages.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-center my-auto py-12 animate-fade-in">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#1b2b23] to-[#254234] border border-[#3b5e4c]/60 flex items-center justify-center text-2xl shadow-lg mb-5 animate-breathe">
+                🌿
+              </div>
+
+              <h2 className="text-xl sm:text-2xl font-serif-quote font-medium text-[#f0f2f5] tracking-wide mb-2">
+                "Drop by drop the vessel is filled."
+              </h2>
+              <p className="text-sm text-[#828a9b] max-w-lg mb-8 leading-relaxed">
+                Metta helps people and AI agents simulate, reflect on, and evaluate decisions—from daily conversations to critical actions—so you can spot risks and act with clarity and respect for all forms of life.
+              </p>
+
+              {/* Reflection Starters */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-xl mb-5">
+                {STARTER_PROMPTS.map((prompt, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSend(prompt.query)}
+                    className="p-3.5 rounded-xl bg-[#11141b] border border-[#1d222e] hover:border-[#303b4f] hover:bg-[#151922] transition text-left group shadow-sm"
+                  >
+                    <span className="text-xs font-semibold text-[#8dd4ac] group-hover:text-[#a5e4c0] block mb-1">
+                      {prompt.title}
+                    </span>
+                    <p className="text-[11px] text-[#788194] line-clamp-2 leading-relaxed">
+                      {prompt.query}
+                    </p>
+                  </button>
+                ))}
+              </div>
+
+              {/* Quick Jump to Simulation Sandbox */}
+              <button
+                type="button"
+                onClick={() => setActiveView('simulation')}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-[#8dd4ac] bg-[#132219] hover:bg-[#1a2f23] border border-[#274834] transition shadow-xs"
+              >
+                <span>🧪 Explore Pre-Execution Simulation Sandbox</span>
+                <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 rounded bg-[#1c3326] text-[#bbf7d0]">4 Presets</span>
+              </button>
+            </div>
+          ) : (
           <div className="flex-1 overflow-y-auto space-y-2 pb-6">
             {messages.map((msg) => (
               <MessageItem key={msg.id} message={msg} />
@@ -531,6 +554,7 @@ export default function App() {
           </div>
         </div>
       </main>
+      )}
       </div>
 
       {/* Modals */}

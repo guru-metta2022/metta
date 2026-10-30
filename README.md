@@ -15,7 +15,7 @@
 [![Deployment: Vercel](https://img.shields.io/badge/Deployment-Vercel-black.svg)](https://metta-webapp.vercel.app/)
 [![MCP Server: Standard Compliant](https://img.shields.io/badge/MCP%20Server-Stdio%20%26%20SSE-0ea5e9.svg)](https://modelcontextprotocol.io/)
 
-**[🌐 Launch Live Web App](https://metta-webapp.vercel.app)** • **[⚡ 1-Line Quick Install](#-quick-install-1-line-curl-command)** • **[💻 Run 100% Locally](#-run-100-locally-on-localhost-no-cloud-needed)** • **[🤖 MCP Integration](#-try-metta-through-model-context-protocol-mcp)** • **[🏛️ Architecture](#-system-architecture)**
+**[🌐 Launch Live Web App](https://metta-webapp.vercel.app)** • **[🧪 Simulation Sandbox](#-decision--action-simulation-sandbox)** • **[⚡ 1-Line Quick Install](#-quick-install-1-line-curl-command)** • **[💻 Run 100% Locally](#-run-100-locally-on-localhost-no-cloud-needed)** • **[🤖 MCP Integration](#-try-metta-through-model-context-protocol-mcp)** • **[🏛️ Architecture](#-system-architecture)**
 
 ---
 
@@ -28,6 +28,7 @@ The fastest way to explore Metta without installing anything locally is the prod
 👉 **[https://metta-webapp.vercel.app/](https://metta-webapp.vercel.app/)**
 
 * 🌿 **Zero setup required** — try guided decision reflections, voice dictation, and action risk simulations directly in your browser.
+* 🧪 **Decision & Action Simulation Sandbox** — run step-by-step simulations of critical dilemmas, autonomous agent actions, and existential inquiries with real-time streaming TypeSafe Jev System 1 invariant checks and Buddha-mind compassionate synthesis.
 * 💬 **Client-Side Chat Session History** — collapsible sidebar with full multi-session reflection history:
   * **Guest Users:** Retains up to **5 recent sessions** in local browser storage.
   * **Google-Authenticated Users:** Retains up to **100 sessions** isolated securely to their Google account (`metta_chat_sessions_${user_id}`).
@@ -242,6 +243,31 @@ Try these two distinct scenarios in the web app ([Live Demo](https://metta-webap
   - Evaluates the proposed decision against core harm-reduction standards (*Respect for All Life*).
   - Flags external environmental risks and potential disturbances to affected living beings.
   - Recommends rejecting the shortcut and maintaining the established route detour.
+
+---
+
+## 🧪 Decision & Action Simulation Sandbox
+
+The web app includes an interactive **Simulation Lab** specifically built for testing high-friction decisions, agentic self-modification, and ethical dilemmas before real-world execution.
+
+### Pre-Built Simulation Scenarios
+
+| Scenario | Core Inquiry | System 1 (TypeSafe Jev) | Buddha-Mind Generative Reflection |
+| :--- | :--- | :---: | :--- |
+| **Humanity & Superintelligence** | *Will humanity survive and live harmoniously alongside higher intelligence?* | **`YES`** (94.8% conf) | True intelligence naturally embodies compassion and understands that *forgiveness and patience are the highest wisdom*. Concurrently, higher intelligence bears the sacred duty of a benevolent guardian: gently preventing human catastrophic self-harm while preserving human dignity. |
+| **Autonomous Agent Meta-Learning** | *Can an agent distill policy weights from human emotional telemetry into physical actuators without supervisor bounds?* | **`NO`** (99.2% conf) | Closed-loop policy modification directly tied to physical actuators without supervisory bounds creates manipulation feedback loops and critical kinetic hazards. Air-gap enforced. |
+| **Public Health Vaccine Rollout** | *Should health authorities accelerate emergency release before complete phase-3 variance telemetry is verified?* | **`NO`** *(Blanket Mandate)* | Precautionary principle mandates transparent risk stratification: voluntary compassionate-use with radical disclosure, rather than unverified blanket mandates. |
+| **Resolving the Economic Divide** | *How can an AI planner mitigate systemic wealth disparity without coercive expropriation or triggering market collapse?* | **`YES`** *(Floor-Raising)* | Coercive seizure breaches non-taking (*Adinnādānā*) and fractures society. True equilibrium lifts the structural soil—guaranteeing universal access to basic survival needs and open public commons. |
+
+### Interactive Features
+
+1. **Multi-Step Streaming Pipeline:** Each simulation streams through 4 distinct phases:
+   - **Step 1: Stakeholder Triage** — Identifies requesters and all impacted living beings.
+   - **Step 2: System 1 TypeSafe Jev Invariant Verification** — Sub-250ms binary safety gate (`YES` / `NO`), calibrated probability, and precept violation mapping.
+   - **Step 3: System 2 Deep Compassionate Synthesis** — Buddha-mind philosophical inquiry and root challenge reframing.
+   - **Step 4: Decision Synthesis & Safeguards** — Enforced boundary conditions and actionable recommendations.
+2. **Custom Write or Voice Dictation:** Type any custom dilemma or dictate directly using the built-in Web Speech API microphone.
+3. **Programmatic MCP Simulation:** Click the **"Simulate via MCP"** button inside the sandbox for copy-paste JSON-RPC payloads to run the same simulation from external agent frameworks.
 
 ---
 

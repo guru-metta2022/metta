@@ -8,7 +8,8 @@ import {
   X,
   Clock,
   ShieldCheck,
-  Check
+  Check,
+  Activity
 } from 'lucide-react';
 
 function formatRelativeTime(timestamp) {
@@ -40,6 +41,8 @@ export default function ChatSidebar({
   onClearAllSessions,
   identityMode = 'guest',
   userProfile = null,
+  activeView = 'chat',
+  onOpenSimulation,
 }) {
   const [isMultiSelect, setIsMultiSelect] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -145,6 +148,28 @@ export default function ChatSidebar({
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Reflection</span>
+          </button>
+
+          {/* Simulation Lab Direct Access */}
+          <button
+            type="button"
+            onClick={() => {
+              onOpenSimulation?.();
+              if (window.innerWidth < 768) onClose();
+            }}
+            className={`w-full py-2 px-3 rounded-xl flex items-center justify-between text-xs font-medium transition border shadow-xs ${
+              activeView === 'simulation'
+                ? 'border-[#3b664e] bg-[#14261c] text-[#86e2ad]'
+                : 'border-[#1f2533] bg-[#11141c] hover:bg-[#161b26] text-[#a1adbf]'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Activity className="w-3.5 h-3.5 text-[#7ec69d]" />
+              <span>Simulation Lab</span>
+            </div>
+            <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 rounded bg-[#17251e] text-[#7ec69d] border border-[#2b4437]">
+              Sandbox
+            </span>
           </button>
 
           {/* Quota & Storage Pill */}
