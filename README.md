@@ -208,7 +208,7 @@ npm run dev --workspace=apps/webapp
 Metta automatically detects `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in `.env` (falling back gracefully to local SQLite if omitted):
 ```bash
 # Link project via Supabase CLI
-supabase link --project-ref wbncptxcoihmzlfuhqac
+supabase link --project-ref <your-project-ref>
 
 # Database migrations are located in supabase/migrations/
 ```
