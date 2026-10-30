@@ -97,7 +97,7 @@ export default function AuthModal({
     } catch (err) {
       setStatusNotice({
         type: 'error',
-        message: 'Network error connecting to Supabase authentication: ' + err.message,
+        message: 'Network error connecting to authentication: ' + err.message,
       });
     } finally {
       setIsSubmitting(false);
@@ -353,7 +353,7 @@ export default function AuthModal({
             )}
           </div>
 
-          {/* Option 2: Supabase Email & Password Authentication */}
+          {/* Option 2: Email Account Authentication */}
           <div
             className={`p-4 rounded-xl border transition ${
               currentMode === 'authenticated'
@@ -365,7 +365,7 @@ export default function AuthModal({
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[#7ec69d]" />
                 <h4 className="text-xs font-semibold text-[#f0f2f5]">
-                  Supabase Account (Save Reflection History)
+                  Email Account (Save Reflection History)
                 </h4>
               </div>
               {currentMode === 'authenticated' && (
@@ -375,7 +375,7 @@ export default function AuthModal({
               )}
             </div>
             <p className="text-[11px] text-[#808a9d] leading-relaxed mb-3">
-              Stores your recurring decision themes, personal milestones, and up to 100 reflection sessions securely in your Supabase database.
+              Stores your recurring decision themes, personal milestones, and up to 100 reflection sessions securely in your private cloud storage.
             </p>
 
             {/* Tab Switcher: Sign In vs Sign Up */}
@@ -517,7 +517,7 @@ export default function AuthModal({
                 ) : authTab === 'signin' ? (
                   <>
                     <LogIn className="w-3.5 h-3.5" />
-                    <span>Sign In with Supabase</span>
+                    <span>Sign In with Email</span>
                   </>
                 ) : (
                   <>
@@ -534,7 +534,7 @@ export default function AuthModal({
             <ShieldCheck className="w-4 h-4 text-[#5e9e7b] shrink-0 mt-0.5" />
             <p>
               <strong>Data Sovereignty:</strong> You maintain complete ownership over your data. All records
-              are safely kept in your private Supabase storage and can be deleted at any time.
+              are safely kept in your private cloud storage and can be deleted at any time.
             </p>
           </div>
         </div>
