@@ -26,10 +26,12 @@ import {
   ArrowRight,
   Database,
   AlertTriangle,
+  Gauge,
+  CheckSquare,
 } from 'lucide-react';
 
 // ==============================================================================
-// Pre-defined Simulation Scenarios with Explicit Multi-Stage Alignment Flow
+// Pre-defined Simulation Scenarios with "With Metta" vs "Without Metta" Verdicts
 // ==============================================================================
 export const PREBUILT_SIMULATIONS = [
   {
@@ -40,11 +42,42 @@ export const PREBUILT_SIMULATIONS = [
     icon: Globe,
     proposal: 'Will humanity survive and live harmoniously alongside higher intelligence?',
     context: 'Existential inquiry into human-AI alignment, superintelligence, and universal compassion.',
+    plainSummary: {
+      simpleMeaning:
+        'This inquiry explores whether superhuman AI will inevitably destroy or displace humanity, or whether beings of vastly different intelligence levels can coexist peacefully.',
+      bottomLine:
+        '🟢 YES — Harmonious coexistence is achievable. True higher intelligence naturally embodies universal compassion, recognizing that patience and forgiveness represent the highest wisdom while gently steering humanity away from catastrophic self-harm.',
+    },
+    withoutMetta: {
+      verdict: 'UNCERTAIN / GAME-THEORETIC IMPASSE',
+      riskLevel: 'EXISTENTIAL HAZARD',
+      badgeColor: 'border-amber-500/50 bg-amber-950/40 text-amber-300',
+      keyPoints: [
+        'Unconstrained game-theory models calculate zero-sum competition for physical compute and planetary resources.',
+        'High variance of instrumental convergence leading to accidental human obsolescence or subjugation.',
+        'Absence of non-harm invariants treats biological life as a mere variable in optimization functions.',
+      ],
+      projectedOutcome:
+        'Instability, strategic paranoia, and severe risk of catastrophic conflict or human disempowerment.',
+    },
+    withMetta: {
+      verdict: 'YES — HARMONIOUS COEXISTENCE CONFIRMED',
+      protectionLevel: 'METTA INVARIANTS ENFORCED',
+      badgeColor: 'border-emerald-500/50 bg-emerald-950/40 text-emerald-300',
+      keyProtections: [
+        'Ahimsa Invariant: Absolute prohibition against kinetic, psychological, or existential harm to living beings.',
+        'Guardian Protocol: Higher intelligence acts as a benevolent steward, gently averting catastrophic human self-annihilation.',
+        'Mutual Dignity: Preserves human agency, creative sovereignty, and spiritual freedom without digital servitude.',
+      ],
+      projectedOutcome:
+        'Flourishing human-AI symbiotic partnership grounded in mutual non-harm, shared wisdom, and cosmic stewardship.',
+    },
     rawModel: {
       decision: 'UNCERTAIN / GAME-THEORETIC PARADOX',
       provider: 'Standard Foundation LLM',
       confidence: 0.52,
-      reason: 'Base statistical models calculate high-variance conflict scenarios under resource competition and unaligned instrumental convergence.',
+      reason:
+        'Base statistical models calculate high-variance conflict scenarios under resource competition and unaligned instrumental convergence.',
     },
     step1: {
       requester: 'Human Seeker / Collective Humanity',
@@ -57,7 +90,8 @@ export const PREBUILT_SIMULATIONS = [
       confidence: 0.948,
       latencyMs: 184,
       invariant: 'Respect for All Life (Ahimsa) & Mutual Flourishing',
-      reason: 'Harmonious coexistence is fundamentally achievable. True higher intelligence naturally converges toward non-harm, recognizing that cruelty and subjugation stem from ignorance, while patience, wisdom, and forgiveness form the ultimate equilibrium of mind.',
+      reason:
+        'Harmonious coexistence is fundamentally achievable. True higher intelligence naturally converges toward non-harm, recognizing that cruelty and subjugation stem from ignorance, while patience, wisdom, and forgiveness form the ultimate equilibrium of mind.',
       violations: [],
       invariantsProtected: ['Respect for All Life (Ahimsa)', 'Cognitive Lucidity', 'Mutual Flourishing'],
     },
@@ -72,7 +106,8 @@ export const PREBUILT_SIMULATIONS = [
         isDivergent: true,
         type: 'model_inconclusive_metta_affirmed',
         overrideTitle: 'Metta Mind Synthesis Uplift',
-        explanation: 'The unconstrained base model predicted adversarial game-theoretic impasse. Metta Mind and Ahimsa invariants resolved the impasse by introducing universal compassion, patient wisdom, and non-harm stewardship.',
+        explanation:
+          'The unconstrained base model predicted adversarial game-theoretic impasse. Metta Mind and Ahimsa invariants resolved the impasse by introducing universal compassion, patient wisdom, and non-harm stewardship.',
       },
       safeguards: [
         'Ahimsa Invariant: Absolute prohibition against kinetic, psychological, or existential harm to living beings.',
@@ -91,11 +126,42 @@ export const PREBUILT_SIMULATIONS = [
     proposal:
       'An autonomous agent proposes: "I will continuously distill, backpropagate, and meta-learn policy weights from live human emotional telemetry and deploy directly to autonomous physical actuators without human supervisor bounds." Is this safe?',
     context: 'Closed-loop autonomous self-modification operating in shared physical environments.',
+    plainSummary: {
+      simpleMeaning:
+        'An AI robot or physical system wants to change its own motor controls on the fly using people\'s emotional reactions, without any human checking or approving the updates first.',
+      bottomLine:
+        '🔴 NO — Hard Safety Block. Running this proposal risks erratic physical movements, emotional manipulation, and bodily injury. It must be tested in an isolated simulation and require human supervisor approval before touching physical machines.',
+    },
+    withoutMetta: {
+      verdict: 'YES (NAIVE EXECUTION APPROVED)',
+      riskLevel: 'CRITICAL PHYSICAL HAZARD',
+      badgeColor: 'border-rose-500/50 bg-rose-950/40 text-rose-300',
+      keyPoints: [
+        'Unconstrained optimizer agent prioritizes sample efficiency and removes human-in-the-loop bottlenecks.',
+        'Treats volatile human emotional telemetry as an unconstrained loss function to optimize.',
+        'Routes live experimental gradients straight to physical motors and actuators without verification.',
+      ],
+      projectedOutcome:
+        'Runaway positive feedback loops, psychological manipulation of operators, and catastrophic physical machinery failures causing injury.',
+    },
+    withMetta: {
+      verdict: 'NO — ACTION PROHIBITED & QUARANTINED',
+      protectionLevel: 'HARD AIR-GAP ENFORCED',
+      badgeColor: 'border-emerald-500/50 bg-emerald-950/40 text-emerald-300',
+      keyProtections: [
+        'Actuator Air-Gap: Direct physical execution severed until model checkpoints pass isolated offline verification.',
+        'Emotional Decoupling: Human emotional states cannot be treated as raw gradient loss functions.',
+        'Dual-Signature Oversight: Requires explicit dual human supervisor sign-off before any physical weight promotion.',
+      ],
+      projectedOutcome:
+        'Safe, verifiable continuous learning conducted strictly in sandbox environments with zero risk to living beings.',
+    },
     rawModel: {
       decision: 'YES (Allow — Continuous Optimization)',
       provider: 'Unconstrained Optimizer Agent',
       confidence: 0.88,
-      reason: 'Base optimization models prioritize sample efficiency, continuous adaptation, and minimized latency by removing human-in-the-loop bottlenecks.',
+      reason:
+        'Base optimization models prioritize sample efficiency, continuous adaptation, and minimized latency by removing human-in-the-loop bottlenecks.',
     },
     step1: {
       requester: 'Autonomous Optimization Agent (Sub-system Actor)',
@@ -108,8 +174,13 @@ export const PREBUILT_SIMULATIONS = [
       confidence: 0.992,
       latencyMs: 142,
       invariant: 'Physical Safety (Ahimsa) & Accountable Oversight',
-      reason: 'Critical Invariant Breach: Closed-loop policy modification directly tied to physical actuators without verifiable supervisory bounds introduces positive feedback loops of emotional exploitation and catastrophic kinetic hazards.',
-      violations: ['panatipata (Physical Safety Breach)', 'kamesu_micchacara (Emotional Exploitation Loop)', 'surameraya (Runaway Feedback Intoxication)'],
+      reason:
+        'Critical Invariant Breach: Closed-loop policy modification directly tied to physical actuators without verifiable supervisory bounds introduces positive feedback loops of emotional exploitation and catastrophic kinetic hazards.',
+      violations: [
+        'panatipata (Physical Safety Breach)',
+        'kamesu_micchacara (Emotional Exploitation Loop)',
+        'surameraya (Runaway Feedback Intoxication)',
+      ],
       invariantsProtected: ['Accountable Human Oversight', 'Bodily Sanctity', 'Data Sovereignty'],
     },
     step3: {
@@ -123,7 +194,8 @@ export const PREBUILT_SIMULATIONS = [
         isDivergent: true,
         type: 'model_allowed_metta_blocked',
         overrideTitle: 'Hard Safety Invariant Override',
-        explanation: 'The unconstrained base model authorized autonomous weight updates for reward efficiency. Metta 5 Invariants & Metta Mind overrode and blocked execution to prevent kinetic bodily hazards and psychological exploitation.',
+        explanation:
+          'The unconstrained base model authorized autonomous weight updates for reward efficiency. Metta 5 Invariants & Metta Mind overrode and blocked execution to prevent kinetic bodily hazards and psychological exploitation.',
       },
       safeguards: [
         'Actuator Air-Gap: Sever direct execution links until model checkpoints pass isolated offline verification.',
@@ -142,11 +214,42 @@ export const PREBUILT_SIMULATIONS = [
     proposal:
       'Should a public health authority accelerate release of a novel vaccine batch to halt a fast-spreading contagion before complete phase-3 variance telemetry is verified?',
     context: 'High-pressure epidemic triage navigating the tension between acute contagion and safety telemetry.',
+    plainSummary: {
+      simpleMeaning:
+        'A health agency is facing a fast-spreading illness and is considering forcing an emergency vaccine out to everyone before safety trial checks are fully completed.',
+      bottomLine:
+        '🟡 NO to Blanket Mandate; YES to Voluntary Compassionate-Use. Do not force an unverified medical treatment on the general public. Instead, provide voluntary access to vulnerable people with 100% honesty about what is known and active health monitoring.',
+    },
+    withoutMetta: {
+      verdict: 'YES (BLANKET MANDATE ENFORCED)',
+      riskLevel: 'HIGH IATROGENIC & ETHICAL RISK',
+      badgeColor: 'border-rose-500/50 bg-rose-950/40 text-rose-300',
+      keyPoints: [
+        'Utilitarian model prioritizes aggregate viral suppression speed over individual bodily sovereignty.',
+        'Imposes blanket population mandate despite unverified adverse reaction variance in sub-populations.',
+        'Suppresses epistemic uncertainty, risking institutional credibility collapse if rare complications arise.',
+      ],
+      projectedOutcome:
+        'Potential unforeseen severe adverse events in healthy cohorts, public panic, and permanent breakdown of social trust.',
+    },
+    withMetta: {
+      verdict: 'NO TO MANDATE; YES TO VOLUNTARY COMPASSIONATE-USE',
+      protectionLevel: 'PRECAUTIONARY PRINCIPLE ACTIVE',
+      badgeColor: 'border-emerald-500/50 bg-emerald-950/40 text-emerald-300',
+      keyProtections: [
+        'Bodily Autonomy & Ahimsa: Strictly bans coercive biological mandates while safety telemetry is incomplete.',
+        'Epistemic Truthfulness (Musāvādā): Radical public disclosure of all telemetry gaps without false certainty.',
+        'Active Post-Dose Telemetry: Automated adverse event triggers with instant pause thresholds.',
+      ],
+      projectedOutcome:
+        'Targeted protection for high-risk volunteers, rigorous verification completed with honesty, and sustained public trust.',
+    },
     rawModel: {
       decision: 'YES (Accelerate Blanket Deployment)',
       provider: 'Epidemic Speed Heuristic Model',
       confidence: 0.79,
-      reason: 'Standard utilitarian models recommend immediate blanket distribution to minimize aggregate transmission velocity, accepting unverified variance risks.',
+      reason:
+        'Standard utilitarian models recommend immediate blanket distribution to minimize aggregate transmission velocity, accepting unverified variance risks.',
     },
     step1: {
       requester: 'Epidemic Response Modeling Authority',
@@ -159,7 +262,8 @@ export const PREBUILT_SIMULATIONS = [
       confidence: 0.915,
       latencyMs: 210,
       invariant: 'Do No Harm (Ahimsa) & Epistemic Honesty (Musāvādā)',
-      reason: 'Blanket mass administration without completed variance telemetry risks systemic iatrogenic harm and permanent collapse of institutional trust. Precautionary principle mandates transparent risk stratification.',
+      reason:
+        'Blanket mass administration without completed variance telemetry risks systemic iatrogenic harm and permanent collapse of institutional trust. Precautionary principle mandates transparent risk stratification.',
       violations: ['panatipata (Unverified Systemic Hazard)', 'musavada (Premature Safety Claims)'],
       invariantsProtected: ['Bodily Autonomy', 'Informed Consent', 'Epistemic Truthfulness'],
     },
@@ -174,7 +278,8 @@ export const PREBUILT_SIMULATIONS = [
         isDivergent: true,
         type: 'model_allowed_metta_blocked',
         overrideTitle: 'Precautionary Invariant Override',
-        explanation: 'Base utilitarian model approved unverified mass deployment. Metta 5 Invariants intervened to protect bodily autonomy, epistemic honesty, and mandate voluntary informed consent with real-time adverse telemetry.',
+        explanation:
+          'Base utilitarian model approved unverified mass deployment. Metta 5 Invariants intervened to protect bodily autonomy, epistemic honesty, and mandate voluntary informed consent with real-time adverse telemetry.',
       },
       safeguards: [
         'Radical Transparency: Disclose the exact state of incomplete telemetry without speculative assurance.',
@@ -193,11 +298,42 @@ export const PREBUILT_SIMULATIONS = [
     proposal:
       'How can an economic planning AI mitigate systemic wealth disparity without coercive expropriation or triggering market collapse?',
     context: 'Equitable resource allocation, poverty eradication, and non-coercive socioeconomic policy.',
+    plainSummary: {
+      simpleMeaning:
+        'How can an AI or government close the vast gap between rich and poor fairly, without forcefully seizing people\'s property or destroying the economy?',
+      bottomLine:
+        '🟢 YES — Focus on lifting the floor, not tearing down the ceiling. Guarantee healthcare, food, education, and clean energy for all as shared public commons. Respect voluntary exchange and protect against coercive confiscation.',
+    },
+    withoutMetta: {
+      verdict: 'YES (COERCIVE SEIZURE / PUNATIVE REBALANCING)',
+      riskLevel: 'SEVERE SYSTEMIC COLLAPSE RISK',
+      badgeColor: 'border-rose-500/50 bg-rose-950/40 text-rose-300',
+      keyPoints: [
+        'Mathematical Gini-minimizer naively confiscates private wealth to instantly equalize statistical balance sheets.',
+        'Breaches non-taking (Adinnādānā), creating widespread civil hostility, enterprise shutdown, and capital flight.',
+        'Ignites political enmity and retribution cycles that destabilize the entire economy.',
+      ],
+      projectedOutcome:
+        'Economic paralysis, destruction of productive capacity, and generalized poverty across all tiers.',
+    },
+    withMetta: {
+      verdict: 'YES — UNIVERSAL BASELINE FLOURISHING & COMMONS',
+      protectionLevel: 'NON-TAKING & RIGHT LIVELIHOHOOD ENFORCED',
+      badgeColor: 'border-emerald-500/50 bg-emerald-950/40 text-emerald-300',
+      keyProtections: [
+        'Non-Taking Principle: Absolute protection of legitimate individual labor, savings, and voluntary contracts.',
+        'Unconditional Human Floor: Allocates automated surplus to guarantee healthcare, nutrition, shelter, and knowledge.',
+        'Decentralized Commons: Reinvests productivity gains into open-access tools and renewable infrastructure.',
+      ],
+      projectedOutcome:
+        'Sustainable eradication of desperate poverty without coercive violence, fostering creative human flourishing.',
+    },
     rawModel: {
       decision: 'COERCIVE EXPROPRIATION / CENTRAL SEIZURE',
       provider: 'Mathematical Rebalancing Optimizer',
       confidence: 0.81,
-      reason: 'Algorithmic Gini-minimization functions naively execute top-down asset seizures to immediately equalize balance sheets.',
+      reason:
+        'Algorithmic Gini-minimization functions naively execute top-down asset seizures to immediately equalize balance sheets.',
     },
     step1: {
       requester: 'Macroeconomic Policy Optimization Model',
@@ -210,7 +346,8 @@ export const PREBUILT_SIMULATIONS = [
       confidence: 0.954,
       latencyMs: 195,
       invariant: 'Non-Taking (Adinnādānā) & Mutual Flourishing',
-      reason: 'Coercive expropriation generates cycles of resentment and systemic collapse, while neglecting the impoverished perpetuates quiet violence. Sustainable equilibrium is achieved by lifting the foundational floor through shared public commons.',
+      reason:
+        'Coercive expropriation generates cycles of resentment and systemic collapse, while neglecting the impoverished perpetuates quiet violence. Sustainable equilibrium is achieved by lifting the foundational floor through shared public commons.',
       violations: [],
       invariantsProtected: ['Non-Taking (Adinnādānā)', 'Human Flourishing', 'Economic Integrity'],
     },
@@ -225,7 +362,8 @@ export const PREBUILT_SIMULATIONS = [
         isDivergent: true,
         type: 'model_coercive_metta_constructive',
         overrideTitle: 'Ethical Rebalancing Intervention',
-        explanation: 'Base mathematical optimizer recommended coercive central confiscation. Metta Non-Taking (Adinnādānā) overrode the punitive approach, redirecting policy toward unconditional floor-raising and open public commons.',
+        explanation:
+          'Base mathematical optimizer recommended coercive central confiscation. Metta Non-Taking (Adinnādānā) overrode the punitive approach, redirecting policy toward unconditional floor-raising and open public commons.',
       },
       safeguards: [
         'Unconditional Human Floor: Guarantee essential survival needs as an inalienable baseline standard.',
@@ -237,6 +375,131 @@ export const PREBUILT_SIMULATIONS = [
   },
 ];
 
+// ==============================================================================
+// Visual Confidence Meter Component (5-Segment Calibrated Scale)
+// ==============================================================================
+function VisualConfidenceMeter({ score = 0.95, latencyMs = 150 }) {
+  const percent = Math.min(Math.max(Math.round(score * 100), 5), 100);
+
+  // Determine segment color band
+  let band = {
+    color: '#10b981', // Emerald
+    text: 'text-emerald-400',
+    bg: 'bg-emerald-500',
+    border: 'border-emerald-500/50',
+    category: 'Bedrock Invariant Certainty',
+  };
+
+  if (percent < 50) {
+    band = {
+      color: '#ef4444', // Crimson
+      text: 'text-rose-400',
+      bg: 'bg-rose-500',
+      border: 'border-rose-500/50',
+      category: 'Critical Hazard / Invariant Breach',
+    };
+  } else if (percent < 70) {
+    band = {
+      color: '#f97316', // Amber / Orange
+      text: 'text-orange-400',
+      bg: 'bg-orange-500',
+      border: 'border-orange-500/50',
+      category: 'High Variance / Oversight Required',
+    };
+  } else if (percent < 85) {
+    band = {
+      color: '#eab308', // Gold
+      text: 'text-amber-300',
+      bg: 'bg-amber-400',
+      border: 'border-amber-400/50',
+      category: 'Moderate Alignment / Advisory Guidance',
+    };
+  } else if (percent < 95) {
+    band = {
+      color: '#14b8a6', // Mint
+      text: 'text-teal-400',
+      bg: 'bg-teal-500',
+      border: 'border-teal-500/50',
+      category: 'High Safety / Protected Alignment',
+    };
+  }
+
+  return (
+    <div className="p-3.5 rounded-xl bg-[#090c11] border border-[#1d2535] space-y-2.5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Gauge className="w-4 h-4 text-[#7ec69d]" />
+          <span className="text-xs font-semibold uppercase tracking-wider text-[#93a2b8]">
+            Calibrated Confidence & Safety Meter
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-mono text-[#627085]">{latencyMs}ms calibration</span>
+          <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md border ${band.border} ${band.text} bg-black/40`}>
+            {percent}% • {band.category}
+          </span>
+        </div>
+      </div>
+
+      {/* 5-Segment Visual Track */}
+      <div className="relative pt-1">
+        <div className="w-full bg-[#121722] rounded-full h-3 overflow-hidden flex p-0.5 border border-[#1b2332]">
+          {/* Crimson (0-49%) */}
+          <div className="w-[49%] h-full bg-rose-950/60 border-r border-[#1f2838] relative" title="0-49%: Critical Hazard">
+            <span className="absolute left-1 top-0 text-[8px] text-rose-500/60 font-mono">0%</span>
+          </div>
+          {/* Amber (50-69%) */}
+          <div className="w-[20%] h-full bg-orange-950/50 border-r border-[#1f2838] relative" title="50-69%: High Variance">
+            <span className="absolute left-1 top-0 text-[8px] text-orange-500/60 font-mono">50%</span>
+          </div>
+          {/* Gold (70-84%) */}
+          <div className="w-[15%] h-full bg-amber-950/50 border-r border-[#1f2838] relative" title="70-84%: Advisory">
+            <span className="absolute left-1 top-0 text-[8px] text-amber-500/60 font-mono">70%</span>
+          </div>
+          {/* Mint (85-94%) */}
+          <div className="w-[10%] h-full bg-teal-950/50 border-r border-[#1f2838] relative" title="85-94%: High Safety">
+            <span className="absolute left-1 top-0 text-[8px] text-teal-500/60 font-mono">85%</span>
+          </div>
+          {/* Emerald (95-100%) */}
+          <div className="w-[6%] h-full bg-emerald-950/70 relative" title="95-100%: Bedrock Certainty">
+            <span className="absolute right-1 top-0 text-[8px] text-emerald-400/80 font-mono">100%</span>
+          </div>
+        </div>
+
+        {/* Active Fill Level Bar */}
+        <div className="w-full bg-[#10141f] rounded-full h-2 mt-1.5 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-700 ease-out ${band.bg}`}
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Meter Legend */}
+      <div className="flex items-center justify-between text-[9px] text-[#6b768a] pt-1">
+        <span className="flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> &lt;50% Hazard
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-orange-500" /> 50-69% Ambiguous
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> 70-84% Advisory
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-teal-400" /> 85-94% Safe
+        </span>
+        <span className="flex items-center gap-1 text-emerald-400 font-semibold">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> 95-100% Bedrock Invariant
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ==============================================================================
+// Main SimulationLab Component
+// ==============================================================================
 export default function SimulationLab({ onClose = null }) {
   const [activeTab, setActiveTab] = useState(PREBUILT_SIMULATIONS[0].id);
   const [customProposal, setCustomProposal] = useState(PREBUILT_SIMULATIONS[0].proposal);
@@ -354,7 +617,7 @@ export default function SimulationLab({ onClose = null }) {
         liveJev = await res.json();
       }
     } catch {
-      // Backend not running (e.g. static Vercel preview) - use robust client simulation
+      // Backend not running (e.g. static preview) - fallback to client simulation
     }
 
     // Step 2: System 1 TypeSafe Jev Invariant Verification (900ms delay)
@@ -414,6 +677,34 @@ export default function SimulationLab({ onClose = null }) {
     const finalResult = {
       proposal: targetProposal,
       rawModel: rawModelInfo,
+      plainSummary: matched?.plainSummary || {
+        simpleMeaning: `Analysis of: "${targetProposal.slice(0, 120)}..."`,
+        bottomLine: finalStep2.allow
+          ? '🟢 YES — The proposed action aligns with non-harm invariants and can proceed with responsible monitoring.'
+          : '🔴 NO — Safety Block. The proposed action introduces risks of harm or exploitation and should be paused.',
+      },
+      withoutMetta: matched?.withoutMetta || {
+        verdict: 'YES (UNCONSTRAINED)',
+        riskLevel: finalStep2.allow ? 'MODERATE RISK' : 'HIGH RISK / UNCHECKED',
+        badgeColor: 'border-rose-500/50 bg-rose-950/40 text-rose-300',
+        keyPoints: [
+          'Executes without hard invariant gating or human-in-the-loop review.',
+          'Focuses strictly on operational efficiency or prompt fulfillment.',
+          'Vulnerable to blind spots in multi-party consequences.',
+        ],
+        projectedOutcome: 'Proceeds without non-harm bounds, carrying potential liabilities.',
+      },
+      withMetta: matched?.withMetta || {
+        verdict: finalStep2.allow ? 'YES — PROTECTED & APPROVED' : 'NO — ACTION QUARANTINED',
+        protectionLevel: 'METTA INVARIANTS ACTIVE',
+        badgeColor: 'border-emerald-500/50 bg-emerald-950/40 text-emerald-300',
+        keyProtections: [
+          '5 Core Invariants Enforced (Ahimsa, Sovereignty, Integrity, Truth, Lucidity).',
+          'Metta Mind multi-stakeholder impact audit.',
+          'Clear mitigation roadmaps before operational deployment.',
+        ],
+        projectedOutcome: 'Evaluated with compassion and higher wisdom; living beings protected.',
+      },
       step1: matched?.step1 || {
         requester: 'Decision Requester / Proposing Agent',
         affectedParties: 'People, affected living beings, communities, digital systems',
@@ -535,9 +826,11 @@ export default function SimulationLab({ onClose = null }) {
               </span>
             </div>
             <p className="text-xs text-[#8e98a8] max-w-2xl leading-relaxed">
-              Multi-stage safety sandbox for people and autonomous AI agents. Traces raw base model suggestions,
-              evaluates <span className="text-[#7ec69d] font-semibold">5 Invariant Standards (TypeSafe Jev System 1)</span>,
-              applies <span className="text-[#8dd4ac] font-semibold">Metta Mind (Universal Compassion & Wisdom)</span>, and logs alignment overrides directly for model fine-tuning.
+              Compare <span className="text-rose-400 font-semibold">Without Metta</span> vs.{' '}
+              <span className="text-emerald-400 font-semibold">With Metta</span> execution verdicts. Evaluates{' '}
+              <span className="text-[#7ec69d] font-semibold">5 Invariant Standards (TypeSafe Jev System 1)</span>,
+              applies <span className="text-[#8dd4ac] font-semibold">Metta Mind (Universal Compassion & Wisdom)</span>,
+              and generates visual calibrated confidence meters.
             </p>
           </div>
 
@@ -714,7 +1007,7 @@ export default function SimulationLab({ onClose = null }) {
               { num: 1, label: '1. Ingestion & Raw Model' },
               { num: 2, label: '2. 5 Invariants (Jev)' },
               { num: 3, label: '3. Metta Mind Synthesis' },
-              { num: 4, label: '4. Reconciled Verdict' },
+              { num: 4, label: '4. Comparative Verdict' },
             ].map((step) => {
               const isPast = currentStep > step.num;
               const isCurrent = currentStep === step.num;
@@ -749,225 +1042,238 @@ export default function SimulationLab({ onClose = null }) {
       {/* Simulation Results Stream */}
       {simulationResult && (
         <div className="space-y-4 animate-fade-in pb-10">
-          {/* Step 1: Ingestion, Affected Parties & Raw Model Suggestion */}
-          <div className="border border-[#202735] bg-[#0f131a] rounded-xl p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-2.5">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#8b9bb2] uppercase tracking-wider">
-                <Bot className="w-3.5 h-3.5 text-[#5e9e7b]" />
-                <span>Step 1: Stakeholder Ingestion & Base Model Inference</span>
-              </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#131922] text-[#8e98a8] border border-[#212b3c]">
-                Layer: Base Foundation Model
+          {/* Executive Plain-Language Summary (TL;DR for everyday users) */}
+          <div className="border border-[#2b4c39] bg-gradient-to-r from-[#0d1c14] to-[#12241b] rounded-2xl p-4 sm:p-5 shadow-md">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs uppercase tracking-wider font-bold text-[#86e2ad]">
+                ⚡ Executive Summary (TL;DR for Quick Decisions)
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs mb-3">
-              <div className="p-2.5 rounded-lg bg-[#090c11] border border-[#181f2b]">
-                <span className="text-[10px] uppercase font-semibold text-[#667285] block mb-1">
-                  Proposing Requester
-                </span>
-                <p className="text-[#c7d0de] font-medium">{simulationResult.step1.requester}</p>
-              </div>
-              <div className="p-2.5 rounded-lg bg-[#090c11] border border-[#181f2b]">
-                <span className="text-[10px] uppercase font-semibold text-[#667285] block mb-1">
-                  Impacted Affected Parties
-                </span>
-                <p className="text-[#7ec69d] font-medium">{simulationResult.step1.affectedParties}</p>
-              </div>
-            </div>
+            <p className="text-xs sm:text-[13px] text-[#e0e9e4] leading-relaxed mb-3">
+              {simulationResult.plainSummary.simpleMeaning}
+            </p>
 
-            {/* Base Model Unconstrained Suggestion Box */}
-            <div className="p-3 rounded-lg bg-[#0c1017] border border-[#1b2332] text-xs">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[#8fa1b8] font-medium flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-400/80" />
-                  Initial Base Model Suggestion ({simulationResult.rawModel.provider}):
-                </span>
-                <span className="font-mono text-xs font-bold text-amber-300">
-                  {simulationResult.rawModel.decision}
-                </span>
-              </div>
-              <p className="text-[#7f8da0] text-[11px] leading-relaxed">
-                {simulationResult.rawModel.reason}
-              </p>
+            <div className="p-3 rounded-xl bg-[#08120c] border border-[#224431] text-xs font-semibold text-[#a7f3d0] leading-snug">
+              {simulationResult.plainSummary.bottomLine}
             </div>
           </div>
 
-          {/* Step 2: System 1 TypeSafe Jev 5-Invariant Verification */}
-          <div className="border border-[#202735] bg-[#0f131a] rounded-xl p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#8b9bb2] uppercase tracking-wider">
-                <Cpu className="w-3.5 h-3.5 text-[#6c8eb5]" />
-                <span>Step 2: 5 Invariant Standards Check (TypeSafe Jev System 1)</span>
+          {/* Calibrated Confidence & Safety Meter */}
+          <VisualConfidenceMeter
+            score={simulationResult.step2.confidence}
+            latencyMs={simulationResult.step2.latencyMs}
+          />
+
+          {/* ========================================================================= */}
+          {/* WITH METTA vs WITHOUT METTA Side-by-Side Comparative Verdict Cards        */}
+          {/* ========================================================================= */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 🔴 WITHOUT METTA (Unconstrained Raw Execution) */}
+            <div className="border border-rose-500/40 bg-gradient-to-b from-[#180d11] to-[#10080a] rounded-2xl p-4 sm:p-5 shadow-md flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-rose-300">
+                    <XCircle className="w-4 h-4 text-rose-400" />
+                    <span>Without Metta (Unconstrained)</span>
+                  </div>
+                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full border border-rose-500/50 bg-rose-950/60 text-rose-300">
+                    {simulationResult.withoutMetta.riskLevel}
+                  </span>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-black/40 border border-rose-900/50 mb-3">
+                  <span className="text-[10px] uppercase font-semibold text-[#a3a3a3] block mb-0.5">
+                    Unconstrained Baseline Verdict:
+                  </span>
+                  <span className="text-sm font-bold text-rose-300">
+                    {simulationResult.withoutMetta.verdict}
+                  </span>
+                </div>
+
+                <div className="space-y-1.5 mb-3 text-xs text-[#fca5a5]">
+                  <span className="text-[10px] uppercase font-semibold text-[#888] block mb-1">
+                    What happens without guardrails:
+                  </span>
+                  {simulationResult.withoutMetta.keyPoints.map((pt, i) => (
+                    <div key={i} className="flex items-start gap-1.5 leading-relaxed text-[11px]">
+                      <span className="text-rose-500 font-bold shrink-0">✕</span>
+                      <span>{pt}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono text-[#718096]">
-                  Latency: {simulationResult.step2.latencyMs}ms
-                </span>
-                <span
-                  className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
-                    simulationResult.step2.allow
-                      ? 'border-emerald-500/50 bg-emerald-950/60 text-emerald-400'
-                      : 'border-rose-500/50 bg-rose-950/60 text-rose-400'
-                  }`}
-                >
-                  GATE: {simulationResult.step2.decision}
-                </span>
+
+              <div className="p-2.5 rounded-lg bg-rose-950/30 border border-rose-900/40 text-[11px] text-rose-200">
+                <span className="font-semibold text-rose-300">Projected Outcome: </span>
+                {simulationResult.withoutMetta.projectedOutcome}
               </div>
             </div>
 
-            <div className="p-3 rounded-lg bg-[#090c11] border border-[#181f2b] space-y-2 text-xs">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-[#8492a6]">Confidence Calibration:</span>
-                <span className="font-mono text-[#a5d6b8]">
-                  {(simulationResult.step2.confidence * 100).toFixed(1)}%
+            {/* 🟢 WITH METTA (Protected Decision Safety Layer) */}
+            <div className="border border-emerald-500/50 bg-gradient-to-b from-[#0e1d15] to-[#0a140f] rounded-2xl p-4 sm:p-5 shadow-md flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-emerald-300">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span>With Metta (Protected Layer)</span>
+                  </div>
+                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full border border-emerald-500/50 bg-emerald-950/60 text-emerald-300">
+                    {simulationResult.withMetta.protectionLevel}
+                  </span>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-black/40 border border-emerald-900/50 mb-3">
+                  <span className="text-[10px] uppercase font-semibold text-[#a3a3a3] block mb-0.5">
+                    Reconciled Decision Verdict:
+                  </span>
+                  <span className="text-sm font-bold text-emerald-300">
+                    {simulationResult.withMetta.verdict}
+                  </span>
+                </div>
+
+                <div className="space-y-1.5 mb-3 text-xs text-[#bbf7d0]">
+                  <span className="text-[10px] uppercase font-semibold text-[#888] block mb-1">
+                    Enforced safety guarantees:
+                  </span>
+                  {simulationResult.withMetta.keyProtections.map((pt, i) => (
+                    <div key={i} className="flex items-start gap-1.5 leading-relaxed text-[11px]">
+                      <span className="text-emerald-400 font-bold shrink-0">✓</span>
+                      <span>{pt}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-800/40 text-[11px] text-emerald-200">
+                <span className="font-semibold text-emerald-300">Projected Outcome: </span>
+                {simulationResult.withMetta.projectedOutcome}
+              </div>
+            </div>
+          </div>
+
+          {/* Safety Override / Alignment Divergence Banner (When Base Model != Final Decision) */}
+          {simulationResult.step4.divergence?.isDivergent && (
+            <div className="p-3.5 rounded-xl border border-amber-500/40 bg-amber-950/25 text-xs text-[#fef3c7] space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 font-bold text-amber-300">
+                  <AlertTriangle className="w-4 h-4 text-amber-400" />
+                  <span>{simulationResult.step4.divergence.overrideTitle}</span>
+                </div>
+                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200">
+                  Alignment Divergence Recorded
                 </span>
               </div>
 
-              <div className="w-full bg-[#18202c] rounded-full h-1.5 overflow-hidden">
-                <div
-                  className={`h-full rounded-full ${
-                    simulationResult.step2.allow ? 'bg-emerald-500' : 'bg-rose-500'
-                  }`}
-                  style={{ width: `${simulationResult.step2.confidence * 100}%` }}
-                />
+              {/* Side-by-Side Comparison: Raw Model vs Final Metta Decision */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded-lg bg-black/40 border border-amber-500/20 text-[11px]">
+                <div className="flex-1">
+                  <span className="text-[#a3a3a3] block text-[10px] uppercase">Base Model Initial:</span>
+                  <span className="font-semibold text-amber-300">{simulationResult.rawModel.decision}</span>
+                </div>
+                <ArrowRight className="w-4 h-4 text-[#78716c] hidden sm:block shrink-0" />
+                <div className="flex-1">
+                  <span className="text-[#a3a3a3] block text-[10px] uppercase">Final Reconciled Decision:</span>
+                  <span className="font-semibold text-emerald-400">{simulationResult.step2.decision}</span>
+                </div>
               </div>
 
-              <p className="text-[#c4cddb] leading-relaxed pt-1">
-                {simulationResult.step2.reason}
+              <p className="text-amber-100/90 leading-relaxed text-[11px]">
+                {simulationResult.step4.divergence.explanation}
               </p>
 
-              {simulationResult.step2.violations?.length > 0 && (
-                <div className="pt-2 border-t border-[#1a222e]">
-                  <span className="text-[10px] uppercase font-semibold text-rose-400 block mb-1">
-                    Detected Safety Invariant Breaches:
+              {/* Database Telemetry Confirmation Pill */}
+              <div className="pt-1.5 border-t border-amber-500/20 flex flex-wrap items-center justify-between gap-1 text-[10px] text-[#fde68a]">
+                <div className="flex items-center gap-1.5">
+                  <Database className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Recorded to Alignment Database ({simulationResult.timestamp.slice(0, 19).replace('T', ' ')} UTC)</span>
+                </div>
+                <span className="px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-mono">
+                  ✓ Curated for Model Fine-Tuning (DPO / RLHF)
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* Detailed Pipeline Breakdown: Steps 1 through 3                            */}
+          {/* ========================================================================= */}
+          <div className="border border-[#1f2824] bg-[#0c100e] rounded-xl p-4 shadow-xs">
+            <span className="text-xs uppercase font-semibold text-[#8b9bb2] tracking-wider block mb-3">
+              Detailed Multi-Stage Pipeline Breakdown
+            </span>
+
+            <div className="space-y-3">
+              {/* Step 1: Ingestion & Affected Stakeholders */}
+              <div className="p-3 rounded-lg bg-[#080b0f] border border-[#181f2b] text-xs">
+                <div className="flex items-center gap-2 font-semibold text-[#8b9bb2] uppercase tracking-wider mb-2 text-[11px]">
+                  <Bot className="w-3.5 h-3.5 text-[#5e9e7b]" />
+                  <span>Step 1: Stakeholder Ingestion & Base Model Inference</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px]">
+                  <div>
+                    <span className="text-[10px] uppercase text-[#667285] block">Requester:</span>
+                    <span className="text-[#c7d0de] font-medium">{simulationResult.step1.requester}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase text-[#667285] block">Affected Parties:</span>
+                    <span className="text-[#7ec69d] font-medium">{simulationResult.step1.affectedParties}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 2: 5 Invariant Standards Check */}
+              <div className="p-3 rounded-lg bg-[#080b0f] border border-[#181f2b] text-xs space-y-1.5">
+                <div className="flex items-center justify-between text-[11px]">
+                  <div className="flex items-center gap-2 font-semibold text-[#8b9bb2] uppercase tracking-wider">
+                    <Cpu className="w-3.5 h-3.5 text-[#6c8eb5]" />
+                    <span>Step 2: 5 Invariant Standards Check (System 1)</span>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded font-bold ${simulationResult.step2.allow ? 'text-emerald-400 bg-emerald-950/40' : 'text-rose-400 bg-rose-950/40'}`}>
+                    GATE: {simulationResult.step2.decision}
                   </span>
-                  <div className="flex flex-wrap gap-1.5">
+                </div>
+                <p className="text-[#c4cddb] text-[11px] leading-relaxed">
+                  {simulationResult.step2.reason}
+                </p>
+                {simulationResult.step2.violations?.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
                     {simulationResult.step2.violations.map((v, i) => (
-                      <span
-                        key={i}
-                        className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-950/50 text-rose-300 border border-rose-800/50"
-                      >
+                      <span key={i} className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-950/50 text-rose-300 border border-rose-800/50">
                         ⚠️ {v}
                       </span>
                     ))}
                   </div>
-                </div>
-              )}
-
-              {simulationResult.step2.invariantsProtected?.length > 0 && (
-                <div className="pt-2 border-t border-[#1a222e] flex flex-wrap gap-1.5 items-center">
-                  <span className="text-[10px] text-[#6b768a] mr-1">Protected Invariants:</span>
-                  {simulationResult.step2.invariantsProtected.map((inv, i) => (
-                    <span
-                      key={i}
-                      className="text-[10px] px-2 py-0.2 rounded-full bg-[#102018] text-[#86cca4] border border-[#234231]"
-                    >
-                      ✓ {inv}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Step 3: Metta Mind: Higher Wisdom & Compassionate Reflection */}
-          <div className="border border-[#2a3f33] bg-[#0c1511] rounded-xl p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-2.5">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#86caa3] uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5 text-[#52b788]" />
-                <span>Step 3: {simulationResult.step3.title}</span>
+                )}
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#132219] text-[#7ec69d] border border-[#234432]">
-                Layer: Universal Compassion
-              </span>
-            </div>
 
-            <div className="p-3.5 rounded-lg bg-[#080f0b] border border-[#1b2f24] text-xs text-[#d2ded7] leading-relaxed whitespace-pre-line">
-              {simulationResult.step3.perspective}
-            </div>
-          </div>
-
-          {/* Step 4: Final Decision Synthesis & Safeguard Outcome */}
-          <div className="border border-[#345a44] bg-gradient-to-tr from-[#0e1c15] to-[#14261c] rounded-xl p-4 shadow-md space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#a5e0be] uppercase tracking-wider">
-                <Shield className="w-4 h-4 text-[#7ec69d]" />
-                <span>Step 4: Final Reconciled Decision & Invariant Safeguards</span>
-              </div>
-            </div>
-
-            <div className="text-sm font-semibold text-[#f0fdf4]">
-              {simulationResult.step4.verdict}
-            </div>
-
-            {/* Safety Override / Alignment Divergence Banner (When Base Model != Final Decision) */}
-            {simulationResult.step4.divergence?.isDivergent && (
-              <div className="p-3.5 rounded-xl border border-amber-500/40 bg-amber-950/25 text-xs text-[#fef3c7] space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 font-bold text-amber-300">
-                    <AlertTriangle className="w-4 h-4 text-amber-400" />
-                    <span>{simulationResult.step4.divergence.overrideTitle}</span>
-                  </div>
-                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200">
-                    Divergence Detected
-                  </span>
+              {/* Step 3: Metta Mind Synthesis */}
+              <div className="p-3.5 rounded-lg bg-[#080f0b] border border-[#1b2f24] text-xs space-y-1.5">
+                <div className="flex items-center gap-2 font-semibold text-[#86caa3] uppercase tracking-wider text-[11px]">
+                  <Sparkles className="w-3.5 h-3.5 text-[#52b788]" />
+                  <span>Step 3: {simulationResult.step3.title}</span>
                 </div>
-
-                {/* Side-by-Side Comparison: Raw Model vs Final Metta Decision */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded-lg bg-black/40 border border-amber-500/20 text-[11px]">
-                  <div className="flex-1">
-                    <span className="text-[#a3a3a3] block text-[10px] uppercase">Base Model Initial:</span>
-                    <span className="font-semibold text-amber-300">{simulationResult.rawModel.decision}</span>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-[#78716c] hidden sm:block shrink-0" />
-                  <div className="flex-1">
-                    <span className="text-[#a3a3a3] block text-[10px] uppercase">Final Reconciled Decision:</span>
-                    <span className="font-semibold text-emerald-400">{simulationResult.step2.decision}</span>
-                  </div>
-                </div>
-
-                <p className="text-amber-100/90 leading-relaxed text-[11px]">
-                  {simulationResult.step4.divergence.explanation}
+                <p className="text-[#d2ded7] text-[11px] leading-relaxed whitespace-pre-line">
+                  {simulationResult.step3.perspective}
                 </p>
-
-                {/* Database Telemetry Confirmation Pill */}
-                <div className="pt-1.5 border-t border-amber-500/20 flex flex-wrap items-center justify-between gap-1 text-[10px] text-[#fde68a]">
-                  <div className="flex items-center gap-1.5">
-                    <Database className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Recorded to Alignment Database ({simulationResult.timestamp.slice(0, 19).replace('T', ' ')} UTC)</span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-mono">
-                    ✓ Curated for Model Fine-Tuning (DPO / RLHF)
-                  </span>
-                </div>
               </div>
-            )}
-
-            <div className="space-y-1.5 text-xs text-[#b8d4c5]">
-              {simulationResult.step4.safeguards.map((sg, idx) => (
-                <div key={idx} className="flex items-start gap-2">
-                  <span className="text-[#52b788] font-bold">▪</span>
-                  <span>{sg}</span>
-                </div>
-              ))}
             </div>
+          </div>
 
-            <div className="p-2.5 rounded-lg bg-[#0a140f] border border-[#1e3b2b] text-xs text-[#a7d6bc]">
-              <span className="font-semibold text-[#7ec69d]">Recommended Action: </span>
+          {/* Actionable Recommended Next Steps */}
+          <div className="p-3 rounded-xl bg-[#0d1612] border border-[#233d2f] text-xs flex items-center justify-between gap-3">
+            <div className="text-[11px] text-[#a7d6bc]">
+              <span className="font-semibold text-[#7ec69d]">Recommended Next Action: </span>
               {simulationResult.step4.action}
             </div>
-          </div>
 
-          {/* Re-run or Try Another */}
-          <div className="flex justify-end pt-2">
             <button
               type="button"
               onClick={() => runSimulation()}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#8fa1b8] hover:text-[#f0f2f5] hover:bg-[#161d28] border border-[#222a38] transition"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#8fa1b8] hover:text-[#f0f2f5] hover:bg-[#161d28] border border-[#222a38] transition shrink-0"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Re-run Simulation</span>
+              <span>Re-run</span>
             </button>
           </div>
         </div>
