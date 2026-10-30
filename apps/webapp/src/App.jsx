@@ -44,6 +44,10 @@ function sanitizeSpeechText(raw) {
     .replace(/\bhi intelligence\b/gi, 'higher intelligence')
     .replace(/\bsuper intelligence\b/gi, 'superintelligence')
     .replace(/\bmeta learn\b/gi, 'meta-learn')
+    .replace(/\bread them a\b/gi, 'treat them as')
+    .replace(/\bread them as\b/gi, 'treat them as')
+    .replace(/\bMr\.?\s*Bean\s*\d*\s*them as\b/gi, 'instead treat them as')
+    .replace(/\bMr\.?\s*Bean\b/gi, 'instead')
     .replace(/\bcan be\s+(?:actually\s+|basically\s+)?can you\b/gi, 'can you')
     .replace(/\bcould be\s+(?:actually\s+|basically\s+)?could you\b/gi, 'could you')
     .replace(/\bwould be\s+(?:actually\s+|basically\s+)?would you\b/gi, 'would you')
@@ -65,7 +69,11 @@ function sanitizeSpeechText(raw) {
   cleaned = cleaned.replace(/\b(\w+)\s+(?:actually\s+|basically\s+|literally\s+)?\1\b/gi, '$1');
   cleaned = cleaned.replace(/\b(actually|literally|honestly)\b/gi, '');
 
-  // 6. Embedded question inversion correction (indirect questions)
+  // 6. Fix punctuation and grammar transitions
+  cleaned = cleaned.replace(/\?\s*(instead|rather|but)\b/gi, ', $1');
+  cleaned = cleaned.replace(/\bwe should not\b/gi, 'should we not');
+
+  // 7. Embedded question inversion correction (indirect questions)
   cleaned = cleaned
     .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+what\s+are\s+you\b/gi, '$1 what you are')
     .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+who\s+are\s+you\b/gi, '$1 who you are')

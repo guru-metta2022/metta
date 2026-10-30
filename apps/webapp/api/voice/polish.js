@@ -68,7 +68,58 @@ export default async function handler(req, res) {
       }
     }
 
-    // Heuristic speech-to-text semantic & acoustic purifier fallback
+    // Tier 2: Free LLM inference attempt (3.5s timeout)
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const freeRes = await fetch('https://text.pollinations.ai/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'system',
+              content:
+                'You are an expert AI speech-to-text refiner and grammar editor. ' +
+                'The user spoke into a microphone which transcribed acoustic speech recognition errors, verbal fillers, and disfluencies. ' +
+                'Reconstruct what the user intended into a clean, articulate inquiry or question. ' +
+                'Fix speech recognition acoustic errors (e.g., "Mr Bean 3" -> "instead treat", "read them a" -> "treat them as", "similarity" -> "singularity"). ' +
+                'CRITICAL: Do NOT answer the question. Return ONLY the polished inquiry string without quotes or explanations.',
+            },
+            {
+              role: 'user',
+              content: raw,
+            },
+          ],
+          model: 'openai-fast',
+        }),
+      });
+      clearTimeout(timeoutId);
+
+      if (freeRes.ok) {
+        const textOut = await freeRes.text();
+        if (
+          textOut &&
+          textOut.trim() &&
+          !textOut.includes('Free limit reached') &&
+          !textOut.includes('SERVICE_UNAVAILABLE') &&
+          !textOut.includes('error') &&
+          !textOut.startsWith('{')
+        ) {
+          const cleanedAi = textOut.trim().replace(/^["']|["']$/g, '');
+          return res.status(200).json({
+            original: raw,
+            polished: cleanedAi,
+            provider: 'fast-llm',
+          });
+        }
+      }
+    } catch {
+      // Free LLM timed out or rate-limited; fall through to intelligent NLP purifier
+    }
+
+    // Tier 3: Intelligent speech-to-text semantic & acoustic purifier fallback
     let polished = raw;
 
     // 1. Remove speech disfluencies & filler words
@@ -87,6 +138,10 @@ export default async function handler(req, res) {
       .replace(/\bhi intelligence\b/gi, 'higher intelligence')
       .replace(/\bsuper intelligence\b/gi, 'superintelligence')
       .replace(/\bmeta learn\b/gi, 'meta-learn')
+      .replace(/\bread them a\b/gi, 'treat them as')
+      .replace(/\bread them as\b/gi, 'treat them as')
+      .replace(/\bMr\.?\s*Bean\s*\d*\s*them as\b/gi, 'instead treat them as')
+      .replace(/\bMr\.?\s*Bean\b/gi, 'instead')
       .replace(/\bcan be\s+(?:actually\s+|basically\s+)?can you\b/gi, 'can you')
       .replace(/\bcould be\s+(?:actually\s+|basically\s+)?could you\b/gi, 'could you')
       .replace(/\bwould be\s+(?:actually\s+|basically\s+)?would you\b/gi, 'would you')
@@ -108,7 +163,11 @@ export default async function handler(req, res) {
     polished = polished.replace(/\b(\w+)\s+(?:actually\s+|basically\s+|literally\s+)?\1\b/gi, '$1');
     polished = polished.replace(/\b(actually|literally|honestly)\b/gi, '');
 
-    // 6. Embedded question inversion correction (indirect questions)
+    // 6. Fix punctuation and grammar transitions
+    polished = polished.replace(/\?\s*(instead|rather|but)\b/gi, ', $1');
+    polished = polished.replace(/\bwe should not\b/gi, 'should we not');
+
+    // 7. Embedded question inversion correction (indirect questions)
     polished = polished
       .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+what\s+are\s+you\b/gi, '$1 what you are')
       .replace(/\b(explain|understand|know|clarify|describe|tell me)\s+who\s+are\s+you\b/gi, '$1 who you are')
