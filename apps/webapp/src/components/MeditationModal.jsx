@@ -14,10 +14,10 @@ export default function MeditationModal({ report, isOpen, onClose }) {
             </div>
             <div>
               <h2 className="text-base font-semibold text-[#f0f2f5]">
-                Bhāvanā: Subtractive Unlearning Audit
+                Session Reset & Synthesis
               </h2>
               <p className="text-xs text-[#828a99]">
-                Noise pruned, cognitive clinging dissolved, mind returned to Stillness
+                Ephemeral session context cleared and key takeaways distilled.
               </p>
             </div>
           </div>
@@ -35,7 +35,7 @@ export default function MeditationModal({ report, isOpen, onClose }) {
             <Wind className="w-5 h-5 text-[#7ec69d] shrink-0 animate-breathe" />
             <div>
               <span className="text-[10px] uppercase font-bold text-[#62b485] tracking-wider block">
-                Resulting Mind State (Śūnyatā)
+                Resulting State
               </span>
               <p className="text-sm font-medium text-[#d9efe4]">
                 {report.mind_state}
@@ -47,7 +47,7 @@ export default function MeditationModal({ report, isOpen, onClose }) {
           <div>
             <div className="flex items-center gap-1.5 text-xs font-semibold text-[#e07d7d] mb-2">
               <Trash2 className="w-3.5 h-3.5" />
-              <span>Pruned & Unlearned Residue ({report.pruned_noise_items?.length || 0})</span>
+              <span>Cleared Ephemeral Context ({report.pruned_noise_items?.length || 0})</span>
             </div>
             <div className="space-y-1.5 max-h-36 overflow-y-auto">
               {report.pruned_noise_items?.map((item, idx) => (
@@ -67,14 +67,14 @@ export default function MeditationModal({ report, isOpen, onClose }) {
             <div className="p-3.5 rounded-xl bg-[#131922] border border-[#223145]">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-[#7fa7d9] mb-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-[#5a8ec9]" />
-                <span>Distilled Timeless Invariant</span>
+                <span>Distilled Principle & Takeaway</span>
               </div>
               <p className="text-xs text-[#c6d7ed] leading-relaxed">
                 "{report.distilled_principle}"
               </p>
               {report.new_path_added && (
                 <span className="text-[10px] text-[#7ec69d] mt-2 block font-medium">
-                  ✓ Successfully integrated into Principle Knowledge Graph
+                  ✓ Successfully integrated into Resolution Map
                 </span>
               )}
             </div>
@@ -86,7 +86,7 @@ export default function MeditationModal({ report, isOpen, onClose }) {
             onClick={onClose}
             className="px-4 py-2 rounded-xl text-xs font-medium bg-[#1d2330] hover:bg-[#252d3d] text-[#e0e4ee] transition"
           >
-            Rest in Stillness
+            Continue Fresh
           </button>
         </div>
       </div>

@@ -31,10 +31,10 @@ export default function GraphModal({ isOpen, onClose }) {
             </div>
             <div>
               <h2 className="text-base font-semibold text-[#f0f2f5]">
-                The Principle Knowledge Graph (Dhamma Topology)
+                Decision Resolution Map
               </h2>
               <p className="text-xs text-[#828a99]">
-                Structured pathways from human suffering (Dukkha) to clarity (Santi)
+                Structured pathways from tension or dilemma to constructive resolution and equanimity
               </p>
             </div>
           </div>
@@ -51,7 +51,7 @@ export default function GraphModal({ isOpen, onClose }) {
           {/* Paths List */}
           <div className="lg:col-span-5 space-y-2.5 max-h-[50vh] overflow-y-auto pr-1">
             <span className="text-[11px] font-semibold text-[#737c8e] uppercase tracking-wider block mb-1">
-              Active Wisdom Pathways ({graphData?.edges?.length || 0})
+              Resolution Pathways ({graphData?.edges?.length || 0})
             </span>
             {graphData?.edges?.map((edge) => {
               const isSelected = selectedEdge?.id === edge.id;
@@ -91,7 +91,7 @@ export default function GraphModal({ isOpen, onClose }) {
               <div className="space-y-4">
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[#62b485] tracking-wider block mb-1">
-                    Transformative Principle
+                    Guiding Principle
                   </span>
                   <h3 className="text-sm font-semibold text-[#f0f2f5] leading-relaxed">
                     {selectedEdge.principle}
@@ -100,7 +100,7 @@ export default function GraphModal({ isOpen, onClose }) {
 
                 <div className="p-3.5 rounded-lg bg-[#0e1117] border border-[#1a1f2b] space-y-2">
                   <span className="text-[10px] uppercase font-bold text-[#757f92] tracking-wider block">
-                    Cognitive Reframe
+                    Perspective Shift
                   </span>
                   <p className="text-xs text-[#c2c8d4] leading-relaxed">
                     {selectedEdge.reframe}
@@ -109,7 +109,7 @@ export default function GraphModal({ isOpen, onClose }) {
 
                 <div className="p-3.5 rounded-lg bg-[#141e18] border border-[#264432] space-y-2">
                   <span className="text-[10px] uppercase font-bold text-[#86caa3] tracking-wider block">
-                    Micro-Action Anchor
+                    Actionable Step
                   </span>
                   <p className="text-xs text-[#a9d8be] leading-relaxed">
                     {selectedEdge.immediate_action}
@@ -120,7 +120,7 @@ export default function GraphModal({ isOpen, onClose }) {
                   <div className="pt-2 border-t border-[#1a1f2b] space-y-1.5">
                     <div className="flex items-center gap-2 text-[11px] text-[#818b9c]">
                       <BookOpen className="w-3.5 h-3.5 text-[#5e9e7b]" />
-                      <span className="font-medium text-[#c4cbd8]">Canonical Anchor: {selectedEdge.sutta_reference}</span>
+                      <span className="font-medium text-[#c4cbd8]">Source Reference: {selectedEdge.sutta_reference}</span>
                     </div>
 
                     <div className="flex items-center gap-3 text-[11px]">
@@ -152,19 +152,19 @@ export default function GraphModal({ isOpen, onClose }) {
               </div>
             ) : (
               <div className="text-center py-12 text-xs text-[#6e7787]">
-                Select a pathway to inspect its topological details
+                Select a pathway to inspect its details
               </div>
             )}
           </div>
         </div>
 
         <div className="mt-2 pt-4 border-t border-[#1f2430] flex items-center justify-between text-xs text-[#717a8a]">
-          <span>Sparse topological storage • Zero heavy vector databases</span>
+          <span>Deterministic resolution framework • Fast & lightweight graph</span>
           <button
             onClick={onClose}
             className="px-4 py-2 rounded-xl text-xs font-medium bg-[#1d2330] hover:bg-[#252d3d] text-[#e0e4ee] transition"
           >
-            Close Graph
+            Close Map
           </button>
         </div>
       </div>

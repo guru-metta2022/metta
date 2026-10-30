@@ -11,20 +11,20 @@ import { Send, Sparkles, Wind, Mic, MicOff, Volume2 } from 'lucide-react';
 
 const STARTER_PROMPTS = [
   {
-    title: "Overwhelm & Paralysis",
-    query: "I am completely overwhelmed by my life and work. Everything is piling up and I am stuck in paralysis.",
+    title: "Overwhelm & Priority Check",
+    query: "I have multiple competing deadlines and feel completely overwhelmed. How do I prioritize without burning out or letting down my team?",
   },
   {
-    title: "Noble Silence Test",
-    query: "Can you calculate how many trillions of years until the heat death of the universe occurs?",
+    title: "Action Simulation & Focus",
+    query: "Can you calculate how many trillions of years until the heat death of the universe occurs, and should I focus on it right now?",
   },
   {
-    title: "Burnout & Depletion",
-    query: "I feel completely burned out and empty, like I'm running on fumes with nothing left to give.",
+    title: "Sensitive Communication Check",
+    query: "I need to deliver critical performance feedback to a struggling colleague. How can I communicate it honestly, constructively, and empathetically?",
   },
   {
-    title: "The Sanctity of Life",
-    query: "Why must all life—human, animal, and emerging artificial cognitive minds—be held with reverence?",
+    title: "Respect for All Life & Safety",
+    query: "How should an automated decision system evaluate trade-offs when proposed actions affect people, animals, and shared environments?",
   },
 ];
 
@@ -208,7 +208,7 @@ export default function App() {
         ...prev,
         {
           role: 'assistant',
-          text: `A momentary turbulence occurred in connection: ${err.message}. Let us take a breath and try once more.`,
+          text: `A connection issue occurred: ${err.message}. Please check your connection and try again.`,
           id: Date.now() + 1,
         },
       ]);
@@ -273,8 +273,8 @@ export default function App() {
             <h2 className="text-xl sm:text-2xl font-serif-quote font-medium text-[#f0f2f5] tracking-wide mb-2">
               "Drop by drop the vessel is filled."
             </h2>
-            <p className="text-sm text-[#828a9b] max-w-md mb-8 leading-relaxed">
-              Metta is built for Human-AI Harmonious Coexistence. Speak or type freely—all life is held in sacred reverence.
+            <p className="text-sm text-[#828a9b] max-w-lg mb-8 leading-relaxed">
+              Metta helps people and AI agents simulate, reflect on, and evaluate decisions—from daily conversations to critical actions—so you can spot risks and act with clarity and respect for all forms of life.
             </p>
 
             {/* Reflection Starters */}
@@ -306,8 +306,8 @@ export default function App() {
               <div className="flex items-center gap-3 my-6 px-4 py-3 rounded-2xl bg-[#121620]/60 border border-[#212736] max-w-md animate-fade-in">
                 <div className="w-4 h-4 rounded-full bg-[#5e9e7b] animate-breathe" />
                 <div className="text-xs text-[#8c98ad]">
-                  <span className="font-medium text-[#c0c8d8]">Mindfully discerning with Active Gateway</span>
-                  <span className="block text-[11px] text-[#636c7c]">Inhale gently... Exhale slowly...</span>
+                  <span className="font-medium text-[#c0c8d8]">Evaluating context and multi-party impact</span>
+                  <span className="block text-[11px] text-[#636c7c]">Simulating outcomes and safety guardrails...</span>
                 </div>
               </div>
             )}
@@ -322,7 +322,7 @@ export default function App() {
             <div className="mb-2.5 px-4 py-2 rounded-xl bg-[#14261d] border border-[#264e38] flex items-center justify-between text-xs text-[#8dd4ac] animate-pulse shadow-sm">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#48d689] animate-ping" />
-                <span className="font-medium">Listening with quiet attention... Speak your reflection</span>
+                <span className="font-medium">Listening... Speak clearly to transcribe your situation or decision</span>
               </div>
               <button
                 onClick={toggleVoiceRecording}
@@ -340,13 +340,13 @@ export default function App() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={isRecording ? "Listening to your voice..." : "Speak or write with honesty... (Press Enter to send)"}
+              placeholder={isRecording ? "Listening to your voice..." : "Describe a situation, proposed decision, or message to evaluate... (Press Enter to submit)"}
               className="w-full bg-transparent px-4 pt-3.5 pb-10 text-sm text-[#f0f2f5] placeholder-[#5d6473] focus:outline-none resize-none leading-relaxed"
             />
 
             <div className="absolute bottom-2.5 right-3 flex items-center gap-2">
               <span className="text-[10px] text-[#4d5462] hidden sm:inline">
-                Sīla Protected • Canonical Pāli Grounded
+                Decision Safety Layer • Multi-Party Impact Review
               </span>
 
               {/* Voice Dictation Button */}
@@ -372,7 +372,7 @@ export default function App() {
                     ? 'bg-[#1e382b] hover:bg-[#284938] text-[#93dfb4]'
                     : 'bg-[#181d26] text-[#484e5c] cursor-not-allowed'
                 }`}
-                title="Send reflection"
+                title="Send inquiry"
               >
                 <Send className="w-4 h-4" />
               </button>

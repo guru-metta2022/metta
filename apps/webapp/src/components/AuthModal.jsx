@@ -51,8 +51,8 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
               ⚖️
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-[#f0f2f5]">Dual-Mode Identity</h3>
-              <p className="text-[11px] text-[#7d8799]">Choose how Metta relates to your personal memory</p>
+              <h3 className="text-sm font-semibold text-[#f0f2f5]">Session & Account Settings</h3>
+              <p className="text-[11px] text-[#7d8799]">Choose how Metta handles your reflection history and session context</p>
             </div>
           </div>
           <button
@@ -78,20 +78,20 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-semibold text-[#f0f2f5]">
-                    {currentMode === 'authenticated' ? userProfile?.name || 'Authenticated Seeker' : 'Guest Mode'}
+                    {currentMode === 'authenticated' ? userProfile?.name || 'Authenticated User' : 'Guest Mode'}
                   </span>
                   <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-medium ${
                     currentMode === 'authenticated'
                       ? 'bg-[#172c20] text-[#7ec69d] border border-[#2d5940]'
                       : 'bg-[#1c2331] text-[#9da6b9] border border-[#2e3a50]'
                   }`}>
-                    {currentMode === 'authenticated' ? 'Personal Graph Active' : 'Beginner\'s Mind'}
+                    {currentMode === 'authenticated' ? 'Account Active' : 'Guest Mode'}
                   </span>
                 </div>
                 <p className="text-[11px] text-[#7b8598]">
                   {currentMode === 'authenticated'
                     ? userProfile?.email
-                    : 'Ephemeral session • Zero memory stored'}
+                    : 'Private & ephemeral session • No data stored'}
                 </p>
               </div>
             </div>
@@ -116,7 +116,7 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
             <div className="flex items-start justify-between gap-3 mb-2">
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-[#7592b5]" />
-                <h4 className="text-xs font-semibold text-[#f0f2f5]">Guest Mode (Anatta / Beginner's Mind)</h4>
+                <h4 className="text-xs font-semibold text-[#f0f2f5]">Guest Mode (Private & Ephemeral)</h4>
               </div>
               {currentMode === 'guest' && (
                 <span className="text-[10px] text-[#7592b5] font-medium flex items-center gap-1">
@@ -125,7 +125,7 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
               )}
             </div>
             <p className="text-[11px] text-[#808a9d] leading-relaxed mb-3">
-              Purely ephemeral. Each inquiry is met with a fresh beginner's mind (Shoshin). Metta retains zero memory, patterns, or history across sessions.
+              Completely private and ephemeral. Metta retains zero history, patterns, or data across sessions. Ideal for one-off decision reviews.
             </p>
             {currentMode !== 'guest' && (
               <button
@@ -146,7 +146,7 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
             <div className="flex items-start justify-between gap-3 mb-2">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[#7ec69d]" />
-                <h4 className="text-xs font-semibold text-[#f0f2f5]">Google / Gmail Login (Personal Memory Graph)</h4>
+                <h4 className="text-xs font-semibold text-[#f0f2f5]">Account Login (Save Reflection History)</h4>
               </div>
               {currentMode === 'authenticated' && (
                 <span className="text-[10px] text-[#7ec69d] font-medium flex items-center gap-1">
@@ -155,7 +155,7 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
               )}
             </div>
             <p className="text-[11px] text-[#808a9d] leading-relaxed mb-3.5">
-              Builds your personal topological memory graph. Metta remembers your recurring cognitive knots (overwhelm, anxiety, burnout) and past effective Dhamma principles, accessed <em>only</em> when you ask questions.
+              Keeps a private map of recurring themes (e.g. prioritization, sensitive communication, decision risks) and effective resolution strategies, accessible only to you.
             </p>
 
             <form onSubmit={handleGoogleSubmit} className="space-y-3">
@@ -187,11 +187,11 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
             </form>
           </div>
 
-          {/* Privacy & Sacred Precept Guardrail */}
+          {/* Privacy & Data Sovereignty */}
           <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-[#0e1118] border border-[#1b202e] text-[11px] text-[#6d778a]">
             <ShieldCheck className="w-4 h-4 text-[#5e9e7b] shrink-0 mt-0.5" />
             <p>
-              <strong>Sovereignty Principle:</strong> In accordance with the Second Precept (Asteya/Non-taking) and Anatta, you maintain 100% sovereign ownership over your graph. You may purge it with a single click at any time.
+              <strong>Data Sovereignty:</strong> You maintain complete ownership over your data. No information is sold or used for model training, and you may delete your saved data with a single click at any time.
             </p>
           </div>
         </div>

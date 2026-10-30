@@ -22,16 +22,16 @@ export default function MessageItem({ message }) {
       <div className="max-w-[95%] sm:max-w-[85%] w-full">
         <div className="flex items-center gap-2 mb-2 text-xs text-[#808998]">
           <div className="w-5 h-5 rounded-full bg-[#1b2b23] border border-[#3b5e4c]/60 flex items-center justify-center text-[11px]">
-            🧘
+            🌿
           </div>
           <span className="font-semibold text-[#c8ceda] tracking-wide">Metta</span>
           <span className="text-[11px] text-[#555d6b]">•</span>
           <span className="text-[11px] text-[#697282]">
-            {isSilence ? 'Noble Silence (Avyākata)' : 'Voice of Karunā'}
+            {isSilence ? 'Focus Redirection' : 'Compassionate Guidance'}
           </span>
           {message.system_one_used && (
             <span className="text-[10px] text-[#7ec69d] bg-[#14261d] px-1.5 py-0.5 rounded border border-[#274533] font-mono">
-              ⚡ Jev Fast Decision
+              ⚡ Fast Decision Check
             </span>
           )}
           {message.duration && (
@@ -50,7 +50,7 @@ export default function MessageItem({ message }) {
             <div className="mb-4 pb-3 border-b border-[#252c3c] flex items-center gap-2 text-xs text-[#8ca3c7]">
               <Compass className="w-3.5 h-3.5 text-[#6c8eb5]" />
               <span className="font-medium">
-                Compassionate Redirection: Distraction from speculative distraction back to present clarity.
+                Helpful Redirection: Setting aside speculative distractions to focus on actionable clarity and immediate wellbeing.
               </span>
             </div>
           )}

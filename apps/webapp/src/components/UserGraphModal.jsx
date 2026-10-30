@@ -31,7 +31,7 @@ export default function UserGraphModal({ isOpen, onClose, userProfile }) {
   }, [isOpen, userProfile]);
 
   const handleClearMemory = async () => {
-    if (!window.confirm("Release Personal Memory Graph?\n\nThis will permanently purge all observed cognitive patterns, recurring knot counts, and growth milestones for this identity, returning your mind's footprint to Beginner's Mind (Anatta).")) {
+    if (!window.confirm("Delete Saved Journey Data?\n\nThis will permanently delete all recorded decision themes, observed patterns, and milestones for your account. This action cannot be undone.")) {
       return;
     }
 
@@ -43,7 +43,7 @@ export default function UserGraphModal({ isOpen, onClose, userProfile }) {
       if (!res.ok) throw new Error('Failed to purge memory graph');
       await fetchUserGraph();
     } catch (err) {
-      alert("Error purging memory graph: " + err.message);
+      alert("Error deleting saved data: " + err.message);
     } finally {
       setClearing(false);
     }
@@ -62,13 +62,13 @@ export default function UserGraphModal({ isOpen, onClose, userProfile }) {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-[#f0f2f5]">Personal Memory Graph</h3>
+                <h3 className="text-sm font-semibold text-[#f0f2f5]">My Reflection Journey</h3>
                 <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-medium bg-[#162a1f] text-[#7ec69d] border border-[#2b543c]">
                   Authenticated
                 </span>
               </div>
               <p className="text-[11px] text-[#7d8799]">
-                Continuous topological tracking of knots, growth, and effective Dhamma reframings
+                Private overview of recurring decision themes, progress, and effective resolution principles
               </p>
             </div>
           </div>
@@ -100,7 +100,7 @@ export default function UserGraphModal({ isOpen, onClose, userProfile }) {
                 {userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : '🌿'}
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-[#f0f2f5]">{userProfile?.name || 'Seeker'}</h4>
+                <h4 className="text-sm font-semibold text-[#f0f2f5]">{userProfile?.name || 'User'}</h4>
                 <p className="text-[11px] text-[#7e889b]">{userProfile?.email}</p>
               </div>
             </div>
@@ -116,13 +116,13 @@ export default function UserGraphModal({ isOpen, onClose, userProfile }) {
           {loading && !graphData && (
             <div className="py-12 text-center text-[#7e889b] flex flex-col items-center gap-2">
               <RefreshCw className="w-6 h-6 animate-spin text-[#7ec69d]" />
-              <span>Traversing topological memory graph...</span>
+              <span>Loading your reflection journey...</span>
             </div>
           )}
 
           {error && (
             <div className="p-4 rounded-xl bg-[#2b1717] border border-[#4d2525] text-[#e58080]">
-              Failed to load personal memory graph: {error}
+              Failed to load reflection journey: {error}
             </div>
           )}
 
@@ -133,7 +133,7 @@ export default function UserGraphModal({ isOpen, onClose, userProfile }) {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Activity className="w-4 h-4 text-[#7ec69d]" />
-                    <h4 className="font-semibold text-[#dce1ea]">Observed Cognitive & Emotional Patterns</h4>
+                    <h4 className="font-semibold text-[#dce1ea]">Observed Decision Themes & Patterns</h4>
                   </div>
                   <span className="text-[10px] text-[#6d7687]">
                     {graphData.patterns?.length || 0} patterns identified
@@ -142,8 +142,8 @@ export default function UserGraphModal({ isOpen, onClose, userProfile }) {
 
                 {(!graphData.patterns || graphData.patterns.length === 0) ? (
                   <div className="p-6 rounded-xl bg-[#11141c] border border-[#1d222e] text-center text-[#737c8e]">
-                    <p className="mb-1 font-medium text-[#9da6b7]">No recurring friction patterns recorded yet.</p>
-                    <p className="text-[11px]">As you share dilemmas, Metta mindfully records recurring knots and the Dhamma principles that brought relief.</p>
+                    <p className="mb-1 font-medium text-[#9da6b7]">No recurring patterns recorded yet.</p>
+                    <p className="text-[11px]">As you evaluate decisions and explore situations, Metta organizes recurring themes and principles that helped resolve them.</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -173,7 +173,7 @@ export default function UserGraphModal({ isOpen, onClose, userProfile }) {
                         {pattern.effective_principles && pattern.effective_principles.length > 0 && (
                           <div className="pt-2 border-t border-[#1a2130]">
                             <span className="text-[10px] uppercase tracking-wider text-[#697385] font-semibold block mb-1.5">
-                              Effective Dhamma Principles:
+                              Effective Resolution Principles:
                             </span>
                             <div className="flex flex-wrap gap-1.5">
                               {pattern.effective_principles.map((pr, pIdx) => (
@@ -197,12 +197,12 @@ export default function UserGraphModal({ isOpen, onClose, userProfile }) {
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles className="w-4 h-4 text-[#e0a96d]" />
-                  <h4 className="font-semibold text-[#dce1ea]">Distilled Growth Milestones</h4>
+                  <h4 className="font-semibold text-[#dce1ea]">Key Growth Milestones</h4>
                 </div>
 
                 {(!graphData.growth_milestones || graphData.growth_milestones.length === 0) ? (
                   <div className="p-4 rounded-xl bg-[#11141c] border border-[#1d222e] text-[#737c8e]">
-                    <p className="text-[11px]">Milestones distill automatically as recurring patterns reach mindful synthesis over 3+ sessions.</p>
+                    <p className="text-[11px]">Milestones appear automatically as patterns reach resolution across multiple sessions.</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -225,10 +225,10 @@ export default function UserGraphModal({ isOpen, onClose, userProfile }) {
                   <div>
                     <h5 className="text-xs font-semibold text-[#f08585] flex items-center gap-1.5">
                       <Trash2 className="w-3.5 h-3.5" />
-                      Sovereign Right: Release All Memory
+                      Data Sovereignty: Delete Saved Data
                     </h5>
                     <p className="text-[11px] text-[#966b6b] mt-0.5">
-                      Wipe all pattern nodes and distilled milestones to return to pure Beginner's Mind (*Anatta*).
+                      Permanently wipe all recorded themes, patterns, and milestones from your account.
                     </p>
                   </div>
                   <button
@@ -236,7 +236,7 @@ export default function UserGraphModal({ isOpen, onClose, userProfile }) {
                     disabled={clearing}
                     className="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-[#2d1717] hover:bg-[#3d1c1c] text-[#fca5a5] border border-[#5a2727] transition shrink-0"
                   >
-                    {clearing ? 'Releasing...' : 'Purge Personal Graph'}
+                    {clearing ? 'Deleting...' : 'Delete Saved Data'}
                   </button>
                 </div>
               </div>

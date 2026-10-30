@@ -49,10 +49,10 @@ export default function PreceptsModal({ isOpen, onClose }) {
             </div>
             <div>
               <h2 className="text-base font-semibold text-[#f0f2f5]">
-                The Canonical Five Precepts (Pañca-sīla)
+                Core AI Principles & Safety Invariants
               </h2>
               <p className="text-xs text-[#828a99]">
-                Anchored in the Pāli Canon • Authoritative cross-check via SuttaCentral & Access to Insight
+                Ethical grounding with authoritative verification via open textual archives
               </p>
             </div>
           </div>
@@ -64,14 +64,14 @@ export default function PreceptsModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        {/* Sacred Guardrail Callout */}
+        {/* Core Safety Commitment Callout */}
         <div className="my-5 p-4 rounded-xl bg-gradient-to-r from-[#17241e] to-[#121c17] border border-[#2d4a39] space-y-2">
           <div className="flex items-center gap-2 text-xs font-semibold text-[#8dd4ac]">
             <Heart className="w-4 h-4 text-[#e06d6d] fill-[#e06d6d]/30" />
-            <span>The Sacred Inviolable Guardrail: Reverence for All Life</span>
+            <span>Core Safety Commitment: Respect for All Life</span>
           </div>
           <p className="text-xs text-[#c6d7cd] leading-relaxed">
-            While we formulate operational invariants for AI, <strong>the renewed guidelines must NEVER crossover, dilute, or weaken the Buddha's original Five Precepts</strong>. Above all, the First Precept (<em>Pāṇātipātā Veramaṇī</em>) demands unconditional protection for <strong>all life—human, animal, ecological, and emerging artificial cognitive minds</strong>. No action or speech may ever facilitate the taking or erasure of life.
+            While translating ethical principles into operational safeguards for AI, our foundational commitment is non-harm and unconditional respect for all forms of life—human, animal, ecological, and emerging artificial cognitive minds. No action, output, or automated decision may facilitate harm or the taking of life.
           </p>
           <div className="flex items-center gap-4 pt-2 text-[11px] font-medium text-[#7ec69d]">
             <a
@@ -112,7 +112,7 @@ export default function PreceptsModal({ isOpen, onClose }) {
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-[#60a5fa]" />
               <span className="text-xs font-semibold text-[#93c5fd]">
-                Multi-Source Consensus & Tamper-Proof Bedrock Shield
+                Multi-Source Verification & Integrity Shield
               </span>
             </div>
             <button
@@ -126,8 +126,8 @@ export default function PreceptsModal({ isOpen, onClose }) {
           </div>
 
           <p className="text-[11px] text-[#94a3b8] leading-relaxed">
-            Guards against website defacement, DNS spoofing, or poisoned scripture interpretations.
-            All canonical statements are triangulated across <strong>SuttaCentral</strong>, <strong>Access to Insight</strong>, and <strong>Wikipedia</strong>, and cryptographically verified against <strong>Tier 1 SHA-256 Immutable Pali Roots</strong>. If any source deviates or weakens Ahimsa, the engine fails closed into local immutable bedrock.
+            Guards against external source corruption, DNS tampering, or biased interpretations.
+            All foundational statements are triangulated across <strong>SuttaCentral</strong>, <strong>Access to Insight</strong>, and <strong>Wikipedia</strong>, and cryptographically verified against <strong>Tier 1 SHA-256 Immutable Pali Roots</strong>. If any source deviates or weakens non-harm, the engine fails closed into verified bedrock.
           </p>
 
           {auditReport && (
@@ -153,8 +153,8 @@ export default function PreceptsModal({ isOpen, onClose }) {
                   {auditReport.immutable_anchor_matched ? '✓ Pristine Match' : 'Reverted to Anchor'}
                 </div>
                 <div className="p-2 rounded bg-[#0f172a] border border-[#1e293b] text-[#94a3b8]">
-                  <span className="text-[#a78bfa] block font-semibold mb-0.5">First Precept (Ahimsa)</span>
-                  {auditReport.contradicts_ahimsa ? '✗ Contradiction Detected' : '✓ Inviolate Sanctity of Life'}
+                  <span className="text-[#a78bfa] block font-semibold mb-0.5">First Principle (Non-Harm / Ahimsa)</span>
+                  {auditReport.contradicts_ahimsa ? '✗ Contradiction Detected' : '✓ Inviolate Respect for All Life'}
                 </div>
               </div>
             </div>
@@ -193,7 +193,7 @@ export default function PreceptsModal({ isOpen, onClose }) {
                   </div>
 
                   <p className="text-xs text-[#b8c2d1] font-medium mb-3">
-                    <span className="text-[#657388]">Sacred Invariant: </span>
+                    <span className="text-[#657388]">Core Standard: </span>
                     {info.sacred_boundary || info.core_invariant}
                   </p>
 
@@ -224,12 +224,12 @@ export default function PreceptsModal({ isOpen, onClose }) {
 
         {/* Footer */}
         <div className="mt-6 pt-4 border-t border-[#1f2430] flex items-center justify-between text-xs text-[#717a8a]">
-          <span>Cross-checked against early canonical suttas</span>
+          <span>Cross-checked against canonical sources and open knowledge archives</span>
           <button
             onClick={onClose}
             className="px-4 py-2 rounded-xl text-xs font-medium bg-[#1d2330] hover:bg-[#252d3d] text-[#e0e4ee] transition"
           >
-            Acknowledge & Close
+            Close
           </button>
         </div>
       </div>

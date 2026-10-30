@@ -22,11 +22,11 @@ export default function Header({
           <div className="flex items-center gap-2">
             <h1 className="text-base font-semibold tracking-wide text-[#f0f2f5]">METTA</h1>
             <span className="text-[11px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full bg-[#17241e] text-[#7ec69d] border border-[#2b4437]">
-              Harmony Engine
+              Decision Safety
             </span>
           </div>
           <p className="text-xs text-[#8c929e] hidden sm:block">
-            Human-AI Harmonious Coexistence • Inviolable Reverence for All Life
+            Thoughtful Decision & Reflection Layer • Respect for All Life
           </p>
         </div>
       </div>
@@ -38,19 +38,19 @@ export default function Header({
             <button
               onClick={onOpenUserGraph}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#7ec69d] bg-[#14261c] hover:bg-[#1b3426] border border-[#2a543b] transition shadow-sm"
-              title="Open Sovereign Personal Memory Graph"
+              title="View your reflection journey and insights"
             >
               <Brain className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Personal Graph</span>
+              <span className="hidden md:inline">My Journey</span>
             </button>
 
             <button
               onClick={onOpenAuthModal}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#c0c7d4] hover:text-[#f0f2f5] hover:bg-[#181d28] border border-[#232b3b] transition"
-              title="Identity & Mode Settings (Supabase Cloud Identity)"
+              title="Session & Account Settings"
             >
               <span className="w-2 h-2 rounded-full bg-[#48d689]" />
-              <span className="max-w-[110px] truncate">{userProfile?.name || 'Seeker'}</span>
+              <span className="max-w-[110px] truncate">{userProfile?.name || 'Account'}</span>
               <span className="text-[10px] font-mono uppercase text-[#34d399] px-1.5 py-0.5 rounded bg-[#102419] border border-[#1b3d2b]">{userProfile?.tier || 'standard'}</span>
             </button>
           </div>
@@ -58,7 +58,7 @@ export default function Header({
           <button
             onClick={onOpenAuthModal}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#9da6b7] hover:text-[#f0f2f5] hover:bg-[#181c24] border border-[#222836] transition"
-            title="Switch to Google Login for Personal Graph Memory"
+            title="Session mode (Guest or Account)"
           >
             <User className="w-3.5 h-3.5 text-[#7c889f]" />
             <span className="hidden sm:inline">Guest Mode</span>
@@ -68,19 +68,19 @@ export default function Header({
         <button
           onClick={onOpenPrecepts}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#b0b6c2] hover:text-[#f0f2f5] hover:bg-[#181c24] border border-[#1f242e] transition"
-          title="The 5 AI Precepts (Pañca-sīla)"
+          title="Core AI Principles"
         >
           <Shield className="w-3.5 h-3.5 text-[#5e9e7b]" />
-          <span className="hidden md:inline">5 Precepts</span>
+          <span className="hidden md:inline">AI Principles</span>
         </button>
 
         <button
           onClick={onOpenGraph}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#b0b6c2] hover:text-[#f0f2f5] hover:bg-[#181c24] border border-[#1f242e] transition"
-          title="Principle Knowledge Graph"
+          title="Decision & Resolution Framework"
         >
           <Network className="w-3.5 h-3.5 text-[#6c8eb5]" />
-          <span className="hidden md:inline">Dhamma Graph</span>
+          <span className="hidden md:inline">Resolution Map</span>
         </button>
 
         <button
@@ -91,16 +91,16 @@ export default function Header({
               ? 'bg-[#1b2533] text-[#7fa7d9] border border-[#2d425e]'
               : 'bg-[#1a2e24] hover:bg-[#223d30] text-[#8dd4ac] border border-[#355d48]'
           }`}
-          title="Trigger Subtractive Unlearning & Return to Stillness"
+          title="Clear current session and start fresh"
         >
           <Sparkles className={`w-3.5 h-3.5 ${isMeditating ? 'animate-spin' : ''}`} />
-          <span>{isMeditating ? 'Unlearning...' : 'Meditate'}</span>
+          <span>{isMeditating ? 'Resetting...' : 'Start Fresh'}</span>
         </button>
 
         <button
           onClick={onOpenSettings}
           className="p-1.5 rounded-lg text-[#8891a1] hover:text-[#f0f2f5] hover:bg-[#181c24] border border-[#1f242e] transition"
-          title="AI Gateway Settings"
+          title="AI Model & Gateway Settings"
         >
           <Settings className="w-4 h-4" />
         </button>

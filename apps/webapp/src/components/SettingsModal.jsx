@@ -83,10 +83,10 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
             </div>
             <div>
               <h2 className="text-base font-semibold text-[#f0f2f5]">
-                AI Gateway & Model Engine
+                AI Model & Gateway Settings
               </h2>
               <p className="text-xs text-[#828a99]">
-                Unified Adapter Interface • BYOM Unlimited Bypass
+                Provider Configuration & Custom API Keys
               </p>
             </div>
           </div>
@@ -158,7 +158,7 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
 
             <div>
               <span className="text-[11px] text-[#717b8c] block mb-1">
-                TypeSafe Jev API Key (System 1 Decision Engine)
+                TypeSafe Jev API Key (Fast Decision & Safety Engine)
               </span>
               <input
                 type={showKeys ? 'text' : 'password'}
@@ -178,7 +178,7 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
           {/* Provider Selection */}
           <div>
             <label className="text-xs font-semibold text-[#8b95a5] uppercase tracking-wider block mb-2">
-              System 2 Generative Provider
+              Reasoning & Generative Provider
             </label>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <button
@@ -236,10 +236,10 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
               <Zap className="w-4 h-4 text-[#7ec69d]" />
               <div>
                 <span className="font-semibold text-[#e1ece5] block">
-                  System 1: TypeSafe Jev Engine
+                  Fast Decision & Safety Layer (TypeSafe Jev)
                 </span>
                 <span className="text-[11px] text-[#88a895]">
-                  Sub-second non-generative decisions & Sīla guardrails
+                  Sub-second decision classification & safety guardrails
                 </span>
               </div>
             </div>
@@ -252,7 +252,7 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
           <div className="p-3 rounded-xl bg-[#121620] border border-[#1f2636] flex items-center justify-between text-xs text-[#9aa4b5]">
             <div className="flex items-center gap-2">
               <Volume2 className="w-3.5 h-3.5 text-[#6c8eb5]" />
-              <span>Multi-Platform Voice Dictation Diagnostics</span>
+              <span>Voice Input Diagnostics</span>
             </div>
             <span className="text-[10px] font-mono text-[#7ec69d]">ENABLED</span>
           </div>
