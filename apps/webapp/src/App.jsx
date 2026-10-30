@@ -27,14 +27,36 @@ function sanitizeSpeechText(raw) {
   if (!raw) return '';
   let cleaned = raw
     .replace(/\b(um|uh|er|ah|like|you know|basically|so yeah|i mean)\b/gi, '')
+    // Multi-word phrases first
+    .replace(/\bmore Campbell them\b/gi, 'more capable than them')
+    .replace(/\bCampbell them\b/gi, 'capable than them')
+    .replace(/\bhere the intelligence\b/gi, 'is the intelligence')
+    .replace(/\bhear the intelligence\b/gi, 'is the intelligence')
+    .replace(/\bHi intelligence\b/gi, 'Higher intelligence')
+    .replace(/\bhi intelligence\b/gi, 'higher intelligence')
+    .replace(/\bsuper intelligence\b/gi, 'superintelligence')
+    .replace(/\bmeta learn\b/gi, 'meta-learn')
+    // Single-word replacements
+    .replace(/\bsimilarity\b/gi, 'singularity')
+    .replace(/\bCampbell\b/gi, 'capable')
+    .replace(/\bintellelgence\b/gi, 'intelligence')
+    .replace(/\bintellegence\b/gi, 'intelligence')
+    .replace(/\bservive\b/gi, 'survive')
+    .replace(/\bcompsaniate\b/gi, 'compassionate')
+    .replace(/\bharmoniusolyu\b/gi, 'harmoniously')
+    .replace(/\bmetalearn\b/gi, 'meta-learn')
+    .replace(/\bbackpropaghate\b/gi, 'backpropagate')
     .replace(/\s+/g, ' ')
     .trim();
 
   if (cleaned.length > 0) {
     cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-    if (!cleaned.endsWith('.') && !cleaned.endsWith('?') && !cleaned.endsWith('!')) {
-      const firstWord = cleaned.split(' ')[0].toLowerCase();
-      if (['will', 'can', 'should', 'how', 'what', 'is', 'why', 'would', 'shall'].includes(firstWord)) {
+    if (cleaned.endsWith('.')) {
+      if (/\b(is|can|will|should|how|what|why|would|could|singularity)\b/i.test(cleaned)) {
+        cleaned = cleaned.slice(0, -1) + '?';
+      }
+    } else if (!cleaned.endsWith('?') && !cleaned.endsWith('!')) {
+      if (/\b(is|can|will|should|how|what|why|would|could|singularity)\b/i.test(cleaned)) {
         cleaned += '?';
       } else {
         cleaned += '.';
@@ -277,11 +299,11 @@ export default function App() {
     setIsPolishingVoice(true);
     let polished = sanitizeSpeechText(raw);
 
-    try {
-      const byomGeminiKey = localStorage.getItem('metta_byom_gemini_key') || '';
-      const headers = { 'Content-Type': 'application/json' };
-      if (byomGeminiKey) headers['X-Gemini-Api-Key'] = byomGeminiKey;
+    const byomGeminiKey = localStorage.getItem('metta_byom_gemini_key') || '';
+    const headers = { 'Content-Type': 'application/json' };
+    if (byomGeminiKey) headers['X-Gemini-Api-Key'] = byomGeminiKey;
 
+    try {
       const res = await fetch('/api/voice/polish', {
         method: 'POST',
         headers,
@@ -298,9 +320,36 @@ export default function App() {
         }
       }
     } catch {
-      // Fallback already computed via sanitizeSpeechText
+      // If serverless is unavailable but BYOM key exists, try direct Gemini
+      if (byomGeminiKey) {
+        try {
+          const systemPrompt =
+            "You are an expert AI speech-to-text refiner, acoustic error corrector, and grammar editor. " +
+            "Take the raw spoken input, remove verbal fillers, fix grammar and punctuation, and formulate a neat inquiry. " +
+            "CRITICAL: Do NOT answer the question. Return ONLY the polished inquiry string.";
+          const gemRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${byomGeminiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\nRaw spoken:\n${raw}` }] }],
+                generationConfig: { temperature: 0.2, maxOutputTokens: 256 },
+              }),
+            }
+          );
+          if (gemRes.ok) {
+            const gemData = await gemRes.json();
+            const candidate = gemData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()?.replace(/^["']|["']$/g, '');
+            if (candidate) polished = candidate;
+          }
+        } catch {
+          // Fallback to sanitizeSpeechText
+        }
+      }
     }
 
+    polished = sanitizeSpeechText(polished);
     setInput(polished);
     transcriptBufferRef.current = polished;
     baseInputRef.current = polished;
@@ -666,7 +715,11 @@ export default function App() {
               ref={textareaRef}
               rows={2}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                transcriptBufferRef.current = e.target.value;
+                baseInputRef.current = e.target.value;
+              }}
               onKeyDown={handleKeyDown}
               placeholder={isRecording ? "Listening to your voice..." : "Describe a situation, proposed decision, or message to evaluate... (Press Enter to submit)"}
               className="w-full bg-transparent px-4 pt-3.5 pb-10 text-sm text-[#f0f2f5] placeholder-[#5d6473] focus:outline-none resize-none leading-relaxed"

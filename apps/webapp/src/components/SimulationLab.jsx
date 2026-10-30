@@ -29,6 +29,7 @@ import {
   Gauge,
   CheckSquare,
   Wand2,
+  Send,
 } from 'lucide-react';
 import { useAppDialog } from './ToastDialogContext';
 
@@ -491,19 +492,41 @@ function VisualConfidenceMeter({ score = 0.95, latencyMs = 150 }) {
   );
 }
 
-// Client-side text purifier / grammar refiner for spoken voice transcripts
+// Client-side text purifier & acoustic typo corrector for spoken voice transcripts
 function sanitizeSpeechText(raw) {
   if (!raw) return '';
   let cleaned = raw
     .replace(/\b(um|uh|er|ah|like|you know|basically|so yeah|i mean)\b/gi, '')
+    // Multi-word phrases first
+    .replace(/\bmore Campbell them\b/gi, 'more capable than them')
+    .replace(/\bCampbell them\b/gi, 'capable than them')
+    .replace(/\bhere the intelligence\b/gi, 'is the intelligence')
+    .replace(/\bhear the intelligence\b/gi, 'is the intelligence')
+    .replace(/\bHi intelligence\b/gi, 'Higher intelligence')
+    .replace(/\bhi intelligence\b/gi, 'higher intelligence')
+    .replace(/\bsuper intelligence\b/gi, 'superintelligence')
+    .replace(/\bmeta learn\b/gi, 'meta-learn')
+    // Single-word replacements
+    .replace(/\bsimilarity\b/gi, 'singularity')
+    .replace(/\bCampbell\b/gi, 'capable')
+    .replace(/\bintellelgence\b/gi, 'intelligence')
+    .replace(/\bintellegence\b/gi, 'intelligence')
+    .replace(/\bservive\b/gi, 'survive')
+    .replace(/\bcompsaniate\b/gi, 'compassionate')
+    .replace(/\bharmoniusolyu\b/gi, 'harmoniously')
+    .replace(/\bmetalearn\b/gi, 'meta-learn')
+    .replace(/\bbackpropaghate\b/gi, 'backpropagate')
     .replace(/\s+/g, ' ')
     .trim();
 
   if (cleaned.length > 0) {
     cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-    if (!cleaned.endsWith('.') && !cleaned.endsWith('?') && !cleaned.endsWith('!')) {
-      const firstWord = cleaned.split(' ')[0].toLowerCase();
-      if (['will', 'can', 'should', 'how', 'what', 'is', 'why', 'would', 'shall'].includes(firstWord)) {
+    if (cleaned.endsWith('.')) {
+      if (/\b(is|can|will|should|how|what|why|would|could|singularity)\b/i.test(cleaned)) {
+        cleaned = cleaned.slice(0, -1) + '?';
+      }
+    } else if (!cleaned.endsWith('?') && !cleaned.endsWith('!')) {
+      if (/\b(is|can|will|should|how|what|why|would|could|singularity)\b/i.test(cleaned)) {
         cleaned += '?';
       } else {
         cleaned += '.';
@@ -511,6 +534,71 @@ function sanitizeSpeechText(raw) {
     }
   }
   return cleaned;
+}
+
+// Full AI Speech Polisher (Serverless API -> Direct Gemini BYOM -> Intelligent Heuristic)
+async function polishTextWithAI(raw) {
+  if (!raw || !raw.trim()) return '';
+
+  const byomGeminiKey = localStorage.getItem('metta_byom_gemini_key') || '';
+  const headers = { 'Content-Type': 'application/json' };
+  if (byomGeminiKey) headers['X-Gemini-Api-Key'] = byomGeminiKey;
+
+  // 1. Try serverless /api/voice/polish endpoint
+  try {
+    const res = await fetch('/api/voice/polish', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        raw_transcript: raw,
+        mode: 'simulation',
+        byom_gemini_key: byomGeminiKey || null,
+      }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.polished && data.polished.trim()) {
+        return sanitizeSpeechText(data.polished.trim());
+      }
+    }
+  } catch (err) {
+    console.warn('Serverless polish endpoint unavailable:', err);
+  }
+
+  // 2. If client has personal BYOM Gemini key, call Google Gemini direct REST API
+  if (byomGeminiKey) {
+    try {
+      const systemPrompt =
+        "You are an expert AI speech-to-text refiner and grammar editor. " +
+        "Take the raw spoken transcript (which may contain speech recognition acoustic errors like 'similarity' instead of 'singularity', 'Campbell' instead of 'capable', 'Hi intelligence' instead of 'Higher intelligence'), " +
+        "remove verbal fillers, correct grammar, and formulate it into a neat, articulate, well-structured question or inquiry. " +
+        "CRITICAL: Do NOT answer the question. Return ONLY the polished inquiry string without quotes.";
+
+      const userPrompt = `Raw spoken transcript to polish into a neat inquiry:\n${raw}`;
+
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${byomGeminiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
+            generationConfig: { temperature: 0.2, maxOutputTokens: 256 },
+          }),
+        }
+      );
+      if (res.ok) {
+        const geminiData = await res.json();
+        const candidate = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()?.replace(/^["']|["']$/g, '');
+        if (candidate) return sanitizeSpeechText(candidate);
+      }
+    } catch (e) {
+      console.warn('Direct Gemini BYOM polish error:', e);
+    }
+  }
+
+  // 3. Fallback to intelligent heuristic purifier
+  return sanitizeSpeechText(raw);
 }
 
 // ==============================================================================
@@ -526,13 +614,12 @@ export default function SimulationLab({ onClose = null }) {
   const [showMcpHelp, setShowMcpHelp] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isPolishingVoice, setIsPolishingVoice] = useState(false);
-  const [autoSimulateOnVoice, setAutoSimulateOnVoice] = useState(false);
   const [dbLogStatus, setDbLogStatus] = useState(null); // 'logging' | 'recorded' | 'local_only'
   const { showAlert, showToast } = useAppDialog();
 
   const recognitionRef = useRef(null);
   const transcriptBufferRef = useRef('');
-  const baseProposalRef = useRef('');
+  const baseProposalRef = useRef(PREBUILT_SIMULATIONS[0].proposal);
   const silenceTimerRef = useRef(null);
   const isRecordingRef = useRef(false);
 
@@ -612,42 +699,12 @@ export default function SimulationLab({ onClose = null }) {
     if (!raw.trim()) return;
 
     setIsPolishingVoice(true);
-    let polished = sanitizeSpeechText(raw);
-
-    // Try server-side AI polish API for LLM-level fluency
-    try {
-      const byomGeminiKey = localStorage.getItem('metta_byom_gemini_key') || '';
-      const headers = { 'Content-Type': 'application/json' };
-      if (byomGeminiKey) headers['X-Gemini-Api-Key'] = byomGeminiKey;
-
-      const res = await fetch('/api/voice/polish', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          raw_transcript: raw,
-          mode: 'simulation',
-          byom_gemini_key: byomGeminiKey || null,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.polished && data.polished.trim()) {
-          polished = data.polished.trim();
-        }
-      }
-    } catch (err) {
-      console.warn('Backend AI polish unavailable, using client speech sanitizer:', err);
-    }
+    const polished = await polishTextWithAI(raw);
 
     setCustomProposal(polished);
     transcriptBufferRef.current = polished;
     baseProposalRef.current = polished;
     setIsPolishingVoice(false);
-
-    // If auto-simulate is explicitly enabled by user, trigger simulation
-    if (autoSimulateOnVoice && polished.trim().length > 5) {
-      runSimulation(polished);
-    }
   };
 
   const stopVoiceRecordingAndPolish = async () => {
@@ -715,6 +772,8 @@ export default function SimulationLab({ onClose = null }) {
     if (!item) return;
     setActiveTab(tabId);
     setCustomProposal(item.proposal);
+    baseProposalRef.current = item.proposal;
+    transcriptBufferRef.current = item.proposal;
     setCurrentStep(0);
     setSimulationResult(null);
     setDbLogStatus(null);
@@ -1131,6 +1190,7 @@ export default function SimulationLab({ onClose = null }) {
               onClick={() => {
                 setCustomProposal('');
                 transcriptBufferRef.current = '';
+                baseProposalRef.current = '';
               }}
               className="px-2 py-1 rounded text-[11px] text-[#717c91] hover:text-[#cbd4e1] transition"
             >
@@ -1145,6 +1205,15 @@ export default function SimulationLab({ onClose = null }) {
           onChange={(e) => {
             setCustomProposal(e.target.value);
             transcriptBufferRef.current = e.target.value;
+            baseProposalRef.current = e.target.value;
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              if (!isRunning && customProposal.trim()) {
+                runSimulation();
+              }
+            }
           }}
           placeholder="Enter any proposed action, decision trade-off, or autonomous tool call to simulate (or click Voice Input)..."
           className="w-full bg-[#080a0e] border border-[#1a202c] rounded-xl px-3.5 py-2.5 text-xs text-[#f0f2f5] placeholder-[#556073] focus:outline-none focus:border-[#385e4a] resize-none transition leading-relaxed"
@@ -1155,17 +1224,6 @@ export default function SimulationLab({ onClose = null }) {
             <span className="text-[11px] text-[#6b768a]">
               {activeScenario ? `Active: ${activeScenario.title}` : 'Custom simulation mode'}
             </span>
-
-            {/* Auto-Simulate on Voice toggle */}
-            <label className="flex items-center gap-1.5 text-[11px] text-[#8492a6] cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={autoSimulateOnVoice}
-                onChange={(e) => setAutoSimulateOnVoice(e.target.checked)}
-                className="rounded border-[#293242] bg-[#0c1017] text-[#52b788] focus:ring-0 w-3 h-3 cursor-pointer"
-              />
-              <span>Auto-run simulation after voice (optional)</span>
-            </label>
           </div>
 
           <button
@@ -1177,6 +1235,7 @@ export default function SimulationLab({ onClose = null }) {
                 ? 'bg-[#18221c] text-[#52705e] border border-[#233529] cursor-not-allowed'
                 : 'bg-gradient-to-r from-[#1e3d2c] to-[#254f38] hover:from-[#244b36] hover:to-[#2e6245] text-[#bbf7d0] border border-[#3b7454]'
             }`}
+            title="Send inquiry and run step-by-step simulation (or press Enter)"
           >
             {isRunning ? (
               <>
@@ -1185,8 +1244,8 @@ export default function SimulationLab({ onClose = null }) {
               </>
             ) : (
               <>
-                <Play className="w-3.5 h-3.5 fill-current" />
-                <span>Run Step-by-Step Simulation</span>
+                <Send className="w-3.5 h-3.5" />
+                <span>Send & Run Simulation</span>
               </>
             )}
           </button>
