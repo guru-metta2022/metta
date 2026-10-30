@@ -1,33 +1,50 @@
 import React, { useState } from 'react';
-import { X, User, CheckCircle2, ShieldCheck, Mail, LogOut, Sparkles, Key, AlertCircle } from 'lucide-react';
+import { X, User, CheckCircle2, ShieldCheck, LogOut, Sparkles } from 'lucide-react';
 import { useAppDialog } from './ToastDialogContext';
 
 export default function AuthModal({ isOpen, onClose, currentMode, userProfile, onLogin, onLogout, onSelectGuest }) {
-  const lastStoredEmail = localStorage.getItem('metta_last_google_email') || '';
-  const [emailInput, setEmailInput] = useState(userProfile?.email || lastStoredEmail || '');
-  const [showClientIdConfig, setShowClientIdConfig] = useState(false);
-  const [clientIdInput, setClientIdInput] = useState(
-    localStorage.getItem('metta_google_client_id') || import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
-  );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { showToast } = useAppDialog();
+  const { showAlert, showToast } = useAppDialog();
 
   if (!isOpen) return null;
 
   const handleGoogleSignIn = async () => {
     setIsSubmitting(true);
 
-    const activeClientId =
-      clientIdInput.trim() ||
-      localStorage.getItem('metta_google_client_id') ||
+    const supabaseUrl = 'https://wbncptxcoihmzlfuhqac.supabase.co';
+    const redirectUrl = `${window.location.origin}/`;
+
+    // 1. Check if Supabase has Google provider enabled
+    try {
+      const settingsRes = await fetch(`${supabaseUrl}/auth/v1/settings`, {
+        headers: {
+          apikey:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndibmNwdHhjb2lobXpsZnVocWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzMzUxNDMsImV4cCI6MjEwODkxMTE0M30.crH9s2eSwZw9qGPsDxf44QcWUHoGi9jaPCm_LogRn-E',
+        },
+      });
+      if (settingsRes.ok) {
+        const settings = await settingsRes.json();
+        if (settings?.external?.google) {
+          // Supabase Google OAuth provider is active!
+          // Redirect immediately to Google OAuth to open Google's login & account chooser
+          window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Supabase auth settings check:', e);
+    }
+
+    // 2. If Google Identity Services OAuth2 Client ID is configured in env or localStorage
+    const googleClientId =
       import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+      localStorage.getItem('metta_google_client_id') ||
       '';
 
-    // 1. If Google Identity Services OAuth2 Client ID is configured, trigger Google's native account chooser popup
-    if (window.google?.accounts?.oauth2 && activeClientId) {
+    if (window.google?.accounts?.oauth2 && googleClientId) {
       try {
         const client = window.google.accounts.oauth2.initTokenClient({
-          client_id: activeClientId,
+          client_id: googleClientId,
           scope: 'email profile openid',
           callback: async (tokenResponse) => {
             if (tokenResponse?.access_token) {
@@ -48,14 +65,8 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
             }
             setIsSubmitting(false);
           },
-          error_callback: (err) => {
-            console.warn('Google sign-in popup closed or error:', err);
+          error_callback: () => {
             setIsSubmitting(false);
-            showToast({
-              title: 'Google Sign-In Cancelled',
-              message: 'Google account selection was closed or not completed.',
-              type: 'info',
-            });
           },
         });
         client.requestAccessToken({ prompt: 'select_account' });
@@ -65,30 +76,25 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
       }
     }
 
-    // 2. If no OAuth Client ID is registered, connect using user's actual Google email
+    // 3. Fallback: prompt the user to enable Google in Supabase Dashboard
     setIsSubmitting(false);
-    const targetEmail = emailInput.trim();
-    if (targetEmail && targetEmail.includes('@')) {
-      await completeSignIn(targetEmail);
-    } else {
-      showToast({
-        title: 'Enter Google Account',
-        message: 'Please enter your Google / Gmail email address below to sign in.',
-        type: 'info',
-      });
-    }
+    showAlert({
+      title: 'Enable Google in Supabase Providers',
+      message:
+        'To allow Google to open the login screen and select your accounts:\n\n' +
+        '1. Go to your Supabase Dashboard ➔ Authentication ➔ Providers (left sidebar)\n' +
+        '2. Click on "Google" and toggle it ON\n' +
+        '3. Enter your Google Client ID and Secret and click Save\n\n' +
+        'Once enabled, clicking "Sign in with Google" will open Google\'s account chooser screen!',
+      type: 'info',
+    });
   };
 
   const completeSignIn = async (emailToUse, nameToUse, avatarToUse) => {
     setIsSubmitting(true);
-    const chosenEmail = (emailToUse || emailInput || '').trim();
+    const chosenEmail = (emailToUse || '').trim();
 
     if (!chosenEmail || !chosenEmail.includes('@')) {
-      showToast({
-        title: 'Valid Email Required',
-        message: 'Please enter your actual Google or Gmail address (e.g. yourname@gmail.com).',
-        type: 'warning',
-      });
       setIsSubmitting(false);
       return;
     }
@@ -107,7 +113,6 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
       authenticated_at: new Date().toISOString(),
     };
 
-    // Try calling backend endpoint if available (non-blocking fallback)
     try {
       const res = await fetch('/api/auth/google', {
         method: 'POST',
@@ -126,7 +131,6 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
       console.info('Backend auth endpoint unreachable; continuing with sovereign client session storage:', err);
     }
 
-    // Persist sovereign profile
     localStorage.setItem('metta_user_profile', JSON.stringify(profileData));
     localStorage.setItem('metta_identity_mode', 'authenticated');
     localStorage.setItem('metta_last_google_email', chosenEmail);
@@ -258,7 +262,7 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
             )}
           </div>
 
-          {/* Option 2: Gmail Login (Personal Memory Graph) */}
+          {/* Option 2: Account Login (Save Reflection History) */}
           <div className={`p-4 rounded-xl border transition ${
             currentMode === 'authenticated'
               ? 'bg-[#13231a]/40 border-[#2b533b]'
@@ -280,7 +284,7 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
             </p>
 
             <div className="space-y-3">
-              {/* Google Sign-In Button */}
+              {/* Only the clean 1-Click Google Sign-In button */}
               <button
                 type="button"
                 onClick={handleGoogleSignIn}
@@ -293,95 +297,8 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                 </svg>
-                <span>
-                  {isSubmitting
-                    ? 'Connecting...'
-                    : emailInput && emailInput.includes('@')
-                    ? `Sign in as ${emailInput}`
-                    : 'Sign in with Google'}
-                </span>
+                <span>{isSubmitting ? 'Opening Google Sign-In...' : 'Sign in with Google'}</span>
               </button>
-
-              {/* Direct Email Connection Input */}
-              <div className="pt-2 border-t border-[#1d2331] space-y-2">
-                <label className="text-[10px] text-[#8e98aa] block font-medium">
-                  Your Google / Gmail Address:
-                </label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Mail className="w-3.5 h-3.5 text-[#5e6678] absolute left-3 top-2.5" />
-                    <input
-                      type="email"
-                      value={emailInput}
-                      onChange={(e) => setEmailInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          completeSignIn(emailInput.trim());
-                        }
-                      }}
-                      placeholder="Enter your google account (e.g. yourname@gmail.com)"
-                      className="w-full bg-[#0c0e14] border border-[#212736] focus:border-[#385c49] focus:ring-1 focus:ring-[#385c49] rounded-lg pl-8.5 pr-3 py-1.5 text-xs text-[#f0f2f5] placeholder-[#555d6e] focus:outline-none"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => completeSignIn(emailInput.trim())}
-                    disabled={isSubmitting || !emailInput.trim()}
-                    className="px-3 py-1.5 rounded-lg bg-[#192a20] hover:bg-[#21382b] text-[#8dd4ac] border border-[#2e543e] text-xs font-medium transition cursor-pointer shrink-0 disabled:opacity-50"
-                  >
-                    Connect
-                  </button>
-                </div>
-                <p className="text-[10px] text-[#636c7e]">
-                  Your email is strictly sovereign — only used to index your reflection journey in private storage.
-                </p>
-              </div>
-
-              {/* Advanced: Optional Google Cloud OAuth Client ID configuration */}
-              <div className="pt-1 text-right">
-                <button
-                  type="button"
-                  onClick={() => setShowClientIdConfig(!showClientIdConfig)}
-                  className="text-[10px] text-[#5e687a] hover:text-[#8dd4ac] transition cursor-pointer"
-                >
-                  {showClientIdConfig ? 'Hide Google Cloud OAuth settings' : '⚙️ Configure Google Cloud Client ID (for 1-click popup)'}
-                </button>
-              </div>
-
-              {showClientIdConfig && (
-                <div className="p-2.5 rounded-lg bg-[#0b0e14] border border-[#1b2230] space-y-1.5 text-[11px] text-[#8490a5] animate-fade-in">
-                  <label className="block text-[10px] text-[#95a1b5] font-mono">
-                    Google OAuth Web Client ID (Google Cloud Console):
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={clientIdInput}
-                      onChange={(e) => setClientIdInput(e.target.value)}
-                      placeholder="xxxx.apps.googleusercontent.com"
-                      className="flex-1 bg-[#06080b] border border-[#1d2533] rounded px-2.5 py-1 text-[11px] font-mono text-[#a5d6b8] focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        localStorage.setItem('metta_google_client_id', clientIdInput.trim());
-                        showToast({
-                          title: 'Google Client ID Saved',
-                          message: 'Native browser Google OAuth popup enabled.',
-                          type: 'success',
-                        });
-                      }}
-                      className="px-2.5 py-1 rounded bg-[#16271e] text-[#8dd4ac] border border-[#284936] text-[10px] font-medium cursor-pointer"
-                    >
-                      Save
-                    </button>
-                  </div>
-                  <span className="text-[9px] text-[#535c6d] block leading-relaxed">
-                    When configured with Authorized Origin <code>https://metta-webapp.vercel.app</code>, clicking Sign in with Google triggers the browser's native Google account chooser popup.
-                  </span>
-                </div>
-              )}
             </div>
           </div>
 

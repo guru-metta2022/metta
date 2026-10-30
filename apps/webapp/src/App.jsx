@@ -221,6 +221,60 @@ export default function App() {
     localStorage.setItem('metta_identity_mode', 'guest');
   };
 
+  // Handle Supabase OAuth redirect callback in URL hash (#access_token=...&refresh_token=...)
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token')) {
+      const params = new URLSearchParams(hash.replace(/^#/, ''));
+      const accessToken = params.get('access_token');
+      if (accessToken) {
+        const fetchSupabaseUser = async () => {
+          try {
+            const res = await fetch('https://wbncptxcoihmzlfuhqac.supabase.co/auth/v1/user', {
+              headers: {
+                apikey:
+                  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndibmNwdHhjb2lobXpsZnVocWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzMzUxNDMsImV4cCI6MjEwODkxMTE0M30.crH9s2eSwZw9qGPsDxf44QcWUHoGi9jaPCm_LogRn-E',
+                Authorization: `Bearer ${accessToken}`,
+              },
+            });
+            if (res.ok) {
+              const u = await res.json();
+              const email = u.email;
+              const name = u.user_metadata?.full_name || u.user_metadata?.name || email.split('@')[0];
+              const avatar = u.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${u.id}`;
+              const userId = `google:${email.toLowerCase().replace(/[^a-z0-9_]/g, '_')}`;
+
+              const profileData = {
+                user_id: userId,
+                supabase_auth_id: u.id,
+                email,
+                name,
+                avatar,
+                tier: 'standard',
+                mode: 'authenticated',
+                max_sessions: 100,
+                authenticated_at: new Date().toISOString(),
+              };
+
+              handleLogin(profileData);
+              showToast({
+                title: 'Google Sign-In Connected',
+                message: `Signed in as ${name} (${email}).`,
+                type: 'success',
+              });
+
+              // Clean up the hash from the browser URL
+              window.history.replaceState(null, '', window.location.pathname);
+            }
+          } catch (err) {
+            console.warn('Failed to parse Supabase OAuth return callback:', err);
+          }
+        };
+        fetchSupabaseUser();
+      }
+    }
+  }, []);
+
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const recognitionRef = useRef(null);
