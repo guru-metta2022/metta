@@ -19,7 +19,7 @@ ZEN_BANNER = """
 [bold cyan] | |\\/| | |  __|      | |       | |    / /\\ \\   [/bold cyan]
 [bold cyan] | |  | | | |____     | |       | |   / ____ \\  [/bold cyan]
 [bold cyan] |_|  |_| |______|    |_|       |_|  /_/    \\_\\ [/bold cyan]
-[dim italic]The Compassionate Synthesis Engine • Powered by Gemini 3.8 Flash (Antigravity API)[/dim italic]
+[dim italic]The Compassionate Synthesis Engine • Powered by BYOAI (Recommended: Gemini 3.8 Flash)[/dim italic]
 """
 
 

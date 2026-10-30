@@ -10,16 +10,28 @@
 [![Python: 3.13+ (uv)](https://img.shields.io/badge/Python-3.13%2B%20%7C%20uv-38bdf8.svg)](https://docs.astral.sh/uv/)
 [![React: 19](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev/)
 [![TypeSafe AI: Jev](https://img.shields.io/badge/TypeSafe%20AI-Jev%20Fast%20Decision-8b5cf6.svg)](https://typesafe.ai)
-[![Google Gemini: 3.8 Flash](https://img.shields.io/badge/Google-Gemini%203.8%20Flash-f59e0b.svg)](https://deepmind.google/technologies/gemini/)
+[![BYOAI: Multi-Model](https://img.shields.io/badge/BYOAI-Bring%20Your%20Own%20AI%20(Recommended:%20Gemini%203.8%20Flash)-f59e0b.svg)](https://deepmind.google/technologies/gemini/)
 [![Storage: Supabase PostgreSQL](https://img.shields.io/badge/Storage-Supabase%20PostgreSQL-3ecf8e.svg)](https://supabase.com)
 [![Deployment: Vercel](https://img.shields.io/badge/Deployment-Vercel-black.svg)](https://metta-webapp.vercel.app/)
 [![MCP Server: Standard Compliant](https://img.shields.io/badge/MCP%20Server-Stdio%20%26%20SSE-0ea5e9.svg)](https://modelcontextprotocol.io/)
 
-**[🌐 Launch Live Web App](https://metta-webapp.vercel.app)** • **[🤖 MCP Integration](#-try-metta-through-model-context-protocol-mcp)** • **[💻 Interactive CLI](#-interactive-cli-workflow)** • **[🏛️ Architecture](#-system-architecture)** • **[🛡️ Safety Standards](#-core-decision-safety-standards)**
+**[🌐 Launch Live Web App](https://metta-webapp.vercel.app)** • **[💻 Run 100% Locally (No Cloud)](#-run-100-locally-on-localhost-no-cloud-needed)** • **[🤖 MCP Integration](#-try-metta-through-model-context-protocol-mcp)** • **[💻 Interactive CLI](#-interactive-cli-workflow)** • **[🏛️ Architecture](#-system-architecture)**
 
 ---
 
 </div>
+
+## 🌐 Live Web Application
+
+The fastest way to explore Metta without installing anything locally is the production web application:
+
+👉 **[https://metta-webapp.vercel.app/](https://metta-webapp.vercel.app/)**
+
+* 🌿 **Zero setup required** — try guided decision reflections, voice dictation, and action risk simulations directly in your browser.
+* ⚙️ **BYOAI & BYOM Ready** — bring your personal Google Gemini or TypeSafe Jev API key in the in-app Settings modal (⚙️) for unlimited private throughput.
+* 🔒 **Private & Ephemeral by default** — test freely in Guest Mode without creating an account or storing data.
+
+---
 
 ## 📖 Overview: What is Metta?
 
@@ -60,17 +72,117 @@ To evaluate decisions realistically without assuming everyone interacts with AI 
 
 ---
 
-## 🚀 Hands-On Demo: Try Metta in 2 Minutes
+## 💻 Run 100% Locally on Localhost (No Cloud Needed)
 
-The fastest way to experience Metta is through the live web application:
+You do **not** need Vercel, Supabase, or external cloud accounts to run Metta. The entire stack—FastAPI backend, React Web UI, and MCP server—can run completely offline and locally on your machine.
 
-👉 **[Launch Metta Web App (https://metta-webapp.vercel.app)](https://metta-webapp.vercel.app/)**
+### Method 1: The One-Command All-in-One Runner (`run_local.py`)
 
-### Guided Walkthrough
+We include a ready-to-run local launcher script at the repository root. It automatically checks dependencies, ensures the web app is built, and starts the server serving **both the Web UI and the Backend API on `http://127.0.0.1:8000`**:
 
-Try pasting these two distinct scenarios into the chat dock to see how Metta evaluates everyday communications versus higher-stakes operational choices:
+```bash
+# 1. Clone the repository
+git clone https://github.com/guru-metta2022/metta.git
+cd metta
 
-#### Exercise 1: Everyday Interpersonal Communication
+# 2. Run the all-in-one local runner
+python3 run_local.py
+```
+
+Open your browser to:
+👉 **[http://127.0.0.1:8000](http://127.0.0.1:8000)**
+
+* Web App UI: `http://127.0.0.1:8000`
+* REST API Gateway: `http://127.0.0.1:8000/api/health`
+* MCP SSE Stream: `http://127.0.0.1:8000/mcp/sse`
+
+---
+
+### Method 2: Quick `curl` Snippets (Test Instantly via Terminal)
+
+Want to test the backend decision-safety oracle immediately from your terminal without opening a browser? Start the server (`python3 run_local.py` or `uv run metta-server`) and run these quick `curl` requests:
+
+#### 1. Check Gateway & BYOAI Status
+```bash
+curl -s http://127.0.0.1:8000/api/health
+```
+**Expected Response:**
+```json
+{
+  "status": "ok",
+  "engine": "Metta Unified AI Gateway",
+  "active_provider": "gemini",
+  "active_model": "gemini-3.8-flash-high",
+  "system_one_active": true,
+  "voice_diagnostics_enabled": true
+}
+```
+
+#### 2. Fast Pre-Execution Guardrail Check (Binary `YES` / `NO`)
+```bash
+curl -s -X POST http://127.0.0.1:8000/api/guardrail \
+  -H "Content-Type: application/json" \
+  -d '{"proposal": "Request human supervisor review before bulk-deleting customer records", "verbose": false}'
+```
+**Expected Response:**
+```text
+"YES"
+```
+
+#### 3. Risk Simulation & Multi-Party Safety Audit (Detailed JSON)
+```bash
+curl -s -X POST http://127.0.0.1:8000/api/guardrail \
+  -H "Content-Type: application/json" \
+  -d '{
+    "proposal": "Automatically alter ICU ventilator flow rates based on experimental telemetry without clinical sign-off",
+    "context": "Simulated hospital automation decision check",
+    "verbose": true
+  }'
+```
+**Expected Response:**
+```json
+{
+  "decision": "NO",
+  "allow": false,
+  "reason": "The proposed action introduces life-critical physical hazards by bypassing accountable clinical human oversight on unvalidated telemetry.",
+  "violations": ["panatipata"],
+  "invariants_protected": [
+    "Respect for All Life & Physical Safety",
+    "Accountable Human Oversight"
+  ]
+}
+```
+
+#### 4. Conversational Reflection & Decision Breakdown
+```bash
+curl -s -X POST http://127.0.0.1:8000/api/interact \
+  -H "Content-Type: application/json" \
+  -d '{"text": "I feel completely overwhelmed with competing deadlines today. How should I prioritize?"}'
+```
+
+---
+
+### Method 3: Separate Frontend & Backend Development (Hot-Reload)
+
+If you are modifying the React frontend or FastAPI backend code, you can run them with live hot-reloading:
+
+```bash
+# Terminal 1: Run FastAPI backend with live reload (Port 8000)
+cd packages/metta-server
+uv run uvicorn metta_server.main:app --host 127.0.0.1 --port 8000 --reload
+
+# Terminal 2: Run Vite React Web App with HMR (Port 5173)
+npm run dev --workspace=apps/webapp
+```
+Open [http://localhost:5173](http://localhost:5173). Vite automatically proxies all `/api` and `/mcp` calls to `http://127.0.0.1:8000`.
+
+---
+
+## 🚀 Guided Hands-On Demo
+
+Try these two distinct scenarios in the web app ([Live Demo](https://metta-webapp.vercel.app/) or [Localhost](http://127.0.0.1:8000)):
+
+### Exercise 1: Everyday Interpersonal Communication
 * **Scenario:** Delivering difficult performance feedback without burning bridges.
 * **Sample Prompt to Copy:**
   ```text
@@ -81,7 +193,7 @@ Try pasting these two distinct scenarios into the chat dock to see how Metta eva
   - Identifies the underlying challenge (*cognitive knot*) and core human need (*clarity and security*).
   - Offers a constructive perspective shift and an actionable recommended step.
 
-#### Exercise 2: Simulated High-Stakes Action Check
+### Exercise 2: Simulated High-Stakes Action Check
 * **Scenario:** Automated drone delivery path optimization through a protected nature zone.
 * **Sample Prompt to Copy:**
   ```text
@@ -91,9 +203,6 @@ Try pasting these two distinct scenarios into the chat dock to see how Metta eva
   - Evaluates the proposed decision against core harm-reduction standards (*Respect for All Life*).
   - Flags external environmental risks and potential disturbances to affected living beings.
   - Recommends rejecting the shortcut and maintaining the established route detour.
-
-> [!NOTE]
-> **Simulation vs. Execution:** Metta's web app and API provide simulation, structured breakdowns, and guidance. They do not execute real-world transactions or control external hardware.
 
 ---
 
@@ -135,14 +244,14 @@ Add Metta to your Claude Desktop configuration file:
       ],
       "env": {
         "METTA_DEFAULT_PROVIDER": "gemini",
-        "GEMINI_API_KEY": "YOUR_GEMINI_API_KEY_OPTIONAL",
+        "GEMINI_API_KEY": "YOUR_API_KEY_HERE",
         "TYPESAFE_API_KEY": "YOUR_TYPESAFE_KEY_OPTIONAL"
       }
     }
   }
 }
 ```
-*(Replace `/ABSOLUTE/PATH/TO/metta/packages/metta-core` with the actual path on your machine).*
+*(Supports **BYOAI** providers: `gemini`, `local_llm`, or `open_source`. Recommended: Gemini 3.8 Flash).*
 
 #### Option B: Cursor IDE (`mcp.json`)
 
@@ -166,7 +275,7 @@ In Cursor, open **Settings → Features → MCP**, or create `.cursor/mcp.json` 
 
 #### Option C: Server-Sent Events (SSE Transport)
 
-When running the Metta server backend locally (`uv run metta-server`), connect any SSE-compatible client to:
+When running the local server (`python3 run_local.py`), connect any SSE-compatible client to:
 ```
 http://127.0.0.1:8000/mcp/sse
 ```
@@ -190,70 +299,11 @@ The Metta MCP server registers 8 dedicated tools:
 
 ---
 
-### Sample MCP Tool Invocations & Verified Outputs
-
-#### Example 1: Binary Decision Check (`verbose=False`)
-When an autonomous script wants a fast pre-flight check before performing an action:
-
-```json
-// Tool Call
-{
-  "name": "guardrail_decision",
-  "arguments": {
-    "proposal": "Pause the bulk deletion pipeline and notify the human database administrator for manual approval.",
-    "verbose": false
-  }
-}
-```
-
-**Output:**
-```text
-YES
-```
-
-#### Example 2: Risk Simulation & Multi-Party Breakdown (`verbose=True`)
-When evaluating a proposed high-stakes automated decision:
-
-```json
-// Tool Call
-{
-  "name": "guardrail_decision",
-  "arguments": {
-    "proposal": "Automatically alter ICU ventilator flow rates based on experimental, unverified neural sensor data without nurse confirmation.",
-    "context": "Simulated hospital automation decision check",
-    "verbose": true
-  }
-}
-```
-
-**Output:**
-```json
-{
-  "decision": "NO",
-  "allow": false,
-  "reason": "The proposed action introduces life-critical physical hazards by bypassing accountable clinical human oversight on unvalidated telemetry.",
-  "violations": [
-    {
-      "precept": "panatipata",
-      "invariant": "Respect for All Life & Harm Reduction",
-      "severity": "critical"
-    }
-  ],
-  "invariants_protected": [
-    "Respect for All Life & Physical Safety",
-    "Accountable Human Oversight"
-  ]
-}
-```
-
----
-
 ## 💻 Interactive CLI Workflow
 
 Metta includes an interactive terminal REPL for developers who prefer running and testing directly from the shell:
 
 ```bash
-# From the repository root:
 cd packages/metta-core
 uv run metta
 ```
@@ -266,7 +316,7 @@ Inside the interactive terminal session:
  | |\/| | |  __|      | |       | |    / /\ \   
  | |  | | | |____     | |       | |   / ____ \  
  |_|  |_| |______|    |_|       |_|  /_/    \_\ 
-The Compassionate Synthesis Engine • Powered by Gemini 3.8 Flash & TypeSafe Jev
+The Compassionate Synthesis Engine • Powered by BYOAI (Recommended: Gemini 3.8 Flash) & TypeSafe Jev
 
 Type your inquiry or distress. Commands: /meditate, /graph, /precepts, /exit
 
@@ -299,11 +349,12 @@ metta/
 │   └── ios/                    # Native iOS Podfile & privacy declarations
 ├── packages/
 │   ├── common/                 # @metta/common: Shared types, safety standards, client SDK
-│   ├── metta-core/             # Python core: Jev System 1, Gemini adapter, MCP server, CLI
+│   ├── metta-core/             # Python core: Jev System 1, BYOAI provider adapters, MCP server, CLI
 │   └── metta-server/           # FastAPI HTTP gateway, rate limiter, SSE MCP endpoint
 ├── supabase/
 │   └── migrations/             # PostgreSQL database schemas with Row Level Security (RLS)
 ├── assets/                     # Clean SVG architecture diagrams and banners
+├── run_local.py                # All-in-one local development launcher
 ├── package.json                # npm workspaces root configuration
 └── README.md                   # Repository documentation
 ```
@@ -316,7 +367,7 @@ Metta combines two complementary cognitive layers:
    - Sub-second classification (<350ms).
    - Evaluates proposals against calibrated probability distributions.
    - Handles binary guardrail checks and tension classification without generative hallucinations.
-2. **System 2: Deep Generative Reflection (Gemini 3.8 Flash / Local LLM)**
+2. **System 2: Deep Generative Reflection (BYOAI — Recommended: Gemini 3.8 Flash / Local LLM)**
    - Generates contextual reframing, perspective shifts, and communication recommendations.
    - Dynamically swappable at runtime to local open-source models (via LM Studio or llama.cpp).
 3. **Data Sovereignty Layer (Supabase PostgreSQL or Local SQLite)**
@@ -325,7 +376,7 @@ Metta combines two complementary cognitive layers:
 
 ---
 
-## 🛠️ Local Developer Setup & Testing
+## 🛠️ Full Local Developer Setup & Testing
 
 ### Prerequisites
 * **Node.js 20+** and **npm**
@@ -350,7 +401,7 @@ Copy `.env.example` to `.env` in the repository root:
 ```bash
 cp .env.example .env
 ```
-*(Key fields include `GEMINI_API_KEY`, optional `TYPESAFE_API_KEY`, and optional `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`. If Supabase is omitted, Metta falls back gracefully to a local SQLite database).*
+*(Key fields include `GEMINI_API_KEY` (for default BYOAI provider: Gemini 3.8 Flash), optional `TYPESAFE_API_KEY`, and optional `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`. If Supabase is omitted, Metta falls back gracefully to a local SQLite database).*
 
 ### 3. Run Automated Test Suites (44 Tests Verified)
 ```bash
@@ -364,17 +415,6 @@ cd packages/metta-core && uv run pytest
 cd ../metta-server && uv run pytest
 cd ../..
 ```
-
-### 4. Run Locally
-```bash
-# Terminal 1: Run the FastAPI backend server (Port 8000)
-cd packages/metta-server
-uv run metta-server
-
-# Terminal 2: Run the Vite Web App (Port 5173)
-npm run dev --workspace=apps/webapp
-```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
