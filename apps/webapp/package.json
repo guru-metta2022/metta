@@ -1,5 +1,5 @@
 {
-  "name": "metta-web",
+  "name": "metta-webapp",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@metta/common": "file:../../packages/common",
     "clsx": "^2.1.1",
     "lucide-react": "^1.16.0",
     "react": "^19.0.0",

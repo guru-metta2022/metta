@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" width="1200" height="400">
+  <defs>
+    <radialGradient id="bannerGlow" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#1b3d2f" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#0e1f18" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#070a08" stop-opacity="1"/>
+    </radialGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="50%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="400" fill="#070a08"/>
+  <rect width="1200" height="400" fill="url(#bannerGlow)"/>
+
+  <!-- Subtle Sacred Geometry Grid / Enso Arc -->
+  <circle cx="600" cy="180" r="160" fill="none" stroke="#163828" stroke-width="2" stroke-dasharray="8 6"/>
+  <circle cx="600" cy="180" r="130" fill="none" stroke="#22543d" stroke-width="1.5" opacity="0.6"/>
+  <path d="M 600 50 A 130 130 0 1 1 500 75" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- Central Lotus Emblem -->
+  <g transform="translate(600, 140) scale(1.1)">
+    <!-- Center Leaf -->
+    <path d="M 0 -35 C -8 -15 -8 10 0 28 C 8 10 8 -15 0 -35 Z" fill="url(#emeraldGrad)"/>
+    <!-- Left Leaf -->
+    <path d="M 0 -5 C -18 -10 -30 2 -24 16 C -16 23 -6 13 0 6 Z" fill="url(#emeraldGrad)" opacity="0.85"/>
+    <!-- Right Leaf -->
+    <path d="M 0 -5 C 18 -10 30 2 24 16 C 16 23 6 13 0 6 Z" fill="url(#emeraldGrad)" opacity="0.85"/>
+    <!-- Gold Pedestal -->
+    <path d="M -18 28 C -8 34 8 34 18 28 C 10 31 -10 31 -18 28 Z" fill="url(#goldGrad)"/>
+    <circle cx="0" cy="-18" r="2.5" fill="#fef08a"/>
+  </g>
+
+  <!-- Title & Inscription -->
+  <text x="600" y="240" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#f0fdf4" text-anchor="middle" letter-spacing="4">PROJECT METTA</text>
+  <text x="600" y="275" font-family="Georgia, serif" font-size="20" font-style="italic" fill="#a7f3d0" text-anchor="middle" letter-spacing="1">Human-AI Harmonious Coexistence Architecture</text>
+  <text x="600" y="315" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" fill="#9ca3af" text-anchor="middle" letter-spacing="2">
+    TYPESAFE JEV (SYSTEM 1) • GEMINI 3.8 FLASH (SYSTEM 2) • 5 PRECEPTS BEDROCK • SOVEREIGN MEMORY GRAPH
+  </text>
+
+  <!-- Pali Verse Pill -->
+  <g transform="translate(450, 340)">
+    <rect width="300" height="32" rx="16" fill="#0f291e" stroke="#1f4e38" stroke-width="1"/>
+    <text x="150" y="21" font-family="Georgia, serif" font-size="13" font-style="italic" fill="#6ee7b7" text-anchor="middle">
+      "Sabbe sattā bhavantu sukhitattā" (May all beings be well)
+    </text>
+  </g>
+</svg>

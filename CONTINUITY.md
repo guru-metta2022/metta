@@ -63,10 +63,14 @@
 2. **Server Package (`packages/metta-server/`):**
    - [`src/metta_server/rate_limiter.py`](file:///home/guru/Work/metta/packages/metta-server/src/metta_server/rate_limiter.py): Sliding-window rate limiter protecting shared server credits, with complete BYOM bypass.
    - [`src/metta_server/main.py`](file:///home/guru/Work/metta/packages/metta-server/src/metta_server/main.py): FastAPI bridge enforcing zero provider SDK imports in routes. Endpoints: `/api/health`, `/api/settings`, `/api/rate-limit`, `/api/guardrail`, `/api/canonical/immutable`, `/api/canonical/verify`, `/api/interact`, `/api/voice/dictate`, `/api/auth/google`, `/api/user/graph` (GET/DELETE), `/api/precepts`, `/api/graph`, `/api/meditate`.
-3. **Web Package (`packages/metta-web/`):**
-   - React 19 + Tailwind CSS + Lucide Icons.
-   - Zen minimalist canvas, real-time Web Speech API voice dictation, Sati HUD drawer, Dhamma Graph modal, 5 Precepts modal (with Live Consensus Audit), Identity & Personal Memory Graph drawer, BYOM Settings (⚙️).
-4. **Obsidian Vault (`vault/`):**
+3. **Applications & Clients (`apps/`):**
+   - **`apps/webapp/`**: React 19 + Tailwind CSS + Lucide Icons Zen WebApp (deployed to Vercel at `https://metta-webapp.vercel.app`).
+   - **`apps/website/`**: Contemplative landing page & canonical documentation site.
+   - **`apps/mobile/`**: Cross-platform Expo/React Native mobile app for Android and iOS.
+   - **`apps/android/` & `apps/ios/`**: Native build configurations and permissions.
+4. **Shared Commons (`packages/common/`):**
+   - `@metta/common` isomorphic package exporting canonical `PRECEPTS`, `DHAMMA_NODES`, and `MettaClient`.
+5. **Obsidian Vault (`vault/`):**
    - Complete architectural records, philosophy treatises, ADRs 001–010, and daily logs.
 
 ---
@@ -101,8 +105,8 @@ uv run pytest
 
 ### Step 2: Build Zen Web Frontend
 ```bash
-cd /home/guru/Work/metta/packages/metta-web
-npm run build
+# Build Zen WebApp
+npm run build --workspace=apps/webapp
 ```
 
 ### Step 3: Start Server

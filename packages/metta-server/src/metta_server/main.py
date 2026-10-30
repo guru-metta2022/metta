@@ -367,8 +367,12 @@ async def trigger_meditation():
 app.mount("/mcp", mcp_server.sse_app())
 logger.info("Mounted Model Context Protocol (MCP) Server at /mcp")
 
-# Mount static files if web build exists
-web_dist = pathlib.Path(__file__).parent.parent.parent.parent / "metta-web" / "dist"
+# Mount static files if web build exists (supporting both apps/webapp and packages/metta-web)
+repo_root = pathlib.Path(__file__).parent.parent.parent.parent.parent
+web_dist = repo_root / "apps" / "webapp" / "dist"
+if not (web_dist.exists() and (web_dist / "index.html").exists()):
+    web_dist = pathlib.Path(__file__).parent.parent.parent.parent / "metta-web" / "dist"
+
 if web_dist.exists() and (web_dist / "index.html").exists():
     logger.info("Mounting Zen Web Interface from %s", web_dist)
     app.mount("/", StaticFiles(directory=str(web_dist), html=True), name="static")

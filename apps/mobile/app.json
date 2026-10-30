@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Metta",
+    "slug": "metta",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#070a08"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.metta.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Metta uses microphone access to enable tranquil voice dictation and real-time contemplative speech input."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#070a08"
+      },
+      "package": "com.metta.app",
+      "permissions": [
+        "RECORD_AUDIO",
+        "INTERNET"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

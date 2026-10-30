@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" width="960" height="520">
+  <defs>
+    <linearGradient id="cardBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#141e19"/>
+      <stop offset="100%" stop-color="#0c1310"/>
+    </linearGradient>
+    <linearGradient id="goldBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#34d399"/>
+    </marker>
+  </defs>
+
+  <rect width="960" height="520" fill="#090d0b" rx="12"/>
+
+  <!-- Header -->
+  <text x="480" y="45" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="20" font-weight="700" fill="#ecfdf5" text-anchor="middle" letter-spacing="1">PROJECT METTA: DUAL-PROCESS COGNITIVE ARCHITECTURE</text>
+
+  <!-- Clients Layer -->
+  <g transform="translate(60, 80)">
+    <rect width="840" height="60" rx="8" fill="url(#cardBg)" stroke="#1e3a2b" stroke-width="1.5"/>
+    <text x="420" y="36" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="600" fill="#6ee7b7" text-anchor="middle">
+      CLIENT CHANNELS: Zen WebApp (apps/webapp) • Public Website (apps/website) • Mobile Android/iOS (apps/mobile) • MCP Stdio / SSE
+    </text>
+  </g>
+
+  <!-- Downward arrow 1 -->
+  <line x1="480" y1="140" x2="480" y2="175" stroke="#34d399" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Unified Gateway -->
+  <g transform="translate(180, 180)">
+    <rect width="600" height="55" rx="8" fill="#13261c" stroke="#2a5a40" stroke-width="2"/>
+    <text x="300" y="34" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="700" fill="#fef08a" text-anchor="middle">
+      AIAgent Unified Gateway (Adapter Pattern + VoiceSanitizer + Dynamic BYOM Limiter)
+    </text>
+  </g>
+
+  <!-- Arrows branching to System 1 and System 2 -->
+  <line x1="330" y1="235" x2="260" y2="280" stroke="#34d399" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="630" y1="235" x2="700" y2="280" stroke="#34d399" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- System 1: TypeSafe Jev -->
+  <g transform="translate(60, 285)">
+    <rect width="390" height="110" rx="8" fill="url(#cardBg)" stroke="#22543d" stroke-width="1.5"/>
+    <text x="195" y="32" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="16" font-weight="700" fill="#34d399" text-anchor="middle">
+      FAST PATH: SYSTEM 1 (TypeSafe Jev)
+    </text>
+    <text x="195" y="58" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#cbd5e1" text-anchor="middle">
+      • Sub-second Buddha's 5 Precepts Audit
+    </text>
+    <text x="195" y="80" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#cbd5e1" text-anchor="middle">
+      • Emotional Knot Classification (Dosa, Lobha, Moha)
+    </text>
+    <text x="195" y="100" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#cbd5e1" text-anchor="middle">
+      • Direct Yes/No Fast Guardrail Oracle
+    </text>
+  </g>
+
+  <!-- System 2: Gemini 3.8 Flash -->
+  <g transform="translate(510, 285)">
+    <rect width="390" height="110" rx="8" fill="url(#cardBg)" stroke="#22543d" stroke-width="1.5"/>
+    <text x="195" y="32" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="16" font-weight="700" fill="#fde047" text-anchor="middle">
+      DEEP PATH: SYSTEM 2 (Gemini 3.8 Flash)
+    </text>
+    <text x="195" y="58" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#cbd5e1" text-anchor="middle">
+      • Deep Sati & Karunā Synthesis
+    </text>
+    <text x="195" y="80" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#cbd5e1" text-anchor="middle">
+      • 3-Fold Compassionate Non-Violent Speech
+    </text>
+    <text x="195" y="100" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#cbd5e1" text-anchor="middle">
+      • Noble Silence (Avyākata) Evaluation
+    </text>
+  </g>
+
+  <!-- Grounding Layer -->
+  <g transform="translate(60, 420)">
+    <rect width="840" height="70" rx="8" fill="#0f1914" stroke="#1c4731" stroke-width="1.5"/>
+    <text x="420" y="28" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" font-weight="700" fill="#a7f3d0" text-anchor="middle">
+      CANONICAL BEDROCK & PERSISTENCE
+    </text>
+    <text x="420" y="52" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" fill="#94a3b8" text-anchor="middle">
+      SuttaCentral / Access to Insight SHA-256 Multi-Source Consensus • Sovereign Personal Graph (Supabase / SQLite) • Anatta Purge
+    </text>
+  </g>
+</svg>

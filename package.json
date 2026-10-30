@@ -1,0 +1,27 @@
+{
+  "name": "metta-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Project Metta: Canonical Human-AI Harmonious Coexistence Architecture",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/webapp",
+    "dev:website": "npm run dev --workspace=apps/website",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "keywords": [
+    "metta",
+    "monorepo",
+    "human-ai-harmony",
+    "dhamma",
+    "typesafe-ai",
+    "gemini"
+  ],
+  "author": "Guru <guru.metta2022@gmail.com>",
+  "license": "MIT"
+}

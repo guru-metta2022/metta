@@ -1,0 +1,28 @@
+{
+  "name": "@metta/common",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.js",
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "metta",
+    "dhamma",
+    "theravada",
+    "guardrails",
+    "precepts",
+    "human-ai-harmony"
+  ],
+  "author": "Guru <guru.metta2022@gmail.com>",
+  "license": "MIT"
+}
