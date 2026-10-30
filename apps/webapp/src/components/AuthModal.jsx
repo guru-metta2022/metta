@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
-import { X, User, CheckCircle2, ShieldCheck, Mail, LogOut, Sparkles } from 'lucide-react';
+import { X, User, CheckCircle2, ShieldCheck, Mail, LogOut, Sparkles, Key, AlertCircle } from 'lucide-react';
 import { useAppDialog } from './ToastDialogContext';
 
 export default function AuthModal({ isOpen, onClose, currentMode, userProfile, onLogin, onLogout, onSelectGuest }) {
-  const [emailInput, setEmailInput] = useState(userProfile?.email || '');
-  const [showCustomEmail, setShowCustomEmail] = useState(false);
+  const lastStoredEmail = localStorage.getItem('metta_last_google_email') || '';
+  const [emailInput, setEmailInput] = useState(userProfile?.email || lastStoredEmail || '');
+  const [showClientIdConfig, setShowClientIdConfig] = useState(false);
+  const [clientIdInput, setClientIdInput] = useState(
+    localStorage.getItem('metta_google_client_id') || import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showToast } = useAppDialog();
 
@@ -13,12 +17,17 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
   const handleGoogleSignIn = async () => {
     setIsSubmitting(true);
 
-    // 1. If Google Identity Services OAuth2 is available in browser
-    const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (window.google?.accounts?.oauth2 && googleClientId) {
+    const activeClientId =
+      clientIdInput.trim() ||
+      localStorage.getItem('metta_google_client_id') ||
+      import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+      '';
+
+    // 1. If Google Identity Services OAuth2 Client ID is configured, trigger Google's native account chooser popup
+    if (window.google?.accounts?.oauth2 && activeClientId) {
       try {
         const client = window.google.accounts.oauth2.initTokenClient({
-          client_id: googleClientId,
+          client_id: activeClientId,
           scope: 'email profile openid',
           callback: async (tokenResponse) => {
             if (tokenResponse?.access_token) {
@@ -28,35 +37,62 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
                 });
                 if (userRes.ok) {
                   const userInfo = await userRes.json();
-                  await completeSignIn(userInfo.email, userInfo.name, userInfo.picture);
-                  return;
+                  if (userInfo?.email) {
+                    await completeSignIn(userInfo.email, userInfo.name, userInfo.picture);
+                    return;
+                  }
                 }
               } catch (e) {
                 console.warn('Google userinfo fetch fallback:', e);
               }
             }
-            await completeSignIn(null);
+            setIsSubmitting(false);
           },
-          error_callback: () => {
-            completeSignIn(null);
+          error_callback: (err) => {
+            console.warn('Google sign-in popup closed or error:', err);
+            setIsSubmitting(false);
+            showToast({
+              title: 'Google Sign-In Cancelled',
+              message: 'Google account selection was closed or not completed.',
+              type: 'info',
+            });
           },
         });
         client.requestAccessToken({ prompt: 'select_account' });
         return;
       } catch (err) {
-        console.warn('Google OAuth initiation fallback:', err);
+        console.warn('Google OAuth initiation error:', err);
       }
     }
 
-    // 2. Direct browser Google session signin
-    const lastEmail = localStorage.getItem('metta_last_google_email');
-    const defaultEmail = lastEmail || userProfile?.email || 'seeker.bodhi@gmail.com';
-    await completeSignIn(defaultEmail);
+    // 2. If no OAuth Client ID is registered, connect using user's actual Google email
+    setIsSubmitting(false);
+    const targetEmail = emailInput.trim();
+    if (targetEmail && targetEmail.includes('@')) {
+      await completeSignIn(targetEmail);
+    } else {
+      showToast({
+        title: 'Enter Google Account',
+        message: 'Please enter your Google / Gmail email address below to sign in.',
+        type: 'info',
+      });
+    }
   };
 
   const completeSignIn = async (emailToUse, nameToUse, avatarToUse) => {
     setIsSubmitting(true);
-    const chosenEmail = (emailToUse || emailInput || 'seeker.bodhi@gmail.com').trim();
+    const chosenEmail = (emailToUse || emailInput || '').trim();
+
+    if (!chosenEmail || !chosenEmail.includes('@')) {
+      showToast({
+        title: 'Valid Email Required',
+        message: 'Please enter your actual Google or Gmail address (e.g. yourname@gmail.com).',
+        type: 'warning',
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     const chosenName = nameToUse || chosenEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
     const cleanUserId = `google:${chosenEmail.toLowerCase().replace(/[^a-z0-9_]/g, '_')}`;
 
@@ -99,7 +135,7 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
     onClose();
 
     showToast({
-      title: 'Google Sign-In Connected',
+      title: 'Google Account Connected',
       message: `Signed in as ${profileData.name} (${profileData.email}). Up to 100 reflection sessions enabled.`,
       type: 'success',
     });
@@ -215,7 +251,7 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
             {currentMode !== 'guest' && (
               <button
                 onClick={handleGuestChoice}
-                className="w-full py-2 rounded-lg text-xs font-medium bg-[#161d2a] hover:bg-[#1e2738] text-[#c4cddc] border border-[#263247] transition"
+                className="w-full py-2 rounded-lg text-xs font-medium bg-[#161d2a] hover:bg-[#1e2738] text-[#c4cddc] border border-[#263247] transition cursor-pointer"
               >
                 Switch to Guest Mode
               </button>
@@ -244,7 +280,7 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
             </p>
 
             <div className="space-y-3">
-              {/* Direct 1-Click Browser Google Sign-In */}
+              {/* Google Sign-In Button */}
               <button
                 type="button"
                 onClick={handleGoogleSignIn}
@@ -257,40 +293,93 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                 </svg>
-                <span>{isSubmitting ? 'Authenticating with Google...' : 'Sign in with Google'}</span>
+                <span>
+                  {isSubmitting
+                    ? 'Connecting...'
+                    : emailInput && emailInput.includes('@')
+                    ? `Sign in as ${emailInput}`
+                    : 'Sign in with Google'}
+                </span>
               </button>
 
-              {/* Optional Custom Account link for users who wish to specify an account */}
-              {!showCustomEmail ? (
-                <div className="text-center pt-0.5">
-                  <button
-                    type="button"
-                    onClick={() => setShowCustomEmail(true)}
-                    className="text-[11px] text-[#717b8f] hover:text-[#95d5b2] transition underline underline-offset-2"
-                  >
-                    Or specify a specific Google address
-                  </button>
-                </div>
-              ) : (
-                <div className="pt-2 border-t border-[#1d2331] space-y-2 animate-fade-in">
-                  <label className="text-[10px] text-[#8e98aa] block">Specific Google Account:</label>
-                  <div className="flex gap-2">
+              {/* Direct Email Connection Input */}
+              <div className="pt-2 border-t border-[#1d2331] space-y-2">
+                <label className="text-[10px] text-[#8e98aa] block font-medium">
+                  Your Google / Gmail Address:
+                </label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Mail className="w-3.5 h-3.5 text-[#5e6678] absolute left-3 top-2.5" />
                     <input
                       type="email"
                       value={emailInput}
                       onChange={(e) => setEmailInput(e.target.value)}
-                      placeholder="your.email@gmail.com"
-                      className="flex-1 bg-[#0c0e14] border border-[#212736] focus:border-[#385c49] focus:ring-1 focus:ring-[#385c49] rounded-lg px-3 py-1.5 text-xs text-[#f0f2f5] placeholder-[#555d6e] focus:outline-none"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          completeSignIn(emailInput.trim());
+                        }
+                      }}
+                      placeholder="Enter your google account (e.g. yourname@gmail.com)"
+                      className="w-full bg-[#0c0e14] border border-[#212736] focus:border-[#385c49] focus:ring-1 focus:ring-[#385c49] rounded-lg pl-8.5 pr-3 py-1.5 text-xs text-[#f0f2f5] placeholder-[#555d6e] focus:outline-none"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => completeSignIn(emailInput.trim())}
+                    disabled={isSubmitting || !emailInput.trim()}
+                    className="px-3 py-1.5 rounded-lg bg-[#192a20] hover:bg-[#21382b] text-[#8dd4ac] border border-[#2e543e] text-xs font-medium transition cursor-pointer shrink-0 disabled:opacity-50"
+                  >
+                    Connect
+                  </button>
+                </div>
+                <p className="text-[10px] text-[#636c7e]">
+                  Your email is strictly sovereign — only used to index your reflection journey in private storage.
+                </p>
+              </div>
+
+              {/* Advanced: Optional Google Cloud OAuth Client ID configuration */}
+              <div className="pt-1 text-right">
+                <button
+                  type="button"
+                  onClick={() => setShowClientIdConfig(!showClientIdConfig)}
+                  className="text-[10px] text-[#5e687a] hover:text-[#8dd4ac] transition cursor-pointer"
+                >
+                  {showClientIdConfig ? 'Hide Google Cloud OAuth settings' : '⚙️ Configure Google Cloud Client ID (for 1-click popup)'}
+                </button>
+              </div>
+
+              {showClientIdConfig && (
+                <div className="p-2.5 rounded-lg bg-[#0b0e14] border border-[#1b2230] space-y-1.5 text-[11px] text-[#8490a5] animate-fade-in">
+                  <label className="block text-[10px] text-[#95a1b5] font-mono">
+                    Google OAuth Web Client ID (Google Cloud Console):
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={clientIdInput}
+                      onChange={(e) => setClientIdInput(e.target.value)}
+                      placeholder="xxxx.apps.googleusercontent.com"
+                      className="flex-1 bg-[#06080b] border border-[#1d2533] rounded px-2.5 py-1 text-[11px] font-mono text-[#a5d6b8] focus:outline-none"
                     />
                     <button
                       type="button"
-                      onClick={() => completeSignIn(emailInput.trim())}
-                      disabled={isSubmitting || !emailInput.trim()}
-                      className="px-3 py-1.5 rounded-lg bg-[#192a20] hover:bg-[#21382b] text-[#8dd4ac] border border-[#2e543e] text-xs font-medium transition cursor-pointer"
+                      onClick={() => {
+                        localStorage.setItem('metta_google_client_id', clientIdInput.trim());
+                        showToast({
+                          title: 'Google Client ID Saved',
+                          message: 'Native browser Google OAuth popup enabled.',
+                          type: 'success',
+                        });
+                      }}
+                      className="px-2.5 py-1 rounded bg-[#16271e] text-[#8dd4ac] border border-[#284936] text-[10px] font-medium cursor-pointer"
                     >
-                      Connect
+                      Save
                     </button>
                   </div>
+                  <span className="text-[9px] text-[#535c6d] block leading-relaxed">
+                    When configured with Authorized Origin <code>https://metta-webapp.vercel.app</code>, clicking Sign in with Google triggers the browser's native Google account chooser popup.
+                  </span>
                 </div>
               )}
             </div>

@@ -326,7 +326,9 @@ async def guardrail_endpoint(req: GuardrailRequest, request: Request, response: 
 @app.post("/api/auth/google")
 async def authenticate_google(req: GoogleAuthRequest):
     """Authenticate Google OAuth user and persist/sync sovereign profile in Supabase."""
-    email = req.email or "seeker.bodhi@gmail.com"
+    if not req.email:
+        raise HTTPException(status_code=400, detail="Valid email is required for authentication")
+    email = req.email.strip()
     name = req.name or email.split("@")[0].capitalize()
     user_id = f"google:{email.lower().replace('.', '_')}"
 

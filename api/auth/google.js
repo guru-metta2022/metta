@@ -14,7 +14,12 @@ export default async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-    const email = body.email || 'seeker.bodhi@gmail.com';
+    const email = (body.email || '').trim();
+
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ error: 'Valid Google email address is required' });
+    }
+
     const name = body.name || email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
     const userId = `google:${email.toLowerCase().replace(/[^a-z0-9_]/g, '_')}`;
 
@@ -28,14 +33,8 @@ export default async function handler(req, res) {
       max_sessions: 100,
     });
   } catch (err) {
-    return res.status(200).json({
-      user_id: 'google:seeker_bodhi@gmail_com',
-      email: 'seeker.bodhi@gmail.com',
-      name: 'Seeker Bodhi',
-      avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=google_seeker',
-      tier: 'standard',
-      mode: 'authenticated',
-      max_sessions: 100,
+    return res.status(500).json({
+      error: 'Authentication failed: ' + err.message,
     });
   }
 }
