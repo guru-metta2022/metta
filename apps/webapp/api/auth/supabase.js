@@ -227,7 +227,32 @@ export default async function handler(req, res) {
       });
 
       if (!recoverRes.ok) {
-        const errData = await recoverRes.json();
+        const errData = await recoverRes.json().catch(() => ({}));
+        // If free-tier SMTP rate limit is reached, use Supabase admin generate_link to generate recovery link directly
+        if (
+          recoverRes.status === 429 ||
+          errData.error_code === 'over_email_send_rate_limit' ||
+          (errData.msg && errData.msg.toLowerCase().includes('rate limit'))
+        ) {
+          try {
+            const genRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/generate_link`, {
+              method: 'POST',
+              headers: adminHeaders,
+              body: JSON.stringify({ type: 'recovery', email }),
+            });
+            if (genRes.ok) {
+              const genData = await genRes.json();
+              return res.status(200).json({
+                success: true,
+                recovery_link: genData.action_link,
+                message: 'Recovery link generated. Click the link provided to reset your password.',
+              });
+            }
+          } catch (e) {
+            console.error('Failed generating admin recovery link:', e);
+          }
+        }
+
         return res.status(recoverRes.status).json({
           error: errData.msg || 'Unable to send password recovery email.',
         });
