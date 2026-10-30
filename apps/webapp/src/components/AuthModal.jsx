@@ -1,149 +1,229 @@
 import React, { useState } from 'react';
-import { X, User, CheckCircle2, ShieldCheck, LogOut, Sparkles } from 'lucide-react';
+import {
+  X,
+  User,
+  CheckCircle2,
+  ShieldCheck,
+  LogOut,
+  Sparkles,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  LogIn,
+  UserPlus,
+  AlertCircle,
+} from 'lucide-react';
 import { useAppDialog } from './ToastDialogContext';
 
-export default function AuthModal({ isOpen, onClose, currentMode, userProfile, onLogin, onLogout, onSelectGuest }) {
+export default function AuthModal({
+  isOpen,
+  onClose,
+  currentMode,
+  userProfile,
+  onLogin,
+  onLogout,
+  onSelectGuest,
+}) {
+  const [authTab, setAuthTab] = useState('signin'); // 'signin' | 'signup'
+  const [email, setEmail] = useState(userProfile?.email || '');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { showAlert, showToast } = useAppDialog();
+  const [statusNotice, setStatusNotice] = useState(null); // { type: 'success' | 'error' | 'info', message: '' }
+  const { showToast } = useAppDialog();
 
   if (!isOpen) return null;
 
-  const handleGoogleSignIn = async () => {
-    setIsSubmitting(true);
-
-    const supabaseUrl = 'https://wbncptxcoihmzlfuhqac.supabase.co';
-    const redirectUrl = `${window.location.origin}/`;
-
-    // 1. Check if Supabase has Google provider enabled
-    try {
-      const settingsRes = await fetch(`${supabaseUrl}/auth/v1/settings`, {
-        headers: {
-          apikey:
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndibmNwdHhjb2lobXpsZnVocWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzMzUxNDMsImV4cCI6MjEwODkxMTE0M30.crH9s2eSwZw9qGPsDxf44QcWUHoGi9jaPCm_LogRn-E',
-        },
-      });
-      if (settingsRes.ok) {
-        const settings = await settingsRes.json();
-        if (settings?.external?.google) {
-          // Supabase Google OAuth provider is active!
-          // Redirect immediately to Google OAuth to open Google's login & account chooser
-          window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
-          return;
-        }
-      }
-    } catch (e) {
-      console.warn('Supabase auth settings check:', e);
-    }
-
-    // 2. If Google Identity Services OAuth2 Client ID is configured in env or localStorage
-    const googleClientId =
-      import.meta.env.VITE_GOOGLE_CLIENT_ID ||
-      localStorage.getItem('metta_google_client_id') ||
-      '';
-
-    if (window.google?.accounts?.oauth2 && googleClientId) {
-      try {
-        const client = window.google.accounts.oauth2.initTokenClient({
-          client_id: googleClientId,
-          scope: 'email profile openid',
-          callback: async (tokenResponse) => {
-            if (tokenResponse?.access_token) {
-              try {
-                const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                  headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-                });
-                if (userRes.ok) {
-                  const userInfo = await userRes.json();
-                  if (userInfo?.email) {
-                    await completeSignIn(userInfo.email, userInfo.name, userInfo.picture);
-                    return;
-                  }
-                }
-              } catch (e) {
-                console.warn('Google userinfo fetch fallback:', e);
-              }
-            }
-            setIsSubmitting(false);
-          },
-          error_callback: () => {
-            setIsSubmitting(false);
-          },
-        });
-        client.requestAccessToken({ prompt: 'select_account' });
-        return;
-      } catch (err) {
-        console.warn('Google OAuth initiation error:', err);
-      }
-    }
-
-    // 3. Fallback: prompt the user to enable Google in Supabase Dashboard
-    setIsSubmitting(false);
-    showAlert({
-      title: 'Enable Google in Supabase Providers',
-      message:
-        'To allow Google to open the login screen and select your accounts:\n\n' +
-        '1. Go to your Supabase Dashboard ➔ Authentication ➔ Providers (left sidebar)\n' +
-        '2. Click on "Google" and toggle it ON\n' +
-        '3. Enter your Google Client ID and Secret and click Save\n\n' +
-        'Once enabled, clicking "Sign in with Google" will open Google\'s account chooser screen!',
-      type: 'info',
-    });
-  };
-
-  const completeSignIn = async (emailToUse, nameToUse, avatarToUse) => {
-    setIsSubmitting(true);
-    const chosenEmail = (emailToUse || '').trim();
-
-    if (!chosenEmail || !chosenEmail.includes('@')) {
-      setIsSubmitting(false);
+  const handleSignIn = async (e) => {
+    if (e) e.preventDefault();
+    if (!email.trim() || !password) {
+      setStatusNotice({ type: 'error', message: 'Please enter both your email address and password.' });
       return;
     }
 
-    const chosenName = nameToUse || chosenEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-    const cleanUserId = `google:${chosenEmail.toLowerCase().replace(/[^a-z0-9_]/g, '_')}`;
-
-    let profileData = {
-      user_id: cleanUserId,
-      email: chosenEmail,
-      name: chosenName,
-      avatar: avatarToUse || `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanUserId}`,
-      tier: 'standard',
-      mode: 'authenticated',
-      max_sessions: 100,
-      authenticated_at: new Date().toISOString(),
-    };
+    setIsSubmitting(true);
+    setStatusNotice(null);
 
     try {
-      const res = await fetch('/api/auth/google', {
+      const res = await fetch('/api/auth/supabase', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: chosenEmail,
-          name: chosenName,
-          avatar: profileData.avatar,
+          action: 'login',
+          email: email.trim(),
+          password,
         }),
       });
-      if (res.ok) {
-        const serverData = await res.json();
-        profileData = { ...profileData, ...serverData };
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setStatusNotice({
+          type: 'error',
+          message: data.error || 'Failed to sign in. Please verify your credentials.',
+        });
+        setIsSubmitting(false);
+        return;
       }
+
+      const profileData = {
+        user_id: data.user_id,
+        supabase_auth_id: data.supabase_auth_id,
+        email: data.email,
+        name: data.name,
+        avatar: data.avatar,
+        tier: data.tier || 'standard',
+        mode: 'authenticated',
+        max_sessions: 100,
+        authenticated_at: new Date().toISOString(),
+      };
+
+      if (data.access_token) {
+        localStorage.setItem('metta_supabase_access_token', data.access_token);
+      }
+      localStorage.setItem('metta_user_profile', JSON.stringify(profileData));
+      localStorage.setItem('metta_identity_mode', 'authenticated');
+
+      onLogin(profileData);
+      onClose();
+
+      showToast({
+        title: 'Welcome Back',
+        message: `Signed in as ${profileData.name} (${profileData.email}). Up to 100 reflection sessions enabled.`,
+        type: 'success',
+      });
     } catch (err) {
-      console.info('Backend auth endpoint unreachable; continuing with sovereign client session storage:', err);
+      setStatusNotice({
+        type: 'error',
+        message: 'Network error connecting to Supabase authentication: ' + err.message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSignUp = async (e) => {
+    if (e) e.preventDefault();
+    if (!email.trim() || !password) {
+      setStatusNotice({ type: 'error', message: 'Email and password are required to create an account.' });
+      return;
+    }
+    if (password.length < 6) {
+      setStatusNotice({ type: 'error', message: 'Password must be at least 6 characters long.' });
+      return;
     }
 
-    localStorage.setItem('metta_user_profile', JSON.stringify(profileData));
-    localStorage.setItem('metta_identity_mode', 'authenticated');
-    localStorage.setItem('metta_last_google_email', chosenEmail);
+    setIsSubmitting(true);
+    setStatusNotice(null);
 
-    onLogin(profileData);
-    onClose();
+    try {
+      const res = await fetch('/api/auth/supabase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'signup',
+          email: email.trim(),
+          password,
+          name: name.trim() || email.split('@')[0],
+        }),
+      });
 
-    showToast({
-      title: 'Google Account Connected',
-      message: `Signed in as ${profileData.name} (${profileData.email}). Up to 100 reflection sessions enabled.`,
-      type: 'success',
-    });
-    setIsSubmitting(false);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setStatusNotice({
+          type: 'error',
+          message: data.error || 'Unable to create account. Please try again.',
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (data.confirmed) {
+        // Auto-confirmed or existing confirmed session
+        const profileData = {
+          user_id: data.user_id,
+          supabase_auth_id: data.supabase_auth_id,
+          email: data.email,
+          name: data.name,
+          avatar: data.avatar,
+          tier: 'standard',
+          mode: 'authenticated',
+          max_sessions: 100,
+          authenticated_at: new Date().toISOString(),
+        };
+
+        if (data.access_token) {
+          localStorage.setItem('metta_supabase_access_token', data.access_token);
+        }
+        localStorage.setItem('metta_user_profile', JSON.stringify(profileData));
+        localStorage.setItem('metta_identity_mode', 'authenticated');
+
+        onLogin(profileData);
+        onClose();
+
+        showToast({
+          title: 'Account Created',
+          message: `Welcome, ${profileData.name}! Your sovereign reflection journey is ready.`,
+          type: 'success',
+        });
+      } else {
+        // Verification email sent via Supabase
+        setStatusNotice({
+          type: 'success',
+          message:
+            data.message ||
+            'Verification email sent! Please check your inbox (and spam folder) to confirm your account, then sign in.',
+        });
+      }
+    } catch (err) {
+      setStatusNotice({
+        type: 'error',
+        message: 'Error during signup: ' + err.message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim() || !email.includes('@')) {
+      setStatusNotice({
+        type: 'error',
+        message: 'Please enter your email address above to receive a password reset link.',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setStatusNotice(null);
+
+    try {
+      const res = await fetch('/api/auth/supabase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'recover',
+          email: email.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setStatusNotice({ type: 'error', message: data.error || 'Failed to send recovery link.' });
+      } else {
+        setStatusNotice({
+          type: 'info',
+          message: 'Password reset link sent! Check your inbox to choose a new password.',
+        });
+      }
+    } catch (err) {
+      setStatusNotice({ type: 'error', message: 'Recovery request failed: ' + err.message });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleGuestChoice = () => {
@@ -177,7 +257,9 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
             </div>
             <div>
               <h3 className="text-sm font-semibold text-[#f0f2f5]">Session & Account Settings</h3>
-              <p className="text-[11px] text-[#7d8799]">Choose how Metta handles your reflection history and session context</p>
+              <p className="text-[11px] text-[#7d8799]">
+                Choose how Metta handles your reflection history and session context
+              </p>
             </div>
           </div>
           <button
@@ -189,27 +271,33 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-5">
           {/* Current Status Pill */}
           <div className="p-3.5 rounded-xl bg-[#141824] border border-[#21293a] flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${
-                currentMode === 'authenticated'
-                  ? 'bg-[#1b3829] text-[#7ec69d] border border-[#2e5d42]'
-                  : 'bg-[#1c2230] text-[#939db2] border border-[#2d374d]'
-              }`}>
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${
+                  currentMode === 'authenticated'
+                    ? 'bg-[#1b3829] text-[#7ec69d] border border-[#2e5d42]'
+                    : 'bg-[#1c2230] text-[#939db2] border border-[#2d374d]'
+                }`}
+              >
                 {currentMode === 'authenticated' ? '🌿' : '👤'}
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-semibold text-[#f0f2f5]">
-                    {currentMode === 'authenticated' ? userProfile?.name || 'Authenticated User' : 'Guest Mode'}
+                    {currentMode === 'authenticated'
+                      ? userProfile?.name || 'Authenticated User'
+                      : 'Guest Mode'}
                   </span>
-                  <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-medium ${
-                    currentMode === 'authenticated'
-                      ? 'bg-[#172c20] text-[#7ec69d] border border-[#2d5940]'
-                      : 'bg-[#1c2331] text-[#9da6b9] border border-[#2e3a50]'
-                  }`}>
+                  <span
+                    className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-medium ${
+                      currentMode === 'authenticated'
+                        ? 'bg-[#172c20] text-[#7ec69d] border border-[#2d5940]'
+                        : 'bg-[#1c2331] text-[#9da6b9] border border-[#2e3a50]'
+                    }`}
+                  >
                     {currentMode === 'authenticated' ? 'Account Active' : 'Guest Mode'}
                   </span>
                 </div>
@@ -233,12 +321,14 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
           </div>
 
           {/* Option 1: Guest Mode */}
-          <div className={`p-4 rounded-xl border transition ${
-            currentMode === 'guest'
-              ? 'bg-[#121926]/40 border-[#324564]'
-              : 'bg-[#11141c] border-[#1d222e] hover:border-[#2a3449]'
-          }`}>
-            <div className="flex items-start justify-between gap-3 mb-2">
+          <div
+            className={`p-4 rounded-xl border transition ${
+              currentMode === 'guest'
+                ? 'bg-[#121926]/40 border-[#324564]'
+                : 'bg-[#11141c] border-[#1d222e] hover:border-[#2a3449]'
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3 mb-1.5">
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-[#7592b5]" />
                 <h4 className="text-xs font-semibold text-[#f0f2f5]">Guest Mode (Private & Ephemeral)</h4>
@@ -250,28 +340,32 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
               )}
             </div>
             <p className="text-[11px] text-[#808a9d] leading-relaxed mb-3">
-              Completely private and ephemeral. Metta retains zero history, patterns, or data across sessions. Ideal for one-off decision reviews.
+              Completely private and ephemeral. Metta retains zero history, patterns, or data across sessions.
             </p>
             {currentMode !== 'guest' && (
               <button
                 onClick={handleGuestChoice}
-                className="w-full py-2 rounded-lg text-xs font-medium bg-[#161d2a] hover:bg-[#1e2738] text-[#c4cddc] border border-[#263247] transition cursor-pointer"
+                className="w-full py-1.5 rounded-lg text-xs font-medium bg-[#161d2a] hover:bg-[#1e2738] text-[#c4cddc] border border-[#263247] transition cursor-pointer"
               >
                 Switch to Guest Mode
               </button>
             )}
           </div>
 
-          {/* Option 2: Account Login (Save Reflection History) */}
-          <div className={`p-4 rounded-xl border transition ${
-            currentMode === 'authenticated'
-              ? 'bg-[#13231a]/40 border-[#2b533b]'
-              : 'bg-[#11141c] border-[#1d222e] hover:border-[#2a4635]'
-          }`}>
+          {/* Option 2: Supabase Email & Password Authentication */}
+          <div
+            className={`p-4 rounded-xl border transition ${
+              currentMode === 'authenticated'
+                ? 'bg-[#13231a]/40 border-[#2b533b]'
+                : 'bg-[#11141c] border-[#1d222e] hover:border-[#2a4635]'
+            }`}
+          >
             <div className="flex items-start justify-between gap-3 mb-2">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[#7ec69d]" />
-                <h4 className="text-xs font-semibold text-[#f0f2f5]">Account Login (Save Reflection History)</h4>
+                <h4 className="text-xs font-semibold text-[#f0f2f5]">
+                  Supabase Account (Save Reflection History)
+                </h4>
               </div>
               {currentMode === 'authenticated' && (
                 <span className="text-[10px] text-[#7ec69d] font-medium flex items-center gap-1">
@@ -279,34 +373,155 @@ export default function AuthModal({ isOpen, onClose, currentMode, userProfile, o
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-[#808a9d] leading-relaxed mb-3.5">
-              Keeps a private map of recurring themes (e.g. prioritization, sensitive communication, decision risks) and effective resolution strategies, accessible only to you.
+            <p className="text-[11px] text-[#808a9d] leading-relaxed mb-3">
+              Stores your recurring decision themes, personal milestones, and up to 100 reflection sessions securely in your Supabase database.
             </p>
 
-            <div className="space-y-3">
-              {/* Only the clean 1-Click Google Sign-In button */}
+            {/* Tab Switcher: Sign In vs Sign Up */}
+            <div className="flex items-center p-1 rounded-xl bg-[#090b0f] border border-[#1a202c] mb-3.5">
               <button
                 type="button"
-                onClick={handleGoogleSignIn}
-                disabled={isSubmitting}
-                className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold bg-white hover:bg-[#f6f8fa] text-[#1f2328] border border-[#d0d7de] flex items-center justify-center gap-2.5 transition shadow-sm active:scale-[0.99] disabled:opacity-70 cursor-pointer"
+                onClick={() => {
+                  setAuthTab('signin');
+                  setStatusNotice(null);
+                }}
+                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition ${
+                  authTab === 'signin'
+                    ? 'bg-[#1b2b22] text-[#8dd4ac] shadow-sm border border-[#2b4d3a]'
+                    : 'text-[#7e899b] hover:text-[#e4e7ee]'
+                }`}
               >
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                </svg>
-                <span>{isSubmitting ? 'Opening Google Sign-In...' : 'Sign in with Google'}</span>
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthTab('signup');
+                  setStatusNotice(null);
+                }}
+                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition ${
+                  authTab === 'signup'
+                    ? 'bg-[#1b2b22] text-[#8dd4ac] shadow-sm border border-[#2b4d3a]'
+                    : 'text-[#7e899b] hover:text-[#e4e7ee]'
+                }`}
+              >
+                Sign Up (New Account)
               </button>
             </div>
+
+            {/* Notice / Alert Card */}
+            {statusNotice && (
+              <div
+                className={`mb-3 p-3 rounded-xl border text-xs flex items-start gap-2 animate-fade-in ${
+                  statusNotice.type === 'error'
+                    ? 'bg-rose-950/60 border-rose-800/80 text-rose-200'
+                    : statusNotice.type === 'success'
+                    ? 'bg-emerald-950/60 border-emerald-800/80 text-emerald-200'
+                    : 'bg-[#13202e] border-[#254261] text-[#93c5fd]'
+                }`}
+              >
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{statusNotice.message}</span>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={authTab === 'signin' ? handleSignIn : handleSignUp} className="space-y-3">
+              {authTab === 'signup' && (
+                <div>
+                  <label className="text-[10px] text-[#8e98aa] block font-medium mb-1">
+                    Your Name or Handle:
+                  </label>
+                  <div className="relative">
+                    <User className="w-3.5 h-3.5 text-[#5e6678] absolute left-3 top-2.5" />
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="e.g. Guru"
+                      className="w-full bg-[#0c0e14] border border-[#212736] focus:border-[#385c49] focus:ring-1 focus:ring-[#385c49] rounded-lg pl-8.5 pr-3 py-1.5 text-xs text-[#f0f2f5] placeholder-[#555d6e] focus:outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="text-[10px] text-[#8e98aa] block font-medium mb-1">Email Address:</label>
+                <div className="relative">
+                  <Mail className="w-3.5 h-3.5 text-[#5e6678] absolute left-3 top-2.5" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="name@example.com"
+                    className="w-full bg-[#0c0e14] border border-[#212736] focus:border-[#385c49] focus:ring-1 focus:ring-[#385c49] rounded-lg pl-8.5 pr-3 py-1.5 text-xs text-[#f0f2f5] placeholder-[#555d6e] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[10px] text-[#8e98aa] block font-medium">Password:</label>
+                  {authTab === 'signin' && (
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      disabled={isSubmitting}
+                      className="text-[10px] text-[#717b8f] hover:text-[#95d5b2] transition underline underline-offset-2"
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <Lock className="w-3.5 h-3.5 text-[#5e6678] absolute left-3 top-2.5" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={authTab === 'signup' ? 'Minimum 6 characters' : 'Enter your password'}
+                    className="w-full bg-[#0c0e14] border border-[#212736] focus:border-[#385c49] focus:ring-1 focus:ring-[#385c49] rounded-lg pl-8.5 pr-9 py-1.5 text-xs text-[#f0f2f5] placeholder-[#555d6e] focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2.5 top-2.5 text-[#5e6678] hover:text-[#a5b2c7] transition"
+                  >
+                    {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold bg-gradient-to-r from-[#1c392b] to-[#254b38] hover:from-[#234736] hover:to-[#2e5d46] text-[#bbf7d0] border border-[#3b7454] flex items-center justify-center gap-2 transition shadow-md cursor-pointer disabled:opacity-60"
+              >
+                {isSubmitting ? (
+                  <div className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                ) : authTab === 'signin' ? (
+                  <>
+                    <LogIn className="w-3.5 h-3.5" />
+                    <span>Sign In with Supabase</span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>Create Account with Verification</span>
+                  </>
+                )}
+              </button>
+            </form>
           </div>
 
           {/* Privacy & Data Sovereignty */}
           <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-[#0e1118] border border-[#1b202e] text-[11px] text-[#6d778a]">
             <ShieldCheck className="w-4 h-4 text-[#5e9e7b] shrink-0 mt-0.5" />
             <p>
-              <strong>Data Sovereignty:</strong> You maintain complete ownership over your data. No information is sold or used for model training, and you may delete your saved data with a single click at any time.
+              <strong>Data Sovereignty:</strong> You maintain complete ownership over your data. All records
+              are safely kept in your private Supabase storage and can be deleted at any time.
             </p>
           </div>
         </div>
