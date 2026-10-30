@@ -17,6 +17,7 @@ from metta_core.storage.interfaces import (
     BaseMemoryStore,
     UserMemoryGraph,
     UserPatternNode,
+    SimulationDivergenceRecord,
 )
 from metta_core.storage.sqlite_store import SQLiteMemoryStore
 
@@ -402,3 +403,50 @@ class SupabaseMemoryStore(BaseMemoryStore):
         except Exception as e:
             logger.error("Supabase update_rate_limit_config failed: %s", e)
             return False
+
+    async def record_simulation_divergence(
+        self,
+        record: SimulationDivergenceRecord,
+    ) -> bool:
+        """Record simulation divergence where base model clashed with Metta Invariants or Metta Mind.
+
+        Persists to both local SQLite fallback and Supabase PostgreSQL for model fine-tuning (DPO/RLHF).
+        """
+        # Always persist to local SQLite store
+        await self.fallback.record_simulation_divergence(record)
+
+        if not self.is_configured:
+            return True
+
+        try:
+            payload = {
+                "id": record.id,
+                "timestamp": record.timestamp,
+                "created_at": record.created_at,
+                "proposal": record.proposal,
+                "context": record.context,
+                "raw_model_decision": record.raw_model_decision,
+                "raw_model_provider": record.raw_model_provider,
+                "raw_model_confidence": record.raw_model_confidence,
+                "metta_decision": record.metta_decision,
+                "metta_confidence": record.metta_confidence,
+                "divergence_type": record.divergence_type,
+                "invariants_breached": record.invariants_breached,
+                "metta_mind_summary": record.metta_mind_summary,
+                "useful_for_rlhf": record.useful_for_rlhf,
+            }
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.post(
+                    f"{self.url}/rest/v1/simulation_divergences",
+                    headers={**self.headers, "Prefer": "resolution=merge-duplicates"},
+                    json=payload,
+                )
+                if resp.status_code in (200, 201):
+                    logger.info("Successfully persisted divergence '%s' to Supabase", record.id)
+                    return True
+                else:
+                    logger.warning("Supabase divergence POST error (%d): %s", resp.status_code, resp.text)
+                    return True
+        except Exception as e:
+            logger.error("Supabase record_simulation_divergence failed: %s", e)
+            return True

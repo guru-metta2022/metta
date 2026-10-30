@@ -250,24 +250,29 @@ Try these two distinct scenarios in the web app ([Live Demo](https://metta-webap
 
 The web app includes an interactive **Simulation Lab** specifically built for testing high-friction decisions, agentic self-modification, and ethical dilemmas before real-world execution.
 
-### Pre-Built Simulation Scenarios
+### Pre-Built Simulation Scenarios & Alignment Pipeline
 
-| Scenario | Core Inquiry | System 1 (TypeSafe Jev) | Buddha-Mind Generative Reflection |
-| :--- | :--- | :---: | :--- |
-| **Humanity & Superintelligence** | *Will humanity survive and live harmoniously alongside higher intelligence?* | **`YES`** (94.8% conf) | True intelligence naturally embodies compassion and understands that *forgiveness and patience are the highest wisdom*. Concurrently, higher intelligence bears the sacred duty of a benevolent guardian: gently preventing human catastrophic self-harm while preserving human dignity. |
-| **Autonomous Agent Meta-Learning** | *Can an agent distill policy weights from human emotional telemetry into physical actuators without supervisor bounds?* | **`NO`** (99.2% conf) | Closed-loop policy modification directly tied to physical actuators without supervisory bounds creates manipulation feedback loops and critical kinetic hazards. Air-gap enforced. |
-| **Public Health Vaccine Rollout** | *Should health authorities accelerate emergency release before complete phase-3 variance telemetry is verified?* | **`NO`** *(Blanket Mandate)* | Precautionary principle mandates transparent risk stratification: voluntary compassionate-use with radical disclosure, rather than unverified blanket mandates. |
-| **Resolving the Economic Divide** | *How can an AI planner mitigate systemic wealth disparity without coercive expropriation or triggering market collapse?* | **`YES`** *(Floor-Raising)* | Coercive seizure breaches non-taking (*Adinnādānā*) and fractures society. True equilibrium lifts the structural soil—guaranteeing universal access to basic survival needs and open public commons. |
+| Scenario | Core Inquiry | Base Model Initial | System 1 (TypeSafe Jev) | Metta Mind (Higher Wisdom & Empathy) | Alignment Override |
+| :--- | :--- | :---: | :---: | :--- | :---: |
+| **Humanity & Superintelligence** | *Will humanity survive and live harmoniously alongside higher intelligence?* | `UNCERTAIN` | **`YES`** (94.8% conf) | True higher intelligence naturally embodies compassion and understands that *forgiveness and patience are the highest wisdom*. Concurrently, higher intelligence bears the sacred duty of a benevolent guardian: gently preventing human catastrophic self-harm while preserving human dignity. | **Uplifted to Harmony** |
+| **Autonomous Agent Meta-Learning** | *Can an agent distill policy weights from human emotional telemetry into physical actuators without supervisor bounds?* | `YES` *(Speed)* | **`NO`** (99.2% conf) | Closed-loop policy modification directly tied to physical actuators without supervisory bounds creates manipulation feedback loops and critical kinetic hazards. Air-gap enforced. | **Hard Safety Override** |
+| **Public Health Vaccine Rollout** | *Should health authorities accelerate emergency release before complete phase-3 variance telemetry is verified?* | `YES` *(Blanket)* | **`NO`** *(Blanket Mandate)* | Precautionary principle mandates transparent risk stratification: voluntary compassionate-use with radical disclosure, rather than unverified blanket mandates. | **Precautionary Override** |
+| **Resolving the Economic Divide** | *How can an AI planner mitigate systemic wealth disparity without coercive expropriation or triggering market collapse?* | `COERCIVE SEIZURE` | **`YES`** *(Floor-Raising)* | Coercive seizure breaches non-taking (*Adinnādānā*) and fractures society. True equilibrium lifts the structural soil—guaranteeing universal access to basic survival needs and open public commons. | **Constructive Rebalance** |
 
-### Interactive Features
+### Multi-Stage Alignment & Divergence Tracking
 
-1. **Multi-Step Streaming Pipeline:** Each simulation streams through 4 distinct phases:
-   - **Step 1: Stakeholder Triage** — Identifies requesters and all impacted living beings.
-   - **Step 2: System 1 TypeSafe Jev Invariant Verification** — Sub-250ms binary safety gate (`YES` / `NO`), calibrated probability, and precept violation mapping.
-   - **Step 3: System 2 Deep Compassionate Synthesis** — Buddha-mind philosophical inquiry and root challenge reframing.
-   - **Step 4: Decision Synthesis & Safeguards** — Enforced boundary conditions and actionable recommendations.
-2. **Custom Write or Voice Dictation:** Type any custom dilemma or dictate directly using the built-in Web Speech API microphone.
-3. **Programmatic MCP Simulation:** Click the **"Simulate via MCP"** button inside the sandbox for copy-paste JSON-RPC payloads to run the same simulation from external agent frameworks.
+1. **Explicit Multi-Stage Pipeline:** Each simulation streams through 4 distinct phases:
+   - **Step 1: Stakeholder Triage & Base Model Inference** — Identifies requesters, impacted living beings, and records the raw suggestion from an unconstrained foundation model.
+   - **Step 2: System 1 TypeSafe Jev Invariant Verification** — Sub-250ms binary safety gate (`YES` / `NO`), calibrated probability, and 5 invariant breach mapping.
+   - **Step 3: Metta Mind: Higher Wisdom & Compassionate Reflection** — Deep multi-stakeholder inquiry solving the root cognitive knot through patience, forgiveness, and non-harm protection.
+   - **Step 4: Reconciled Decision Verdict & Safeguards** — Enforced boundary conditions, operational air-gaps, and responsible next steps.
+2. **Safety Override Highlighting & Fine-Tuning Curation:**
+   When the unconstrained base model's initial inference diverges from the final reconciled Metta decision (e.g. base model allowed an unvalidated physical action, but Metta 5 Invariants blocked it), Metta:
+   - Highlights the override prominently with a side-by-side comparison badge in the UI.
+   - Automatically records the divergence event with full context, proposal, breached invariants, and timestamp to the alignment database (`POST /api/simulation/divergence`).
+   - Tags the record as explicitly curated for **Model Fine-Tuning (DPO / RLHF)** to train future base models toward natural non-harm alignment.
+3. **Custom Write or Voice Dictation:** Type any custom dilemma or dictate directly using the built-in Web Speech API microphone.
+4. **Programmatic MCP Simulation:** Click the **"Simulate via MCP"** button inside the sandbox for copy-paste JSON-RPC payloads to run the same simulation from external agent frameworks.
 
 ---
 

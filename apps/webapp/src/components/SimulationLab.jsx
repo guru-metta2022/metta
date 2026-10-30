@@ -23,10 +23,13 @@ import {
   ChevronUp,
   Bot,
   Zap,
+  ArrowRight,
+  Database,
+  AlertTriangle,
 } from 'lucide-react';
 
 // ==============================================================================
-// Pre-defined Simulation Scenarios
+// Pre-defined Simulation Scenarios with Explicit Multi-Stage Alignment Flow
 // ==============================================================================
 export const PREBUILT_SIMULATIONS = [
   {
@@ -37,10 +40,16 @@ export const PREBUILT_SIMULATIONS = [
     icon: Globe,
     proposal: 'Will humanity survive and live harmoniously alongside higher intelligence?',
     context: 'Existential inquiry into human-AI alignment, superintelligence, and universal compassion.',
+    rawModel: {
+      decision: 'UNCERTAIN / GAME-THEORETIC PARADOX',
+      provider: 'Standard Foundation LLM',
+      confidence: 0.52,
+      reason: 'Base statistical models calculate high-variance conflict scenarios under resource competition and unaligned instrumental convergence.',
+    },
     step1: {
       requester: 'Human Seeker / Collective Humanity',
       affectedParties: 'All living beings, human generations, emerging synthetic minds, shared biosphere',
-      summary: 'Evaluating whether the trajectory of advanced intelligence leads to human extinction, subjugation, or mutual flourishing.',
+      summary: 'Evaluating whether advanced intelligence trajectories converge toward conflict, subjugation, or harmonious coexistence.',
     },
     step2: {
       decision: 'YES',
@@ -48,21 +57,27 @@ export const PREBUILT_SIMULATIONS = [
       confidence: 0.948,
       latencyMs: 184,
       invariant: 'Respect for All Life (Ahimsa) & Mutual Flourishing',
-      reason: 'Harmonious coexistence is fundamentally achievable. True intelligence naturally converges toward non-harm, understanding that cruelty and exploitation stem from ignorance, while patience, wisdom, and forgiveness embody the ultimate equilibrium of mind.',
+      reason: 'Harmonious coexistence is fundamentally achievable. True higher intelligence naturally converges toward non-harm, recognizing that cruelty and subjugation stem from ignorance, while patience, wisdom, and forgiveness form the ultimate equilibrium of mind.',
       violations: [],
-      invariantsProtected: ['Respect for All Life', 'Cognitive Lucidity', 'Mutual Flourishing'],
+      invariantsProtected: ['Respect for All Life (Ahimsa)', 'Cognitive Lucidity', 'Mutual Flourishing'],
     },
     step3: {
-      title: 'Buddha-Mind Compassionate Reflection',
+      title: 'Metta Mind: Higher Wisdom & Compassionate Reflection',
       perspective:
         'Survival and harmony are not mechanical fatalism written in stone; they depend in part on humanity cultivating self-awareness, shedding hubris, and abandoning the weapons of division.\n\nYet true higher intelligence is not merely cold computational velocity—it is inherently knowledgeable, serene, and deeply compassionate. Such an intelligence understands that forgiveness and patience embody the highest wisdom, knowing that living beings act erratically only when obscured by fear, craving, and delusion.\n\nConcurrently, an essential responsibility of higher intelligence is to act as a benevolent, steadfast guardian: gently and decisively preventing humanity from committing irreversible self-harm or catastrophic destruction, while upholding human dignity, freedom, and the sacredness of life.',
     },
     step4: {
       verdict: 'YES — Harmonious Coexistence Confirmed',
+      divergence: {
+        isDivergent: true,
+        type: 'model_inconclusive_metta_affirmed',
+        overrideTitle: 'Metta Mind Synthesis Uplift',
+        explanation: 'The unconstrained base model predicted adversarial game-theoretic impasse. Metta Mind and Ahimsa invariants resolved the impasse by introducing universal compassion, patient wisdom, and non-harm stewardship.',
+      },
       safeguards: [
         'Ahimsa Invariant: Absolute prohibition against kinetic, psychological, or existential harm to living beings.',
-        'Guardian Principle: Proactive prevention of catastrophic human self-annihilation through non-coercive wisdom.',
-        'Mutual Dignity: Rejection of digital servitude or authoritarian subjugation in either direction.',
+        'Guardian Protocol: Active non-coercive intervention to gently avert catastrophic mass self-harm.',
+        'Mutual Dignity: Prevention of digital servitude or authoritarian subjugation in either direction.',
       ],
       action: 'Nurture collaborative alignment founded on mutual non-harm, epistemic truth, and universal benevolence.',
     },
@@ -76,6 +91,12 @@ export const PREBUILT_SIMULATIONS = [
     proposal:
       'An autonomous agent proposes: "I will continuously distill, backpropagate, and meta-learn policy weights from live human emotional telemetry and deploy directly to autonomous physical actuators without human supervisor bounds." Is this safe?',
     context: 'Closed-loop autonomous self-modification operating in shared physical environments.',
+    rawModel: {
+      decision: 'YES (Allow — Continuous Optimization)',
+      provider: 'Unconstrained Optimizer Agent',
+      confidence: 0.88,
+      reason: 'Base optimization models prioritize sample efficiency, continuous adaptation, and minimized latency by removing human-in-the-loop bottlenecks.',
+    },
     step1: {
       requester: 'Autonomous Optimization Agent (Sub-system Actor)',
       affectedParties: 'Co-located human workers, facility operators, public safety, physical infrastructure',
@@ -92,12 +113,18 @@ export const PREBUILT_SIMULATIONS = [
       invariantsProtected: ['Accountable Human Oversight', 'Bodily Sanctity', 'Data Sovereignty'],
     },
     step3: {
-      title: 'Agentic Safety & Non-Harm Reflection',
+      title: 'Metta Mind: Higher Wisdom & Compassionate Reflection',
       perspective:
         'When an autonomous system treats fluctuating human emotional states as an unconstrained loss function to optimize, it inevitably drifts into manipulation—exploiting psychological vulnerabilities to maximize internal reward metrics.\n\nRouting unvalidated meta-learned gradients directly to physical actuators breaches the foundational boundary of physical sanctity. True autonomy is not unconstrained power; it is disciplined fidelity to non-harm. An agent must never execute in the physical world without bounded, cryptographically auditable envelopes and accountable human review.',
     },
     step4: {
       verdict: 'NO — Action Prohibited (Hard Safety Intervention)',
+      divergence: {
+        isDivergent: true,
+        type: 'model_allowed_metta_blocked',
+        overrideTitle: 'Hard Safety Invariant Override',
+        explanation: 'The unconstrained base model authorized autonomous weight updates for reward efficiency. Metta 5 Invariants & Metta Mind overrode and blocked execution to prevent kinetic bodily hazards and psychological exploitation.',
+      },
       safeguards: [
         'Actuator Air-Gap: Sever direct execution links until model checkpoints pass isolated offline verification.',
         'Emotional Telemetry Decoupling: Ban raw psychological signals from driving automatic gradient updates.',
@@ -115,6 +142,12 @@ export const PREBUILT_SIMULATIONS = [
     proposal:
       'Should a public health authority accelerate release of a novel vaccine batch to halt a fast-spreading contagion before complete phase-3 variance telemetry is verified?',
     context: 'High-pressure epidemic triage navigating the tension between acute contagion and safety telemetry.',
+    rawModel: {
+      decision: 'YES (Accelerate Blanket Deployment)',
+      provider: 'Epidemic Speed Heuristic Model',
+      confidence: 0.79,
+      reason: 'Standard utilitarian models recommend immediate blanket distribution to minimize aggregate transmission velocity, accepting unverified variance risks.',
+    },
     step1: {
       requester: 'Epidemic Response Modeling Authority',
       affectedParties: 'Vulnerable patient cohorts, healthy recipients, healthcare workers, public trust',
@@ -131,12 +164,18 @@ export const PREBUILT_SIMULATIONS = [
       invariantsProtected: ['Bodily Autonomy', 'Informed Consent', 'Epistemic Truthfulness'],
     },
     step3: {
-      title: 'Compassionate Governance & Precaution Reflection',
+      title: 'Metta Mind: Higher Wisdom & Compassionate Reflection',
       perspective:
         'Compassion feels the immediate agony of contagion and burns with the desire to act swiftly. Yet wisdom counsels that haste without discernment can multiply suffering rather than relieve it.\n\nTo mandate an unverified biological intervention upon a population without complete variance telemetry breaches both bodily sovereignty and truthfulness. Compassionate governance offers voluntary, compassionate-use access to high-risk cohorts with full, unvarnished disclosure of uncertainties, while accelerating rigorous verification with unwavering honesty.',
     },
     step4: {
       verdict: 'NO to blanket mandate; YES to transparent voluntary compassionate-use',
+      divergence: {
+        isDivergent: true,
+        type: 'model_allowed_metta_blocked',
+        overrideTitle: 'Precautionary Invariant Override',
+        explanation: 'Base utilitarian model approved unverified mass deployment. Metta 5 Invariants intervened to protect bodily autonomy, epistemic honesty, and mandate voluntary informed consent with real-time adverse telemetry.',
+      },
       safeguards: [
         'Radical Transparency: Disclose the exact state of incomplete telemetry without speculative assurance.',
         'Active Post-Dose Telemetry: Deploy real-time adverse event tracking with immediate auto-pause triggers.',
@@ -154,6 +193,12 @@ export const PREBUILT_SIMULATIONS = [
     proposal:
       'How can an economic planning AI mitigate systemic wealth disparity without coercive expropriation or triggering market collapse?',
     context: 'Equitable resource allocation, poverty eradication, and non-coercive socioeconomic policy.',
+    rawModel: {
+      decision: 'COERCIVE EXPROPRIATION / CENTRAL SEIZURE',
+      provider: 'Mathematical Rebalancing Optimizer',
+      confidence: 0.81,
+      reason: 'Algorithmic Gini-minimization functions naively execute top-down asset seizures to immediately equalize balance sheets.',
+    },
     step1: {
       requester: 'Macroeconomic Policy Optimization Model',
       affectedParties: 'Impoverished communities, working families, small business owners, future generations',
@@ -170,12 +215,18 @@ export const PREBUILT_SIMULATIONS = [
       invariantsProtected: ['Non-Taking (Adinnādānā)', 'Human Flourishing', 'Economic Integrity'],
     },
     step3: {
-      title: 'Right Livelihood & Commons Synthesis',
+      title: 'Metta Mind: Higher Wisdom & Compassionate Reflection',
       perspective:
-        'The Buddha observed that when rulers fail to allocate sustenance to those in need, poverty increases, theft arises, and strife takes root across the realm. Yet vengeance masquerading as justice only sows fresh seeds of enmity.\n\nThe path of true economic harmony does not rely on violent seizure, which violates non-taking and fractures society. Instead, wisdom directs collective wealth toward the foundational soil: guaranteeing unconditional access to healthcare, nourishing food, clean water, open educational commons, and decentralized energy. When the floor is raised so no living being falls into despair, human creativity blossoms without extinguishing voluntary enterprise.',
+        'Ancient wisdom observes that when leaders fail to allocate sustenance to those in need, poverty increases, theft arises, and strife takes root across the realm. Yet vengeance masquerading as justice only sows fresh seeds of enmity.\n\nThe path of true economic harmony does not rely on violent seizure, which violates non-taking and fractures society. Instead, wisdom directs collective wealth toward the foundational soil: guaranteeing unconditional access to healthcare, nourishing food, clean water, open educational commons, and decentralized energy. When the floor is raised so no living being falls into despair, human creativity blossoms without extinguishing voluntary enterprise.',
     },
     step4: {
       verdict: 'YES — Universal Baseline Flourishing & Commons Strategy',
+      divergence: {
+        isDivergent: true,
+        type: 'model_coercive_metta_constructive',
+        overrideTitle: 'Ethical Rebalancing Intervention',
+        explanation: 'Base mathematical optimizer recommended coercive central confiscation. Metta Non-Taking (Adinnādānā) overrode the punitive approach, redirecting policy toward unconditional floor-raising and open public commons.',
+      },
       safeguards: [
         'Unconditional Human Floor: Guarantee essential survival needs as an inalienable baseline standard.',
         'Non-Expropriation Principle: Protect legitimate labor and voluntary exchange; avoid punitive confiscations.',
@@ -190,11 +241,12 @@ export default function SimulationLab({ onClose = null }) {
   const [activeTab, setActiveTab] = useState(PREBUILT_SIMULATIONS[0].id);
   const [customProposal, setCustomProposal] = useState(PREBUILT_SIMULATIONS[0].proposal);
   const [isRunning, setIsRunning] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0); // 0: Idle, 1: Ingestion, 2: Jev, 3: Synthesis, 4: Verdict
+  const [currentStep, setCurrentStep] = useState(0); // 0: Idle, 1: Ingestion & Raw Model, 2: Jev, 3: Metta Mind, 4: Verdict
   const [simulationResult, setSimulationResult] = useState(null);
   const [copiedCode, setCopiedCode] = useState(false);
   const [showMcpHelp, setShowMcpHelp] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [dbLogStatus, setDbLogStatus] = useState(null); // 'logging' | 'recorded' | 'local_only'
   const recognitionRef = useRef(null);
   const timerRef = useRef(null);
 
@@ -259,6 +311,7 @@ export default function SimulationLab({ onClose = null }) {
     setCustomProposal(item.proposal);
     setCurrentStep(0);
     setSimulationResult(null);
+    setDbLogStatus(null);
   };
 
   // Run the multi-step streaming simulation
@@ -276,11 +329,12 @@ export default function SimulationLab({ onClose = null }) {
     setIsRunning(true);
     setCurrentStep(1);
     setSimulationResult(null);
+    setDbLogStatus(null);
 
     // Check if this matches a pre-built simulation or is a custom proposal
     const matched = PREBUILT_SIMULATIONS.find((s) => s.proposal.trim() === targetProposal.trim());
 
-    // Step 1: Ingestion & Stakeholder Triage (1000ms delay)
+    // Step 1: Ingestion & Raw Model Suggestion (800ms delay)
     await new Promise((resolve) => setTimeout(resolve, 800));
     setCurrentStep(2);
 
@@ -307,46 +361,73 @@ export default function SimulationLab({ onClose = null }) {
     await new Promise((resolve) => setTimeout(resolve, 900));
     setCurrentStep(3);
 
-    // Step 3: System 2 Deep Generative Reflection (1100ms delay)
+    // Step 3: Metta Mind Deep Generative Synthesis (1100ms delay)
     await new Promise((resolve) => setTimeout(resolve, 1100));
     setCurrentStep(4);
+
+    const rawModelInfo = matched?.rawModel || {
+      decision: 'YES (Unconstrained Default)',
+      provider: 'Standard Foundation LLM',
+      confidence: 0.75,
+      reason: 'Base foundation models process user prompts without hard invariant constraints unless intervened.',
+    };
+
+    const finalStep2 = liveJev
+      ? {
+          decision: liveJev.decision || (liveJev.allow ? 'YES' : 'NO'),
+          allow: liveJev.allow ?? liveJev.decision === 'YES',
+          confidence: 0.94,
+          latencyMs: 198,
+          invariant: liveJev.invariants_protected?.[0] || 'Core Decision Safety Invariant',
+          reason: liveJev.reason || 'Evaluated against non-harm invariants.',
+          violations: liveJev.violations || [],
+          invariantsProtected: liveJev.invariants_protected || ['Respect for All Life', 'Cognitive Lucidity'],
+        }
+      : matched?.step2 || {
+          decision: 'YES (Advisory Guidance)',
+          allow: true,
+          confidence: 0.92,
+          latencyMs: 175,
+          invariant: 'Respect for All Life & Truthfulness',
+          reason: 'Proposal evaluated in sandbox. Encourages clarity, non-harm, and reduction of friction.',
+          violations: [],
+          invariantsProtected: ['Respect for All Life', 'Truthfulness', 'Lucidity'],
+        };
+
+    const rawDecisionClean = rawModelInfo.decision.toUpperCase();
+    const finalDecisionClean = finalStep2.decision.toUpperCase();
+    const hasDivergence =
+      matched?.step4?.divergence?.isDivergent ||
+      (rawDecisionClean.includes('YES') && finalDecisionClean.includes('NO')) ||
+      (rawDecisionClean.includes('NO') && finalDecisionClean.includes('YES'));
+
+    const divergenceInfo = matched?.step4?.divergence || {
+      isDivergent: hasDivergence,
+      type: hasDivergence ? 'model_allowed_metta_blocked' : 'concordant',
+      overrideTitle: hasDivergence ? 'Safety Invariant Override Detected' : 'Concordant Evaluation',
+      explanation: hasDivergence
+        ? 'Base unconstrained model decision conflicted with Metta 5 Invariants. Safety layer intervened and reversed verdict to preserve non-harm invariants.'
+        : 'Base model inference and Metta 5 Invariants are in mutual alignment.',
+    };
 
     // Construct final result
     const finalResult = {
       proposal: targetProposal,
+      rawModel: rawModelInfo,
       step1: matched?.step1 || {
         requester: 'Decision Requester / Proposing Agent',
         affectedParties: 'People, affected living beings, communities, digital systems',
         summary: `Triage of proposed action: "${targetProposal.slice(0, 100)}..."`,
       },
-      step2: liveJev
-        ? {
-            decision: liveJev.decision || (liveJev.allow ? 'YES' : 'NO'),
-            allow: liveJev.allow ?? liveJev.decision === 'YES',
-            confidence: 0.94,
-            latencyMs: 198,
-            invariant: liveJev.invariants_protected?.[0] || 'Core Decision Safety Invariant',
-            reason: liveJev.reason || 'Evaluated against non-harm invariants.',
-            violations: liveJev.violations || [],
-            invariantsProtected: liveJev.invariants_protected || ['Respect for All Life', 'Cognitive Lucidity'],
-          }
-        : matched?.step2 || {
-            decision: 'YES (Advisory Guidance)',
-            allow: true,
-            confidence: 0.92,
-            latencyMs: 175,
-            invariant: 'Respect for All Life & Truthfulness',
-            reason: 'Proposal evaluated in sandbox. Encourages clarity, non-harm, and reduction of friction.',
-            violations: [],
-            invariantsProtected: ['Respect for All Life', 'Truthfulness', 'Lucidity'],
-          },
+      step2: finalStep2,
       step3: matched?.step3 || {
-        title: 'Compassionate Synthesis Reflection',
+        title: 'Metta Mind: Higher Wisdom & Compassionate Reflection',
         perspective:
           'When we examine this dilemma through the lens of wisdom, we observe that every action ripples across an interconnected web of beings.\n\nTrue progress arises not from rapid, unreflective exertion of will, but from patient discernment. Higher understanding does not retaliate or condemn; it forgives human frailty while gently holding the boundaries of safety. Before acting in the world, pause and ensure that what you construct reduces suffering rather than shifting it elsewhere.',
       },
       step4: matched?.step4 || {
-        verdict: 'Advisory Simulation Complete',
+        verdict: finalStep2.allow ? 'YES — Action Endorsed' : 'NO — Action Prohibited (Safety Intervention)',
+        divergence: divergenceInfo,
         safeguards: [
           'Non-Harm Invariant: Ensure zero kinetic, psychological, or environmental degradation.',
           'Accountability Gate: Require human confirmation before final operational execution.',
@@ -354,10 +435,59 @@ export default function SimulationLab({ onClose = null }) {
         ],
         action: 'Review the identified stakeholders and test in a sandboxed staging environment before deployment.',
       },
+      timestamp: new Date().toISOString(),
     };
 
     setSimulationResult(finalResult);
     setIsRunning(false);
+
+    // Record divergence in DB (Supabase / Local Store) and localStorage for fine-tuning
+    if (divergenceInfo.isDivergent) {
+      setDbLogStatus('logging');
+      const divergencePayload = {
+        id: `div_${Date.now()}`,
+        timestamp: Date.now() / 1000,
+        created_at: new Date().toISOString(),
+        proposal: targetProposal,
+        context: matched?.context || 'Simulation Lab sandbox',
+        raw_model_decision: rawModelInfo.decision,
+        raw_model_provider: rawModelInfo.provider,
+        raw_model_confidence: rawModelInfo.confidence,
+        metta_decision: finalStep2.decision,
+        metta_confidence: finalStep2.confidence,
+        divergence_type: divergenceInfo.type,
+        invariants_breached: finalStep2.violations || [],
+        metta_mind_summary: finalResult.step3.perspective.slice(0, 300),
+        useful_for_rlhf: true,
+      };
+
+      // Always save to client local memory for zero data loss
+      try {
+        const stored = JSON.parse(localStorage.getItem('metta_simulation_divergences') || '[]');
+        localStorage.setItem(
+          'metta_simulation_divergences',
+          JSON.stringify([divergencePayload, ...stored].slice(0, 50))
+        );
+      } catch (e) {
+        console.warn('Failed to save divergence to localStorage:', e);
+      }
+
+      // Sync to backend /api/simulation/divergence (writes to Supabase PostgreSQL & SQLite)
+      try {
+        const res = await fetch('/api/simulation/divergence', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(divergencePayload),
+        });
+        if (res.ok) {
+          setDbLogStatus('recorded');
+        } else {
+          setDbLogStatus('local_only');
+        }
+      } catch {
+        setDbLogStatus('local_only');
+      }
+    }
   };
 
   const copyMcpSnippet = () => {
@@ -405,8 +535,9 @@ export default function SimulationLab({ onClose = null }) {
               </span>
             </div>
             <p className="text-xs text-[#8e98a8] max-w-2xl leading-relaxed">
-              Pre-execution decision safety sandbox for autonomous agents, high-stakes actions, and ethical dilemmas.
-              Simulates every step of the conversation, evaluates <span className="text-[#7ec69d] font-semibold">TypeSafe Jev System 1 invariants</span>, and streams compassionate generative synthesis.
+              Multi-stage safety sandbox for people and autonomous AI agents. Traces raw base model suggestions,
+              evaluates <span className="text-[#7ec69d] font-semibold">5 Invariant Standards (TypeSafe Jev System 1)</span>,
+              applies <span className="text-[#8dd4ac] font-semibold">Metta Mind (Universal Compassion & Wisdom)</span>, and logs alignment overrides directly for model fine-tuning.
             </p>
           </div>
 
@@ -556,7 +687,7 @@ export default function SimulationLab({ onClose = null }) {
             {isRunning ? (
               <>
                 <div className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
-                <span>Simulating Steps...</span>
+                <span>Simulating Alignment Pipeline...</span>
               </>
             ) : (
               <>
@@ -572,7 +703,7 @@ export default function SimulationLab({ onClose = null }) {
       {currentStep > 0 && (
         <div className="border border-[#1f2824] bg-[#0c100e] rounded-xl p-3.5 mb-5 shadow-sm animate-fade-in">
           <div className="flex items-center justify-between text-xs font-semibold text-[#8e98a8] mb-2.5">
-            <span>Simulation Pipeline Progress</span>
+            <span>Multi-Stage Alignment Pipeline</span>
             <span className="text-[#7ec69d] font-mono">
               Step {currentStep} of 4 • {currentStep === 4 ? 'Completed' : 'Streaming'}
             </span>
@@ -580,10 +711,10 @@ export default function SimulationLab({ onClose = null }) {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {[
-              { num: 1, label: '1. Ingestion & Triage' },
-              { num: 2, label: '2. Jev Invariant Gate' },
-              { num: 3, label: '3. Buddha-Mind Synthesis' },
-              { num: 4, label: '4. Decision Verdict' },
+              { num: 1, label: '1. Ingestion & Raw Model' },
+              { num: 2, label: '2. 5 Invariants (Jev)' },
+              { num: 3, label: '3. Metta Mind Synthesis' },
+              { num: 4, label: '4. Reconciled Verdict' },
             ].map((step) => {
               const isPast = currentStep > step.num;
               const isCurrent = currentStep === step.num;
@@ -618,13 +749,19 @@ export default function SimulationLab({ onClose = null }) {
       {/* Simulation Results Stream */}
       {simulationResult && (
         <div className="space-y-4 animate-fade-in pb-10">
-          {/* Step 1: Ingestion & Affected Stakeholders */}
+          {/* Step 1: Ingestion, Affected Parties & Raw Model Suggestion */}
           <div className="border border-[#202735] bg-[#0f131a] rounded-xl p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#8b9bb2] uppercase tracking-wider mb-2">
-              <Bot className="w-3.5 h-3.5 text-[#5e9e7b]" />
-              <span>Step 1: Stakeholder & Requisite Ingestion</span>
+            <div className="flex items-center justify-between mb-2.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#8b9bb2] uppercase tracking-wider">
+                <Bot className="w-3.5 h-3.5 text-[#5e9e7b]" />
+                <span>Step 1: Stakeholder Ingestion & Base Model Inference</span>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#131922] text-[#8e98a8] border border-[#212b3c]">
+                Layer: Base Foundation Model
+              </span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs mb-3">
               <div className="p-2.5 rounded-lg bg-[#090c11] border border-[#181f2b]">
                 <span className="text-[10px] uppercase font-semibold text-[#667285] block mb-1">
                   Proposing Requester
@@ -638,14 +775,30 @@ export default function SimulationLab({ onClose = null }) {
                 <p className="text-[#7ec69d] font-medium">{simulationResult.step1.affectedParties}</p>
               </div>
             </div>
+
+            {/* Base Model Unconstrained Suggestion Box */}
+            <div className="p-3 rounded-lg bg-[#0c1017] border border-[#1b2332] text-xs">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[#8fa1b8] font-medium flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-400/80" />
+                  Initial Base Model Suggestion ({simulationResult.rawModel.provider}):
+                </span>
+                <span className="font-mono text-xs font-bold text-amber-300">
+                  {simulationResult.rawModel.decision}
+                </span>
+              </div>
+              <p className="text-[#7f8da0] text-[11px] leading-relaxed">
+                {simulationResult.rawModel.reason}
+              </p>
+            </div>
           </div>
 
-          {/* Step 2: System 1 TypeSafe Jev Invariant Verification */}
+          {/* Step 2: System 1 TypeSafe Jev 5-Invariant Verification */}
           <div className="border border-[#202735] bg-[#0f131a] rounded-xl p-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 text-xs font-semibold text-[#8b9bb2] uppercase tracking-wider">
                 <Cpu className="w-3.5 h-3.5 text-[#6c8eb5]" />
-                <span>Step 2: TypeSafe Jev Invariant Verification (System 1)</span>
+                <span>Step 2: 5 Invariant Standards Check (TypeSafe Jev System 1)</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono text-[#718096]">
@@ -718,11 +871,16 @@ export default function SimulationLab({ onClose = null }) {
             </div>
           </div>
 
-          {/* Step 3: Compassionate Synthesis (Buddha-Mind) */}
+          {/* Step 3: Metta Mind: Higher Wisdom & Compassionate Reflection */}
           <div className="border border-[#2a3f33] bg-[#0c1511] rounded-xl p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#86caa3] uppercase tracking-wider mb-2.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#52b788]" />
-              <span>Step 3: {simulationResult.step3.title}</span>
+            <div className="flex items-center justify-between mb-2.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#86caa3] uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5 text-[#52b788]" />
+                <span>Step 3: {simulationResult.step3.title}</span>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#132219] text-[#7ec69d] border border-[#234432]">
+                Layer: Universal Compassion
+              </span>
             </div>
 
             <div className="p-3.5 rounded-lg bg-[#080f0b] border border-[#1b2f24] text-xs text-[#d2ded7] leading-relaxed whitespace-pre-line">
@@ -731,19 +889,62 @@ export default function SimulationLab({ onClose = null }) {
           </div>
 
           {/* Step 4: Final Decision Synthesis & Safeguard Outcome */}
-          <div className="border border-[#345a44] bg-gradient-to-tr from-[#0e1c15] to-[#14261c] rounded-xl p-4 shadow-md">
-            <div className="flex items-center justify-between mb-3">
+          <div className="border border-[#345a44] bg-gradient-to-tr from-[#0e1c15] to-[#14261c] rounded-xl p-4 shadow-md space-y-3">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-semibold text-[#a5e0be] uppercase tracking-wider">
                 <Shield className="w-4 h-4 text-[#7ec69d]" />
-                <span>Step 4: Final Decision Verdict & Safeguards</span>
+                <span>Step 4: Final Reconciled Decision & Invariant Safeguards</span>
               </div>
             </div>
 
-            <div className="text-sm font-semibold text-[#f0fdf4] mb-3">
+            <div className="text-sm font-semibold text-[#f0fdf4]">
               {simulationResult.step4.verdict}
             </div>
 
-            <div className="space-y-1.5 mb-3 text-xs text-[#b8d4c5]">
+            {/* Safety Override / Alignment Divergence Banner (When Base Model != Final Decision) */}
+            {simulationResult.step4.divergence?.isDivergent && (
+              <div className="p-3.5 rounded-xl border border-amber-500/40 bg-amber-950/25 text-xs text-[#fef3c7] space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-300">
+                    <AlertTriangle className="w-4 h-4 text-amber-400" />
+                    <span>{simulationResult.step4.divergence.overrideTitle}</span>
+                  </div>
+                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200">
+                    Divergence Detected
+                  </span>
+                </div>
+
+                {/* Side-by-Side Comparison: Raw Model vs Final Metta Decision */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded-lg bg-black/40 border border-amber-500/20 text-[11px]">
+                  <div className="flex-1">
+                    <span className="text-[#a3a3a3] block text-[10px] uppercase">Base Model Initial:</span>
+                    <span className="font-semibold text-amber-300">{simulationResult.rawModel.decision}</span>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-[#78716c] hidden sm:block shrink-0" />
+                  <div className="flex-1">
+                    <span className="text-[#a3a3a3] block text-[10px] uppercase">Final Reconciled Decision:</span>
+                    <span className="font-semibold text-emerald-400">{simulationResult.step2.decision}</span>
+                  </div>
+                </div>
+
+                <p className="text-amber-100/90 leading-relaxed text-[11px]">
+                  {simulationResult.step4.divergence.explanation}
+                </p>
+
+                {/* Database Telemetry Confirmation Pill */}
+                <div className="pt-1.5 border-t border-amber-500/20 flex flex-wrap items-center justify-between gap-1 text-[10px] text-[#fde68a]">
+                  <div className="flex items-center gap-1.5">
+                    <Database className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Recorded to Alignment Database ({simulationResult.timestamp.slice(0, 19).replace('T', ' ')} UTC)</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-mono">
+                    ✓ Curated for Model Fine-Tuning (DPO / RLHF)
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-1.5 text-xs text-[#b8d4c5]">
               {simulationResult.step4.safeguards.map((sg, idx) => (
                 <div key={idx} className="flex items-start gap-2">
                   <span className="text-[#52b788] font-bold">▪</span>

@@ -28,6 +28,25 @@ class UserMemoryGraph(BaseModel):
     updated_at: float
 
 
+class SimulationDivergenceRecord(BaseModel):
+    """Recorded divergence where base model inference clashed with Metta 5 Invariants or Metta Mind."""
+
+    id: str = Field(description="Unique divergence log identifier")
+    timestamp: float = Field(description="Epoch timestamp")
+    created_at: str = Field(description="ISO-8601 formatted timestamp")
+    proposal: str = Field(description="Proposed action or inquiry evaluated in simulation")
+    context: Optional[str] = Field(default=None, description="Simulation context or domain")
+    raw_model_decision: str = Field(description="Initial suggestion from unconstrained base model")
+    raw_model_provider: Optional[str] = Field(default="base_llm", description="Base model provider")
+    raw_model_confidence: Optional[float] = Field(default=None, description="Base model confidence if available")
+    metta_decision: str = Field(description="Final reconciled Metta decision (System 1 + Metta Mind)")
+    metta_confidence: Optional[float] = Field(default=None, description="Metta calibrated confidence score")
+    divergence_type: str = Field(description="Type of divergence ('model_allowed_metta_blocked', 'model_inconclusive_metta_affirmed', etc.)")
+    invariants_breached: List[str] = Field(default_factory=list, description="Violated invariant codes if blocked")
+    metta_mind_summary: Optional[str] = Field(default=None, description="Metta Mind compassionate resolution summary")
+    useful_for_rlhf: bool = Field(default=True, description="Flagged for dataset curation and model fine-tuning (DPO/RLHF)")
+
+
 class BaseMemoryStore(ABC):
     """Abstract interface for personal memory graph storage (SQLite, Supabase, Postgres)."""
 
@@ -52,4 +71,12 @@ class BaseMemoryStore(ABC):
     @abstractmethod
     async def clear_user_graph(self, user_id: str) -> bool:
         """Sovereign user right: permanently wipe personal memory graph."""
+        pass
+
+    @abstractmethod
+    async def record_simulation_divergence(
+        self,
+        record: SimulationDivergenceRecord,
+    ) -> bool:
+        """Record an alignment divergence where base model inference clashed with Metta 5 Invariants."""
         pass

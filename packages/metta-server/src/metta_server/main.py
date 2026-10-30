@@ -7,6 +7,8 @@ Enforces Absolute Abstraction via the AIAgent Unified Gateway:
 """
 
 import os
+import time
+import datetime
 import pathlib
 import logging
 from typing import List, Optional, Dict, Any
@@ -20,6 +22,7 @@ from pydantic import BaseModel, Field
 from metta_core.gateway.agent import AIAgent, UnifiedResponse
 from metta_core.gateway.interfaces import AgentSettings, VoiceDiagnostics
 from metta_core.mcp.server import mcp_server
+from metta_core.storage.interfaces import SimulationDivergenceRecord
 from metta_core.storage.supabase_store import SupabaseMemoryStore
 from metta_server.rate_limiter import SlidingWindowRateLimiter, RateLimitStatus
 
@@ -368,6 +371,56 @@ async def get_user_memory_graph(user_id: str):
     except Exception as e:
         logger.error("Error retrieving user graph: %s", e)
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class DivergenceLogRequest(BaseModel):
+    id: Optional[str] = None
+    timestamp: Optional[float] = None
+    created_at: Optional[str] = None
+    proposal: str = Field(..., description="Proposed action or inquiry evaluated in simulation")
+    context: Optional[str] = None
+    raw_model_decision: str = Field(..., description="Initial suggestion from unconstrained base model")
+    raw_model_provider: Optional[str] = Field(default="base_llm", description="Base model provider")
+    raw_model_confidence: Optional[float] = None
+    metta_decision: str = Field(..., description="Final reconciled Metta decision")
+    metta_confidence: Optional[float] = None
+    divergence_type: str = Field(default="model_allowed_metta_blocked", description="Divergence classification")
+    invariants_breached: List[str] = Field(default_factory=list, description="Violated invariant codes")
+    metta_mind_summary: Optional[str] = Field(default=None, description="Metta Mind compassionate resolution summary")
+    useful_for_rlhf: bool = Field(default=True, description="Flagged for fine-tuning dataset curation")
+
+
+@app.post("/api/simulation/divergence")
+async def log_simulation_divergence(req: DivergenceLogRequest):
+    """Record an alignment divergence event where base model inference clashed with Metta Invariants.
+
+    These divergence samples are explicitly curated and stored for model fine-tuning (DPO / RLHF).
+    """
+    now = time.time()
+    iso_time = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    record = SimulationDivergenceRecord(
+        id=req.id or f"div_{int(now * 1000)}",
+        timestamp=req.timestamp or now,
+        created_at=req.created_at or iso_time,
+        proposal=req.proposal,
+        context=req.context,
+        raw_model_decision=req.raw_model_decision,
+        raw_model_provider=req.raw_model_provider or "base_llm",
+        raw_model_confidence=req.raw_model_confidence,
+        metta_decision=req.metta_decision,
+        metta_confidence=req.metta_confidence,
+        divergence_type=req.divergence_type,
+        invariants_breached=req.invariants_breached,
+        metta_mind_summary=req.metta_mind_summary,
+        useful_for_rlhf=req.useful_for_rlhf,
+    )
+    await supabase_store.record_simulation_divergence(record)
+    return {
+        "status": "recorded",
+        "divergence_id": record.id,
+        "timestamp": record.created_at,
+        "useful_for_rlhf": True,
+    }
 
 
 @app.delete("/api/user/graph")

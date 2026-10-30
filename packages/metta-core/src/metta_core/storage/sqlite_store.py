@@ -12,6 +12,7 @@ from metta_core.storage.interfaces import (
     BaseMemoryStore,
     UserMemoryGraph,
     UserPatternNode,
+    SimulationDivergenceRecord,
 )
 
 logger = logging.getLogger("metta.storage.sqlite")
@@ -59,6 +60,26 @@ class SQLiteMemoryStore(BaseMemoryStore):
                     occurrence_count INTEGER DEFAULT 1,
                     last_observed_timestamp REAL,
                     PRIMARY KEY (user_id, pattern_id)
+                )
+                """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS simulation_divergences (
+                    id TEXT PRIMARY KEY,
+                    timestamp REAL NOT NULL,
+                    created_at TEXT NOT NULL,
+                    proposal TEXT NOT NULL,
+                    context TEXT,
+                    raw_model_decision TEXT NOT NULL,
+                    raw_model_provider TEXT,
+                    raw_model_confidence REAL,
+                    metta_decision TEXT NOT NULL,
+                    metta_confidence REAL,
+                    divergence_type TEXT NOT NULL,
+                    invariants_breached TEXT DEFAULT '[]',
+                    metta_mind_summary TEXT,
+                    useful_for_rlhf INTEGER DEFAULT 1
                 )
                 """
             )
@@ -241,4 +262,41 @@ class SQLiteMemoryStore(BaseMemoryStore):
             cursor.execute("DELETE FROM user_memory_graphs WHERE user_id = ?", (user_id,))
             conn.commit()
             logger.info("Cleared personal memory graph for user '%s'", user_id)
+            return True
+
+    async def record_simulation_divergence(self, record: SimulationDivergenceRecord) -> bool:
+        """Record simulation divergence where base model clashed with Metta Invariants or Metta Mind."""
+        return await asyncio.to_thread(self._sync_record_simulation_divergence, record)
+
+    def _sync_record_simulation_divergence(self, record: SimulationDivergenceRecord) -> bool:
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT OR REPLACE INTO simulation_divergences (
+                    id, timestamp, created_at, proposal, context,
+                    raw_model_decision, raw_model_provider, raw_model_confidence,
+                    metta_decision, metta_confidence, divergence_type,
+                    invariants_breached, metta_mind_summary, useful_for_rlhf
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    record.id,
+                    record.timestamp,
+                    record.created_at,
+                    record.proposal,
+                    record.context,
+                    record.raw_model_decision,
+                    record.raw_model_provider,
+                    record.raw_model_confidence,
+                    record.metta_decision,
+                    record.metta_confidence,
+                    record.divergence_type,
+                    json.dumps(record.invariants_breached),
+                    record.metta_mind_summary,
+                    1 if record.useful_for_rlhf else 0,
+                ),
+            )
+            conn.commit()
+            logger.info("Recorded simulation divergence '%s' in SQLite store", record.id)
             return True
