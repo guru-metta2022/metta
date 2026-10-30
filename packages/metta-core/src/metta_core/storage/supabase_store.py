@@ -291,6 +291,25 @@ class SupabaseMemoryStore(BaseMemoryStore):
 
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
+                # 1. Provision / ensure user exists in Supabase Authentication (auth.users)
+                try:
+                    await client.post(
+                        f"{self.url}/auth/v1/admin/users",
+                        headers=self.headers,
+                        json={
+                            "email": email,
+                            "email_confirm": True,
+                            "user_metadata": {
+                                "full_name": display_name,
+                                "name": display_name,
+                                "avatar_url": payload["avatar_url"],
+                            },
+                        },
+                    )
+                except Exception as auth_err:
+                    logger.debug("Supabase auth.users provisioning notice: %s", auth_err)
+
+                # 2. Upsert user record in user_profiles
                 resp = await client.post(
                     f"{self.url}/rest/v1/user_profiles",
                     headers={**self.headers, "Prefer": "resolution=merge-duplicates,return=representation"},
