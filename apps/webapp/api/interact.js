@@ -159,6 +159,29 @@ export default async function handler(req, res) {
         `*'May I be safe. May I be peaceful. My goodness is within me.'*\n\n` +
         `*Canonical Anchor: [Karaṇīya Mettā Sutta (Snp 1.8)](https://suttacentral.net/snp1.8) — "Just as a mother would protect with her life her child, her only child, so too toward all beings let one cultivate a boundless heart."*`;
     }
+    // B. Financial Anxiety, Purchasing Power, Money & Livelihood Struggle
+    else if (/(money|purchasing\s*power|financial|poor|wealth|cant\s*afford|debt|bills|broke|making\s*money|earn|cost\s*of\s*living|economic)/i.test(lower)) {
+      emotionalState = 'financial_scarcity_pressure';
+      knot = 'Exhaustion from modern economic struggle and the painful illusion that human worth equals purchasing power';
+      need = 'Pragmatic livelihood encouragement (Uṭṭhāna-sampadā), material realism, and uncoupling self-worth from bank balance';
+      reframe = 'It is completely natural to feel exhausted by economic pressures; modern society ties survival to purchasing power. But while wealth buys choices, it can never measure the sacred dignity of your life.';
+      action = 'Acknowledge the heavy economic burden you carry without shame. Today, identify one small, practical action for your livelihood, and release the urge to solve your entire financial future in a single day.';
+      suttaRef = 'Dīghajāṇu Sutta (AN 8.54) & Anaṇa Sutta (AN 4.62)';
+      suttaUrl = 'https://suttacentral.net/an8.54';
+      matchedConditionId = 'livelihood:economic_strain';
+      matchedConditionName = 'Financial Anxiety & Purchasing Power Scarcity';
+      matchedEquanimityId = 'clarity:sovereign_livelihood';
+      matchedEquanimityName = 'Pragmatic Livelihood & Sovereign Worth';
+      principle = 'Sammā Ājīva (Right Livelihood) & Uṭṭhāna-sampadā (Skillful Diligence)';
+
+      customFallbackText =
+        `I hear you completely, and what you are pointing to is a very real, grinding, and exhausting reality. In our world today, so much of survival, comfort, healthcare, and dignity has been tied to purchasing power. When money is tight or feels impossible to make, the pressure can feel suffocating.\n\n` +
+        `The Buddha never romanticized poverty for laypeople, nor did he dismiss the need for money. In the *Dīghajāṇu Sutta (AN 8.54)* and the *Anaṇa Sutta (AN 4.62)*, he explicitly acknowledged the legitimate joy of economic security (*Atthi-sukha*) and the freedom from debt (*Anaṇa-sukha*). He taught that building a livelihood requires steady energy, careful stewardship, and patience (*Uṭṭhāna-sampadā*).\n\n` +
+        `At the same time, the world plays a cruel trick on us: it tries to convince us that our value as human beings is equal to our bank accounts. That is an illusion. Money buys room to breathe, but it does not make a soul worthy, nor does having less make you less.\n\n` +
+        `**A Grounded Practice for Today:**\n` +
+        `Take a breath and put down the shame of the financial climb. You don't have to conquer the entire economic system today. Ask yourself: *"What is one single, practical step I can take for my craft or work today?"* Take that step with your head held high, knowing that your dignity remains intact through every climb.\n\n` +
+        `*Canonical Anchor: [Dīghajāṇu Sutta (AN 8.54)](https://suttacentral.net/an8.54) & [Anaṇa Sutta (AN 4.62)](https://suttacentral.net/an4.62) — The Buddha on honest livelihood, practical security, and the joy of debt-free living.*`;
+    }
     // B. Insecurity, Self-Doubt, Body Image, Feeling "Not Good Enough"
     else if (/(not\s*good\s*enough|ugly|hate\s*myself|stupid|failure|useless|worthless|everyone\s*is\s*better)/i.test(lower)) {
       emotionalState = 'self_doubt';
