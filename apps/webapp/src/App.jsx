@@ -645,10 +645,28 @@ export default function App() {
       if (!res.ok) {
         if (res.status === 429) {
           const errData = await res.json().catch(() => ({}));
-          const rateMsg = errData.detail?.message || 'Shared community quota pause. You can wait a moment, or add your personal API key in Settings (⚙️ BYOM) to continue with zero limits.';
+          const rateMsg =
+            errData.detail?.message ||
+            errData.message ||
+            'Shared community quota pause. We are actively working hard to expand shared capacity for everyone in the near future! You can continue seamlessly with zero limits by connecting your personal API key (Google Gemini 3.8 Flash or TypeSafe Jev) in Settings (⚙️ BYOM).';
+
+          showToast({
+            title: 'Shared Quota Pause • Bring Your Own AI',
+            message: 'We are working hard to expand shared capacity for everyone in the near future! You can continue seamlessly with zero limits by using your personal API key.',
+            type: 'ai',
+            duration: 9000,
+            action: {
+              label: '⚙️ Open Settings (BYOM)',
+              onClick: () => setSettingsOpen(true),
+            },
+          });
+
           const botMsg = {
             role: 'assistant',
-            text: `🌿 ${rateMsg}`,
+            text:
+              `🌿 **Shared Community Quota Pause**\n\n` +
+              `We are actively working hard to expand shared community usage for everyone in the near future!\n\n` +
+              `In the meantime, you never have to wait—you can seamlessly continue with **zero rate limits** by connecting your own API key in **Settings (⚙️ BYOM)**. Enter your Google Gemini API key or TypeSafe Jev key to enjoy unlimited private throughput with complete data sovereignty.`,
             isRateLimited: true,
             id: Date.now() + 1,
           };

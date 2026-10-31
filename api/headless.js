@@ -103,7 +103,7 @@ export default async function handler(req, res) {
 
       const limitStatus = checkRateLimit(req, isUserByom);
       if (!limitStatus.allowed) {
-        const errorMsg = `Rate limit pause (${MAX_REQUESTS_PER_MINUTE} req/min). Please wait ${limitStatus.resetSeconds}s, or supply 'X-Gemini-Api-Key' / 'byom_gemini_key' for unlimited bypass.`;
+        const errorMsg = `Shared community quota pause (${MAX_REQUESTS_PER_MINUTE} req/min). We are actively working hard to expand capacity for all seekers in the coming future! In the meantime, you can supply your personal API key via 'X-Gemini-Api-Key' or 'byom_gemini_key' for unlimited bypass.`;
         if (wantsMarkdown || body.format === 'markdown') {
           res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
           return res.status(429).send(`# Rate Limit Exceeded\n\n${errorMsg}\n`);

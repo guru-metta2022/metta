@@ -42,6 +42,7 @@ export function ToastDialogProvider({ children }) {
           message: param1.message || '',
           type: param1.type || 'info',
           duration: param1.duration || 3500,
+          action: param1.action || null,
         };
       }
 
@@ -180,7 +181,7 @@ export function ToastDialogProvider({ children }) {
 // Glassy Toast Item Component
 // ============================================================================
 function GlassyToastItem({ toast, onDismiss }) {
-  const { title, message, type } = toast;
+  const { title, message, type, action } = toast;
 
   let icon = <Info className="w-4 h-4 text-[#7ec69d]" />;
   let accentBorder = 'border-[#232c3f]/80';
@@ -230,6 +231,20 @@ function GlassyToastItem({ toast, onDismiss }) {
         <p className="text-xs text-[#9aa4b7] leading-relaxed mt-0.5 break-words">
           {message}
         </p>
+        {action && (
+          <div className="mt-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                if (action.onClick) action.onClick();
+                onDismiss();
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-semibold bg-[#182a20] text-[#93dfb4] border border-[#2e5d42] hover:bg-[#203a2c] hover:border-[#3c7855] transition shadow-xs cursor-pointer"
+            >
+              {action.label}
+            </button>
+          </div>
+        )}
       </div>
 
       <button

@@ -92,7 +92,7 @@ export default async function handler(req, res) {
       return res.status(429).json({
         error: 'Rate limit exceeded',
         detail: {
-          message: `Shared community quota pause (${MAX_REQUESTS_PER_MINUTE} req/min). You can wait ${limitStatus.resetSeconds}s, or add your personal API key in Settings (⚙️ BYOM) to continue with zero limits.`,
+          message: `Shared community quota pause (${MAX_REQUESTS_PER_MINUTE} req/min). We are working hard to expand shared capacity for everyone in the near future! You can continue immediately with zero waiting by adding your personal API key in Settings (⚙️ BYOM).`,
           reset_seconds: limitStatus.resetSeconds,
         },
       });

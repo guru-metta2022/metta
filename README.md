@@ -40,6 +40,7 @@ The fastest way to explore Metta without installing anything locally is the prod
   * **Authenticated Users:** Retains up to **100 sessions** isolated securely to their account.
   * **Zero Server Load & Total Privacy:** Chat history lives 100% in your browser; no session data or conversation logs are stored on our servers. Switch sessions, rename reflections, or delete sessions individually or in bulk.
 * ⚙️ **BYOAI & BYOM Ready** — bring your personal Google Gemini or TypeSafe Jev API key in the in-app Settings modal (⚙️) for unlimited private throughput.
+* ⏱️ **Shared Community Quota & Zero-Wait BYOAI** — to protect public availability, shared community access operates with a sliding-window rate limit (20 req/min for web chat, 30 req/min for headless agents). We are working hard to expand shared capacity for everyone in the near future! Seekers can also seamlessly bypass all community limits at any time by connecting their own API keys via in-app Settings.
 * 🔒 **Private & Ephemeral by default** — test freely in Guest Mode without creating an account or storing data.
 
 ---
