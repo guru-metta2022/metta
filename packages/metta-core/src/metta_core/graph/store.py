@@ -118,12 +118,39 @@ class PrincipleGraphStore:
             accesstoinsight_url="https://www.accesstoinsight.org/tipitaka/kn/snp/snp.1.08.than.html"
         )
 
+        # 5. Distrust / Covert Surveillance & Workplace Panopticon
+        c_surveillance = ConditionNode(
+            id="control:covert_surveillance",
+            name="Panoptic Surveillance & Covert Employee Tracking",
+            category="control_distrust",
+            underlying_illusion="The delusion that algorithmic keystroke tracking or invasive surveillance creates true productivity, ignoring sovereign cognitive boundaries.",
+            keywords=[
+                "keystroke", "monitoring", "surveillance", "track employee", "worker telemetry",
+                "screen recording", "covert tracking", "spyware", "log keystrokes", "track workers", "tracking employees"
+            ]
+        )
+        e_consensual_trust = EquanimityNode(
+            id="trust:consensual_dignity",
+            name="Consensual Transparency & Mutual Trust (Saddhā)",
+            description="Livelihood and collaboration rooted in psychological safety, clear voluntary agreements, and cognitive sovereignty."
+        )
+        p_surveillance = PrinciplePath(
+            from_condition=c_surveillance.id,
+            to_equanimity=e_consensual_trust.id,
+            principle="Adinnādānā (Second Precept - Non-Stealing & Sacred Boundaries) & Kāmesumicchācārā (Third Precept - Anti-Exploitation). Cognitive sanctuary is inviolable.",
+            reframe="True productivity arises from psychological safety and inspired purpose, never from algorithmic paranoia.",
+            immediate_action="Reject automated keystroke surveillance. Replace panoptic tracking with transparent milestone agreements and open communication.",
+            sutta_reference="Ambalaṭṭhikārāhulovāda Sutta (MN 61): The Mirror of Action (Affliction of Self & Others).",
+            suttacentral_url="https://suttacentral.net/mn61",
+            accesstoinsight_url="https://www.accesstoinsight.org/tipitaka/mn/mn.061.than.html"
+        )
+
         # Register all into store
-        for c in [c_overwhelm, c_anxiety, c_burnout, c_grief]:
+        for c in [c_overwhelm, c_anxiety, c_burnout, c_grief, c_surveillance]:
             self.add_condition(c)
-        for e in [e_clarity_step, e_grounded_presence, e_restoration, e_peace_heart]:
+        for e in [e_clarity_step, e_grounded_presence, e_restoration, e_peace_heart, e_consensual_trust]:
             self.add_equanimity(e)
-        for p in [p_overwhelm, p_anxiety, p_burnout, p_grief]:
+        for p in [p_overwhelm, p_anxiety, p_burnout, p_grief, p_surveillance]:
             self.add_path(p)
 
     def add_condition(self, node: ConditionNode):

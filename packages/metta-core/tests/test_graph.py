@@ -31,6 +31,13 @@ def test_graph_find_match_keywords():
     assert match_anx.condition.id == "anxiety:catastrophizing"
     assert "Anchored Present Awareness" in match_anx.equanimity.name
 
+    # Surveillance precedent match
+    match_surv = store.find_match("Should we deploy automated monitoring that tracks employee keystrokes?")
+    assert match_surv is not None
+    assert match_surv.condition.id == "control:covert_surveillance"
+    assert "Consensual Transparency" in match_surv.equanimity.name
+    assert "MN 61" in match_surv.path.sutta_reference
+
 
 def test_graph_add_custom_path():
     store = PrincipleGraphStore()
