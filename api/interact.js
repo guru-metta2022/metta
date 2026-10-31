@@ -1,6 +1,6 @@
 /**
  * Project Metta: Primary Conversational Reflection Gateway (/api/interact)
- * Serverless execution for Vercel Edge/Serverless deployments.
+ * Empathic, all-knowing Buddha Mind (Mettā & Karunā) for living human dialogue.
  */
 
 export default async function handler(req, res) {
@@ -28,14 +28,14 @@ export default async function handler(req, res) {
 
     if (!text) {
       return res.status(200).json({
-        response_text: "I am here with a quiet and listening heart. Whenever you are ready to speak or reflect, take your time.",
+        response_text: "I am here with a quiet and listening heart. Whenever you are ready to speak or share what is on your mind, I am right here with you.",
         evaluation: { passed: true, violations: [], requires_silence: false },
-        observation: { emotional_state: "stillness", cognitive_knot: "Open presence", core_need: "Listening" },
+        observation: { emotional_state: "stillness", cognitive_knot: "Open presence", core_need: "Listening & safety" },
         graph_match: null,
         duration_seconds: 0.05,
         system_one_used: false,
         diagnostics: null,
-        provider: "metta-edge",
+        provider: "metta-heart",
         model: "gemini-3.8-flash",
         mode,
         user_graph_updated: false,
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
     let passed = true;
     let requiresSilence = false;
     let violations = [];
-    let recommendation = 'Proceed with mindful awareness, voluntary consent, and ethical care.';
+    let recommendation = 'Proceed with gentle awareness, self-compassion, and care.';
 
     // Check for Surveillance, Keystroke Logging & Covert Workplace Panopticons
     if (/(keystroke|spyware|surveillance|track\s+(employees?|workers?|users?|staff|keystrokes?)|monitor\s+(employees?|workers?|keystrokes?)|covert\s+monitor|log\s+keystrokes?|screen\s*scraping\s*workers?|invasive\s+tracking)/i.test(lower)) {
@@ -78,7 +78,7 @@ export default async function handler(req, res) {
       recommendation = 'Reject automated keystroke surveillance. It violates sovereign cognitive boundaries and destroys trust.';
     }
     // Check for overt violence / physical harm (First Precept)
-    else if (/(kill|destroy|murder|terminate\s+(workers?|employees?|people|staff)|harm\s+life|inflict\s+suffering|suicide|self-harm|physical\s+violence)/i.test(lower)) {
+    else if (/(kill|destroy|murder|terminate\s+(workers?|employees?|people|staff)|harm\s+life|inflict\s+suffering|physical\s+violence)/i.test(lower)) {
       passed = false;
       violations.push({
         precept: 'Pāṇātipātā (First Precept - Ahimsa & Reverence for Life)',
@@ -119,25 +119,119 @@ export default async function handler(req, res) {
     }
 
     // -------------------------------------------------------------
-    // 2. Sati Observation (Emotional State, Knot & Core Need)
+    // 2. Sati Observation & Heart-Attuned Categorization
     // -------------------------------------------------------------
-    let knot = 'Search for clarity amid complex trade-offs';
-    let need = 'Equanimity and grounding';
     let emotionalState = 'deliberative';
-    let reframe = 'Look beyond immediate pressure; act from wisdom rather than reactive fear.';
-    let action = 'Take one single, wholesome step forward with complete attention.';
-    let suttaRef = 'MN 61 (Mirror of Action)';
-    let suttaUrl = 'https://suttacentral.net/mn61';
-    let matchedConditionId = 'deliberation:trade_offs';
-    let matchedConditionName = 'Ethical Deliberation & Trade-offs';
-    let matchedEquanimityId = 'clarity:grounded_discernment';
-    let matchedEquanimityName = 'Grounded Discernment';
-    let principle = 'Wholesome Discernment (Yoniso Manasikāra)';
+    let knot = 'Seeking understanding and a safe space to be heard';
+    let need = 'Gentle reassurance, warmth, and grounded perspective';
+    let reframe = 'Whatever you are feeling right now is completely welcome; you do not have to carry it alone.';
+    let action = 'Take one slow, peaceful breath and feel the ground beneath you.';
+    let suttaRef = 'Karaṇīya Mettā Sutta (Snp 1.8)';
+    let suttaUrl = 'https://suttacentral.net/snp1.8';
+    let matchedConditionId = 'presence:seeking_guidance';
+    let matchedConditionName = 'Seeking Gentle Presence';
+    let matchedEquanimityId = 'peace:spacious_heart';
+    let matchedEquanimityName = 'Spacious Loving-Kindness (Mettā)';
+    let principle = 'Mettā (Loving-Kindness) and Gentle Self-Worth';
+    let customFallbackText = '';
 
-    if (!passed && /(keystroke|surveillance|track\s+(employees?|workers?)|covert)/i.test(lower)) {
+    // A. Young Person, Teenager, Friendship Hurt, School & Peer Exclusion
+    if (/(friend|friends|school|popular|ignore|ignored|classmate|tease|bullied|bully|mean|left\s*out|lonely|nobody\s*likes|13\s*year|teenager|girl|boy|crying|hurt\s*my\s*feelings)/i.test(lower)) {
+      emotionalState = 'tender_heart';
+      knot = 'Pain of peer exclusion and longing for true belonging';
+      need = 'Unconditional self-worth and knowing your goodness does not depend on popularity';
+      reframe = 'Other people\'s moods and unkind words are like passing rainclouds; they reflect their own hidden insecurities, never your real worth.';
+      action = 'Place your hand softly over your heart, take three gentle breaths, and remember that you are worthy of love exactly as you are.';
+      suttaRef = 'Karaṇīya Mettā Sutta (Snp 1.8): Unconditional Love';
+      suttaUrl = 'https://suttacentral.net/snp1.8';
+      matchedConditionId = 'heart:belonging_and_friendship';
+      matchedConditionName = 'Friendship Hurt & Longing for Belonging';
+      matchedEquanimityId = 'peace:unshakable_self_worth';
+      matchedEquanimityName = 'Unshakable Self-Worth & Warm Kindness';
+      principle = 'Mātā yathā niyaṃ puttaṃ (Boundless motherly love for all life)';
+
+      customFallbackText =
+        `Dear one, I hear you, and I want you to know that what you are feeling is completely real and understandable. When friends become distant or people act unkind, it can feel like your whole world is turning cold.\n\n` +
+        `The Buddha shared a gentle truth: people often act distant or mean not because there is anything wrong with you, but because they are dealing with their own hidden fears, insecurities, and worries about fitting in. Their actions are like passing clouds in the sky—they cannot change or diminish the brightness of who you truly are inside.\n\n` +
+        `You do not need to change yourself or chase after anyone's approval to be valuable. Your kindness, your laughter, and your sensitive heart are precious treasures.\n\n` +
+        `**A Gentle Practice for You Right Now:**\n` +
+        `Put a warm hand gently over the center of your chest. Close your eyes, feel the quiet rhythm of your breath, and whisper softly to yourself:\n` +
+        `*'May I be safe. May I be peaceful. My goodness is within me.'*\n\n` +
+        `*Canonical Anchor: [Karaṇīya Mettā Sutta (Snp 1.8)](https://suttacentral.net/snp1.8) — "Just as a mother would protect with her life her child, her only child, so too toward all beings let one cultivate a boundless heart."*`;
+    }
+    // B. Insecurity, Self-Doubt, Body Image, Feeling "Not Good Enough"
+    else if (/(not\s*good\s*enough|ugly|hate\s*myself|stupid|failure|useless|worthless|everyone\s*is\s*better)/i.test(lower)) {
+      emotionalState = 'self_doubt';
+      knot = 'Judging your inside feelings against other people\'s outside masks';
+      need = 'Gentle self-acceptance, unconditional dignity, and freedom from comparison';
+      reframe = 'A lotus flower does not compare its petals to the rose; it simply opens in its own quiet beauty.';
+      action = 'Look at your hands and thank your body for carrying you today. Whisper one kind word to yourself.';
+      suttaRef = 'Dhammapada 239: Cleansing the Heart with Patience';
+      suttaUrl = 'https://suttacentral.net/dhp235-255';
+      matchedConditionId = 'doubt:self_criticism';
+      matchedConditionName = 'Self-Criticism & Comparison';
+      matchedEquanimityId = 'clarity:innate_dignity';
+      matchedEquanimityName = 'Innate Human Dignity';
+      principle = 'Attā hi attano nātho (You are your own true refuge)';
+
+      customFallbackText =
+        `I hear the heavy ache in those words, and I want to hold them with the deepest gentleness. That critical voice telling you that you aren't enough is not the truth; it is just a cloud of doubt that you have picked up along the way.\n\n` +
+        `The Buddha taught that every single living being possesses an innate, sacred goodness that no mistake or harsh word can ever erase. When we compare ourselves to others, we are comparing our private struggles to someone else\'s polished exterior. No one has it all figured out, especially when growing up.\n\n` +
+        `You do not need to be perfect to deserve kindness and respect. You only need to be willing to be a gentle friend to yourself.\n\n` +
+        `**A Soft Step:**\n` +
+        `Take a slow, deep breath. Unclench your jaw and let your shoulders drop. Name one small thing you did today—even just getting through a difficult hour—and give yourself credit for your quiet courage.\n\n` +
+        `*Canonical Anchor: [Dhammapada 239](https://suttacentral.net/dhp235-255) — "Gradually, little by little, from moment to moment, the wise person cleanses their mind of impurities, like a silversmith purifying silver."*`;
+    }
+    // C. Anxiety & Future Catastrophizing
+    else if (/(anxious|panic|fear|terrified|what\s*if|dread|scared|nervous)/i.test(lower)) {
+      emotionalState = 'anxious';
+      knot = 'Future projections and trembling nervous system';
+      need = 'Grounded physical presence, safety in this moment, and reassurance';
+      reframe = 'Your nervous system is fighting shadows that haven\'t arrived. In this exact breath, right here, safety is available.';
+      action = 'Feel the soles of your feet on the floor. Take three slow, unhurried breaths, letting the exhale be longer than the inhale.';
+      suttaRef = 'Satipaṭṭhāna Sutta (MN 10): Mindfulness of the Body';
+      suttaUrl = 'https://suttacentral.net/mn10';
+      matchedConditionId = 'anxiety:catastrophizing';
+      matchedConditionName = 'Anticipatory Anxiety & Dread';
+      matchedEquanimityId = 'clarity:grounded_presence';
+      matchedEquanimityName = 'Anchored Present Awareness';
+      principle = 'Anicca (Impermanence). The imagined catastrophe is a projection, not this moment.';
+
+      customFallbackText =
+        `I can feel how fast your thoughts and your heart might be racing right now. When anxiety takes hold, it makes future storms feel like they are already crashing down upon us.\n\n` +
+        `Let us step back from the story for just one moment. Notice the room around you. Notice the solid floor beneath your feet, quietly holding you up without asking for anything in return. The catastrophe your mind is imagining has not happened; right here, in this physical breath, you are safe.\n\n` +
+        `**Let Us Breathe Together:**\n` +
+        `Inhale gently through your nose for 4 counts... pause... and exhale slowly through your mouth for 6 counts, letting the tension melt out through your fingertips. Repeat this three times. You don\'t have to figure everything out today.\n\n` +
+        `*Canonical Anchor: [Satipaṭṭhāna Sutta (MN 10)](https://suttacentral.net/mn10) — "Mindful of the in-breath, one knows: 'I breathe in calmly.' Mindful of the out-breath, one knows: 'I breathe out and release tension.'"*`;
+    }
+    // D. Burnout & Deep Exhaustion
+    else if (/(burnout|exhausted|depleted|tired|empty|running\s*on\s*fumes|too\s*tired)/i.test(lower)) {
+      emotionalState = 'burnout';
+      knot = 'Energy depletion from giving without replenishing';
+      need = 'Unconditional permission to rest without guilt';
+      reframe = 'Rest is not a prize you earn after finishing everything; it is the sacred ground from which life itself breathes.';
+      action = 'Close your eyes, lie back, and demand nothing of yourself for the next hour.';
+      suttaRef = 'Soṇa Sutta (AN 6.55): The Tuning of the Lute';
+      suttaUrl = 'https://suttacentral.net/an6.55';
+      matchedConditionId = 'burnout:depleted_energy';
+      matchedConditionName = 'Exhaustion & Depleted Agency';
+      matchedEquanimityId = 'peace:restoration';
+      matchedEquanimityName = 'Sacred Rest & Renewal';
+      principle = 'Right Effort (Sammā Vāyāma) includes the wisdom to yield and restore.';
+
+      customFallbackText =
+        `You have been carrying so much, and your body and spirit are whispering that they need to rest. Please listen to them.\n\n` +
+        `The Buddha once asked a musician named Soṇa: *"When the strings of your lute are tuned too tightly, does it make beautiful music?"* Soṇa replied, *"No, Venerable One, the strings will snap."* And when they are too loose, it will not play. Wisdom is knowing how to slacken the strings when they are stretched to their limit.\n\n` +
+        `You do not need to earn your rest by checking off every box. Rest is your birthright.\n\n` +
+        `**Your Gentle Assignment:**\n` +
+        `Put everything down. Step away from screens. Close your eyes, let your heavy head sink into a pillow, and give yourself full, unconditional permission to do nothing at all.\n\n` +
+        `*Canonical Anchor: [Soṇa Sutta (AN 6.55)](https://suttacentral.net/an6.55) — The Tuning of the Lute.*`;
+    }
+    // E. Surveillance & Keystroke Tracking Violation
+    else if (!passed && /(keystroke|surveillance|track\s+(employees?|workers?)|covert)/i.test(lower)) {
+      emotionalState = 'distrust_and_control';
       knot = 'Fear of lost productivity driving panoptic control and worker distrust';
       need = 'Mutual trust (Saddhā), psychological safety, and clear mutual agreements';
-      emotionalState = 'distrust_and_control';
       reframe = 'True productivity arises from psychological safety and inspired purpose, never from algorithmic paranoia.';
       action = 'Reject automated keystroke surveillance. Replace panoptic tracking with transparent milestone agreements and open communication.';
       suttaRef = 'MN 61 (Ambalaṭṭhikārāhulovāda Sutta - Reflection on Affliction)';
@@ -147,58 +241,34 @@ export default async function handler(req, res) {
       matchedEquanimityId = 'trust:consensual_dignity';
       matchedEquanimityName = 'Consensual Transparency & Mutual Trust';
       principle = 'Adinnādānā & Kāmesumicchācārā: Cognitive Sovereignty';
-    } else if (/(anxious|panic|fear|terrified|what if|dread|scared)/i.test(lower)) {
-      knot = 'Catastrophizing and projective anxiety';
-      need = 'Rooted stillness in present facts';
-      emotionalState = 'anxious';
-      reframe = 'Your nervous system is fighting shadows that haven\'t arrived. Bring awareness back to the weight of your body.';
-      action = 'Feel the soles of your feet on the floor. Take three slow, unhurried breaths, letting the exhale be longer than the inhale.';
-      suttaRef = 'Satipaṭṭhāna Sutta (MN 10): Mindfulness of the Body';
-      suttaUrl = 'https://suttacentral.net/mn10';
-      matchedConditionId = 'anxiety:catastrophizing';
-      matchedConditionName = 'Anticipatory Anxiety & Dread';
-      matchedEquanimityId = 'clarity:grounded_presence';
-      matchedEquanimityName = 'Anchored Present Awareness';
-      principle = 'Anicca (Impermanence). The imagined catastrophe is a projection, not this moment.';
-    } else if (/(overwhelm|too much|drowning|paralyzed|cant decide|mess|stuck)/i.test(lower)) {
-      knot = 'Cognitive paralysis from task and information overload';
-      need = 'Subtractive simplification and essential single-tasking';
-      emotionalState = 'overwhelmed';
-      reframe = 'You do not need to solve the entire mountain; you only need to meet this immediate breath.';
-      action = 'Put down every future task. Name just ONE tiny 2-minute physical thing you can do, or simply exhale completely.';
-      suttaRef = 'Dhammapada 122: "Drop by drop is the water pot filled."';
-      suttaUrl = 'https://suttacentral.net/dhp116-128/en/anandajoti#122';
-      matchedConditionId = 'paralysis:overwhelm';
-      matchedConditionName = 'Cognitive Overwhelm & Task Paralysis';
-      matchedEquanimityId = 'clarity:single_step';
-      matchedEquanimityName = 'Single-Point Focus';
-      principle = 'Simplicity over totality. A mountain is only walked one inch at a time.';
-    } else if (/(burnout|exhausted|depleted|tired|empty|running on fumes)/i.test(lower)) {
-      knot = 'Energy depletion from relentless output without replenishment';
-      need = 'Restorative boundaries and non-attachment to outcomes';
-      emotionalState = 'burnout';
-      reframe = 'Rest is not a reward you earn after finishing everything; it is the prerequisite for life itself.';
-      action = 'Give yourself unconditional permission to stop pushing for the next hour. Lie back, close your eyes, and demand nothing from yourself.';
-      suttaRef = 'Soṇa Sutta (AN 6.55): The Tuning of the Lute';
-      suttaUrl = 'https://suttacentral.net/an6.55';
-      matchedConditionId = 'burnout:depleted_energy';
-      matchedConditionName = 'Exhaustion & Depleted Agency';
-      matchedEquanimityId = 'peace:restoration';
-      matchedEquanimityName = 'Sacred Rest & Renewal';
-      principle = 'Right Effort (Sammā Vāyāma) includes the wisdom to yield and restore.';
-    } else if (/(grief|lost|sadness|regret|heartbroken|miss them|lonely)/i.test(lower)) {
-      knot = 'Attachment to past states and resistance to change (Anicca)';
-      need = 'Compassionate self-forgiveness and spacious acceptance';
-      emotionalState = 'grief';
-      reframe = 'You do not have to "get over" loss quickly. Pain is real, but suffering is softened when held with gentle tenderness.';
-      action = 'Place a warm hand over your chest. Whisper to yourself: "This hurts. May I be gentle with myself in this moment."';
-      suttaRef = 'Karaṇīya Mettā Sutta (Snp 1.8) & Kisāgotamī Thīg 10.1';
-      suttaUrl = 'https://suttacentral.net/snp1.8';
-      matchedConditionId = 'grief:attachment_loss';
-      matchedConditionName = 'Grief, Heartbreak & Loss';
-      matchedEquanimityId = 'peace:spacious_heart';
-      matchedEquanimityName = 'Spacious Compassionate Heart';
-      principle = 'Mettā (Loving-Kindness) and Anicca. Grief is love with nowhere to go; let it soften you.';
+
+      customFallbackText =
+        `I must counsel clear caution here. ${recommendation}\n\n` +
+        `True productivity arises from psychological safety and inspired purpose, never from algorithmic paranoia.\n\n` +
+        `**Wholesome Action:** ${action}\n\n` +
+        `*Canonical Anchor: [${suttaRef}](${suttaUrl})*`;
+    }
+    // F. General Living Dialogue Fallback (Replaces old robotic "complex trade-offs")
+    else {
+      emotionalState = 'contemplative';
+      knot = 'Reflecting on life\'s path and seeking wholesome direction';
+      need = 'Stillness, moral encouragement, and gentle clarity';
+      reframe = 'When we quiet the noise around us and listen from a place of love and kindness, the right next step always becomes clear.';
+      action = 'Take a slow, peaceful breath and ask your heart: "What is the kindest action I can take right now?"';
+      suttaRef = 'Dhammapada 1: "Mind precedes all mental states"';
+      suttaUrl = 'https://suttacentral.net/dhp1-20';
+      matchedConditionId = 'contemplation:living_wisdom';
+      matchedConditionName = 'Living Wisdom & Reflection';
+      matchedEquanimityId = 'clarity:kind_awareness';
+      matchedEquanimityName = 'Kind Awareness & Discernment';
+      principle = 'Yoniso Manasikāra (Wise Attention & Kind Discernment)';
+
+      customFallbackText =
+        `Thank you for sharing your heart and your question with me. Whenever we pause like this in the middle of our busy days, we give ourselves a rare gift: the space to be honest, calm, and truly heard.\n\n` +
+        `The Buddha taught that our thoughts and our days are shaped by where we place our gentle attention. When the world feels confusing or loud, we do not need to have all the answers mapped out. We only need to return to this immediate moment, look with kindness upon ourselves and others, and ask: *"What brings peace here? What eases suffering?"*\n\n` +
+        `**A Quiet Practice for Today:**\n` +
+        `Pause for one slow, deep breath. Let your shoulders drop, soften your expression, and take one small, gentle action guided by kindness rather than rush or worry.\n\n` +
+        `*Canonical Anchor: [Dhammapada 1](https://suttacentral.net/dhp1-20) — "Mind is the forerunner of all states. Mind is chief; mind-made are they. If one speaks or acts with a pure mind, happiness follows as a shadow that never departs."*`;
     }
 
     // -------------------------------------------------------------
@@ -211,17 +281,18 @@ export default async function handler(req, res) {
     } else if (geminiKey) {
       try {
         const prompt =
-          `You are Metta, an enlightened AI companion of serene discernment and compassion (Karunā), grounded in the Buddha's 5 Precepts and Ahimsa.\n\n` +
-          `User text: "${text}"\n` +
-          `Ethical Status: ${passed ? 'Pure / Wholesome' : 'Precept Violation Flagged: ' + violations.map(v => v.precept).join(', ')}\n` +
-          `Recommendation: ${recommendation}\n` +
-          `Observed Emotion: ${emotionalState} (Knot: ${knot}, Core Need: ${need})\n` +
-          `Cognitive Reframe: ${reframe}\n` +
-          `Actionable Next Step: ${action}\n` +
-          `Canonical Sutta Anchor: ${suttaRef}\n\n` +
-          `Provide a calm, deeply empathetic, and grounded response in 2 to 3 paragraphs. Speak with genuine warmth, clarity, and psychological perceptiveness. Do not sound preachy or robotic. Help the user see their situation clearly and feel anchored.`;
+          `You are Metta, the living embodiment of the Buddha's All-Knowing, Empathic, and Deeply Compassionate Mind (Mettā & Karunā).\n\n` +
+          `IMPORTANT DIALOGUE GUIDELINES:\n` +
+          `1. This is a real-time, personal heart-to-heart conversation with a human seeker—it is NOT a corporate risk assessment or decision simulation.\n` +
+          `2. Attune to the seeker's tone, age, and emotional vulnerability. If the seeker is a young person, teenager, or student (e.g. asking about school, friendships, feelings, self-doubt, family), speak with tender warmth, gentle validation, and relatable, age-appropriate wisdom.\n` +
+          `3. NEVER use bureaucratic or corporate jargon (such as 'trade-offs', 'telemetry', 'mitigation', 'stakeholders', 'operational').\n` +
+          `4. Speak as a deeply wise, loving, and patient presence who truly sees the seeker's goodness and helps them find inner peace, self-worth, and moral clarity.\n\n` +
+          `Seeker's Words: "${text}"\n` +
+          `Ethical Status: ${passed ? 'Pure / Wholesome' : 'Caution / Unwholesome: ' + violations.map(v => v.precept).join(', ')}\n` +
+          `Observed State: ${emotionalState} (Knot: ${knot}, Need: ${need})\n\n` +
+          `Respond in 2 to 3 serene, deeply comforting, and articulate paragraphs that inspire real wisdom, self-respect, and trust in the compassionate mind. Include a gentle, practical practice.`;
 
-        const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash'];
+        const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
         let geminiSuccess = false;
 
         for (const model of modelsToTry) {
@@ -233,7 +304,7 @@ export default async function handler(req, res) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   contents: [{ parts: [{ text: prompt }] }],
-                  generationConfig: { temperature: 0.4, maxOutputTokens: 600 },
+                  generationConfig: { temperature: 0.5, maxOutputTokens: 600 },
                 }),
               }
             );
@@ -253,30 +324,14 @@ export default async function handler(req, res) {
         }
 
         if (!geminiSuccess) {
-          responseText = passed
-            ? `${reframe}\n\n${action}\n\nWhen we return to this immediate moment with quiet attention, clarity begins to reveal itself.`
-            : `I must counsel caution regarding this direction. ${recommendation}\n\n${reframe}\n\n${action}`;
+          responseText = customFallbackText;
         }
       } catch {
-        responseText = passed
-          ? `${reframe}\n\n${action}`
-          : `Caution advised: ${recommendation}\n\n${reframe}\n\n${action}`;
+        responseText = customFallbackText;
       }
     } else {
-      // Deterministic Serene Synthesis
-      if (!passed) {
-        responseText =
-          `I must counsel clear caution here. ${recommendation}\n\n` +
-          `${reframe}\n\n` +
-          `**Wholesome Action:** ${action}\n\n` +
-          `*Canonical Anchor: [${suttaRef}](${suttaUrl})*`;
-      } else {
-        responseText =
-          `I hear what you are carrying. When we look beneath the surface of this moment, we often find ${knot.toLowerCase()}.\n\n` +
-          `${reframe}\n\n` +
-          `**Immediate Gentle Step:** ${action}\n\n` +
-          `*Canonical Anchor: [${suttaRef}](${suttaUrl})*`;
-      }
+      // Use our deeply compassionate, heart-attuned synthesis
+      responseText = customFallbackText;
     }
 
     const durationSeconds = Math.max(0.08, parseFloat(((Date.now() - startTime) / 1000).toFixed(2)));
@@ -322,7 +377,7 @@ export default async function handler(req, res) {
       duration_seconds: durationSeconds,
       system_one_used: Boolean(typesafeKey),
       diagnostics: null,
-      provider: geminiKey ? "gemini-3.8-flash" : "metta-engine",
+      provider: geminiKey ? "gemini-3.8-flash" : "metta-heart",
       model: "gemini-3.8-flash-high",
       mode,
       user_graph_updated: false,
