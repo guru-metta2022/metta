@@ -92,15 +92,15 @@ METTA_DEFAULT_MODEL=gemini-3.8-flash-high
 
 ## 🚀 4. How to Resume Work & Run All Verification
 
-### Step 1: Run All Test Suites (40 Tests)
+### Step 1: Run All Test Suites (43 Tests)
 ```bash
-# Test Core Engine (30 passing tests including canonical consensus, MCP suite and guardrail)
+# Test Core Engine (30 passing tests including Dhamma graph precedents, canonical consensus, MCP suite and guardrail)
 cd /home/guru/Work/metta/packages/metta-core
-uv run pytest
+/home/guru/Work/metta/packages/metta-core/.venv/bin/pytest tests
 
-# Test FastAPI Server & Endpoints (10 passing tests including canonical verify, guardrail, rate limiter & BYOM bypass)
+# Test FastAPI Server & Endpoints (13 passing tests including headless API, canonical verify, guardrail, rate limiter & BYOM bypass)
 cd /home/guru/Work/metta/packages/metta-server
-uv run pytest
+/home/guru/Work/metta/packages/metta-server/.venv/bin/pytest tests
 ```
 
 ### Step 2: Build Zen Web Frontend
@@ -114,7 +114,10 @@ npm run build --workspace=apps/webapp
 cd /home/guru/Work/metta/packages/metta-server
 uv run uvicorn metta_server.main:app --host 127.0.0.1 --port 8000
 ```
-Then visit `http://127.0.0.1:8000` in the browser.
+Then visit `http://127.0.0.1:8000` in the browser or check headless endpoint:
+```bash
+curl -s -X POST http://127.0.0.1:8000/api/headless -H "Accept: text/markdown" -d '{"query": "How to resolve team conflict?"}'
+```
 
 ---
 
@@ -122,19 +125,32 @@ Then visit `http://127.0.0.1:8000` in the browser.
 * **Repository:** `https://github.com/guru-metta2022/metta.git` on `main` branch.
 * **Author Identity:** `Guru <guru.metta2022@gmail.com>`.
 * **Production Live App:** `https://metta-webapp.vercel.app`.
+* **Headless Endpoint:** `https://metta-webapp.vercel.app/api/headless`.
+* **LLM Discovery:** `https://metta-webapp.vercel.app/llms.txt`.
 * **CI/CD:** Automatic Vercel deployment on pushes to `main`.
 
 ---
 
 ## 🔭 6. Recent Milestones & Next Horizons for Project Metta
 
+### Completed Milestones (2026-10-31):
+1. **Reflection, Decision & Resolution Framework UI**:
+   - `CollapsibleBubble.jsx` clamping text $>2$ lines (~160 chars) with smooth gradient fade to prevent manual-document look while preserving rich output.
+   - `TriadFrameworkCard.jsx` embedded in user and assistant messages for transparent triadic navigation (Sati $\rightarrow$ Sīla $\rightarrow$ Karunā).
+   - `FrameworkModal.jsx` explainer accessible via header button.
+2. **Headless Module for Autonomous AI Agents**:
+   - High-speed `/api/headless` endpoint supporting structured JSON and token-lean Markdown (`Accept: text/markdown`).
+   - Machine catalog discovery files `/llms.txt` and `/llms-full.txt`.
+3. **Ethical Keystroke Surveillance Fix**:
+   - Root-cause diagnosis of corporate terminology false positives.
+   - Grounded rejection of covert keystroke tracking under *Adinnādānā* (Second Precept) and *Kāmesumicchācārā* (Third Precept), anchored to [MN 61](https://suttacentral.net/mn61).
+   - Live production verification on Vercel edge.
+4. **Two-Tier Precedent Memory Architecture (*Vinaya Vinicchaya*)**:
+   - Permanent precedent node `control:covert_surveillance` $\rightarrow$ `trust:consensual_dignity` in `PrincipleGraphStore`.
+   - Pre-inference topological glance ($<1\text{ ms}$) without memory bloat or model fine-tuning.
+   - Isolated Supabase `simulation_divergences` table for RLHF dataset curation.
+
 ### Completed Milestones (2026-10-30):
 1. **Supabase Cloud Identity**: Pure, branded Metta email/password authentication with custom email templates in `supabase/templates/`.
 2. **Unified Voice Interface**: Real-time Web Audio API frequency analysis oscillator with interim speech stream listener and 3-second auto-stop across both Home Chat and Simulation Lab.
 3. **Voice Polish AI**: BYOM Gemini 3.8 Flash primary pipeline with comprehensive acoustic speech-to-text error reconstruction (eliminated external rate-limited models).
-
-### Upcoming Focus (Tomorrow):
-1. **Reflection, Decision & Resolution Framework UI**:
-   - **Reflection Layer**: Contemplative self-inquiry and distress knot observation widgets.
-   - **Decision Layer**: System 1 (TypeSafe Jev) fast triage evaluation cards, live confidence meters, and transparent five-precept adherence oracles.
-   - **Resolution Layer**: Actionable synthesis cards uniting Karunā speech with Universal Dhamma Graph links and Personal Sovereign Memory.

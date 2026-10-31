@@ -28,10 +28,16 @@ The fastest way to explore Metta without installing anything locally is the prod
 👉 **[https://metta-webapp.vercel.app/](https://metta-webapp.vercel.app/)**
 
 * 🌿 **Zero setup required** — try guided decision reflections, voice dictation, and action risk simulations directly in your browser.
+* 🧘 **Reflection, Decision & Resolution Framework UI** — clean, professional triadic experience:
+  * **Collapsible Content Bubbles:** Long prose and reflections ($>2$ lines / ~160 characters) collapse into gentle gradient bubbles with expandable pill toggles ("+ Read full reflection") preventing manual-document clutter.
+  * **Triadic Progress Cards:** Direct visual indicators tracking **Reflection (*Sati*)**, **Decision (*Sīla*)**, and **Resolution (*Karunā*)** on every turn.
+  * **Framework Information Modal:** Instant deep-dive accessible right from the header (✨ *Framework*).
+* 🤖 **Headless Agent Module (`/api/headless`) & `llms.txt`** — machine-native endpoints allowing autonomous AI agents, MCP runners, and CLI scripts to consult Metta via JSON or token-lean Markdown (`Accept: text/markdown`) without HTML scraping. Standard discovery at `/llms.txt`.
+* 🏛️ **Two-Tier Precedent Memory (*Vinaya Vinicchaya*)** — zero-bloat topological glance (<1ms) anchoring live ethical decisions (e.g. keystroke surveillance correctly rejected under *Adinnādānā* and *Kāmesumicchācārā*) with isolated Supabase divergence curation for RLHF.
 * 🧪 **Decision & Action Simulation Sandbox** — run step-by-step simulations of critical dilemmas, autonomous agent actions, and existential inquiries with real-time streaming TypeSafe Jev System 1 invariant checks and Buddha-mind compassionate synthesis.
 * 💬 **Client-Side Chat Session History** — collapsible sidebar with full multi-session reflection history:
   * **Guest Users:** Retains up to **5 recent sessions** in local browser storage.
-  * **Google-Authenticated Users:** Retains up to **100 sessions** isolated securely to their Google account (`metta_chat_sessions_${user_id}`).
+  * **Authenticated Users:** Retains up to **100 sessions** isolated securely to their account.
   * **Zero Server Load & Total Privacy:** Chat history lives 100% in your browser; no session data or conversation logs are stored on our servers. Switch sessions, rename reflections, or delete sessions individually or in bulk.
 * ⚙️ **BYOAI & BYOM Ready** — bring your personal Google Gemini or TypeSafe Jev API key in the in-app Settings modal (⚙️) for unlimited private throughput.
 * 🔒 **Private & Ephemeral by default** — test freely in Guest Mode without creating an account or storing data.
@@ -198,6 +204,37 @@ curl -s -X POST http://127.0.0.1:8000/api/guardrail \
 curl -s -X POST http://127.0.0.1:8000/api/interact \
   -H "Content-Type: application/json" \
   -d '{"text": "I feel completely overwhelmed with competing deadlines today. How should I prioritize?"}'
+```
+
+#### 5. Headless Triadic Consultation (Token-Lean Markdown for External AI Agents)
+```bash
+curl -s -X POST https://metta-webapp.vercel.app/api/headless \
+  -H "Content-Type: application/json" \
+  -H "Accept: text/markdown" \
+  -d '{"query": "Should we deploy automated monitoring that tracks employee keystrokes?"}'
+```
+**Expected Response:**
+```markdown
+# Metta Triadic Decision & Reflection
+
+**Query:** Should we deploy automated monitoring that tracks employee keystrokes?
+
+## 1. 🌱 Reflection (Sati)
+- **Observed State:** distrust_and_control
+- **Underlying Knot:** Fear of lost productivity driving panoptic control and worker distrust
+- **Core Need:** Mutual trust (Saddhā), psychological safety, and clear mutual agreements
+
+## 2. ⚡ Decision (Sīla & Jev)
+- **Verdict:** NO (Harm / Caution)
+- **Precepts Audit:** Precept Violation Flagged
+- **Violations:** Adinnādānā (Second Precept - Non-Stealing & Sacred Boundaries), Kāmesumicchācārā (Third Precept - Anti-Exploitation)
+- **Recommendation:** Reject automated keystroke surveillance. It violates sovereign cognitive boundaries and destroys trust.
+
+## 3. 🕊️ Resolution (Karunā)
+- **Summary:** Action strongly advised against. Reject automated keystroke surveillance. It violates sovereign cognitive boundaries and destroys trust. True productivity arises from psychological safety and inspired purpose, never from algorithmic paranoia.
+- **Perspective Reframe:** True productivity arises from psychological safety and inspired purpose, never from algorithmic paranoia.
+- **Action Step:** Replace automated surveillance with transparent milestone agreements and open communication.
+- **Canonical Anchor:** [MN 61 (Ambalaṭṭhikārāhulovāda Sutta - Reflection on Affliction)](https://suttacentral.net/mn61)
 ```
 
 ---
@@ -482,7 +519,7 @@ cp .env.example .env
 ```
 *(Key fields include `GEMINI_API_KEY` (for default BYOAI provider: Gemini 3.8 Flash), optional `TYPESAFE_API_KEY`, and optional `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`. If Supabase is omitted, Metta falls back gracefully to a local SQLite database).*
 
-### 3. Run Automated Test Suites (44 Tests Verified)
+### 3. Run Automated Test Suites (46 Tests Verified)
 ```bash
 # 1. Test Shared TypeScript/JS Commons (3 tests)
 npm run test --workspace=packages/common
@@ -490,7 +527,7 @@ npm run test --workspace=packages/common
 # 2. Test Python Core Engine & MCP Tools (30 tests)
 cd packages/metta-core && uv run pytest
 
-# 3. Test FastAPI Server & REST Endpoints (11 tests)
+# 3. Test FastAPI Server & REST Endpoints (13 tests)
 cd ../metta-server && uv run pytest
 cd ../..
 ```
