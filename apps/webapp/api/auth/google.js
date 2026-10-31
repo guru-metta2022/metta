@@ -1,7 +1,5 @@
 const SUPABASE_URL = (process.env.SUPABASE_URL || 'https://wbncptxcoihmzlfuhqac.supabase.co').replace(/\/$/, '');
-const SUPABASE_SERVICE_KEY =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndibmNwdHhjb2lobXpsZnVocWFjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MzMzNTE0MywiZXhwIjoyMTA4OTExMTQzfQ.Tb11F_XnwcCeGdd97f_pH8Wa4_ifxta4L_cIYTT0r2Q';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export default async function handler(req, res) {
   // Set CORS headers
@@ -15,6 +13,10 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  if (!SUPABASE_SERVICE_KEY) {
+    return res.status(503).json({ error: 'Cloud authentication service temporarily unavailable.' });
   }
 
   try {

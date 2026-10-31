@@ -3,6 +3,45 @@
  * Empathic, all-knowing Buddha Mind (Mettā & Karunā) for living human dialogue.
  */
 
+// In-memory sliding-window rate limiter for shared community tier
+const rateLimitMap = new Map();
+const WINDOW_MS = 60 * 1000; // 1 minute
+const MAX_REQUESTS_PER_MINUTE = 20; // 20 requests per minute
+
+function checkRateLimit(req, isByom) {
+  if (isByom) return { allowed: true };
+
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = (forwarded ? forwarded.split(',')[0] : req.socket?.remoteAddress || 'unknown-client').trim();
+  const now = Date.now();
+
+  let timestamps = rateLimitMap.get(ip) || [];
+  timestamps = timestamps.filter((t) => now - t < WINDOW_MS);
+
+  if (timestamps.length >= MAX_REQUESTS_PER_MINUTE) {
+    const oldest = timestamps[0];
+    const resetSeconds = Math.ceil((oldest + WINDOW_MS - now) / 1000);
+    return {
+      allowed: false,
+      remaining: 0,
+      resetSeconds: Math.max(1, resetSeconds),
+    };
+  }
+
+  timestamps.push(now);
+  rateLimitMap.set(ip, timestamps);
+
+  if (rateLimitMap.size > 5000) {
+    for (const [key, list] of rateLimitMap.entries()) {
+      const active = list.filter((t) => now - t < WINDOW_MS);
+      if (active.length === 0) rateLimitMap.delete(key);
+      else rateLimitMap.set(key, active);
+    }
+  }
+
+  return { allowed: true, remaining: MAX_REQUESTS_PER_MINUTE - timestamps.length };
+}
+
 export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -44,15 +83,28 @@ export default async function handler(req, res) {
     }
 
     const headers = req.headers || {};
+    const userGeminiKey = (headers['x-gemini-api-key'] || body.byom_gemini_key || '').trim();
+    const userTypesafeKey = (headers['x-typesafe-api-key'] || body.byom_typesafe_key || '').trim();
+    const isUserByom = Boolean(userGeminiKey || userTypesafeKey);
+
+    const limitStatus = checkRateLimit(req, isUserByom);
+    if (!limitStatus.allowed) {
+      return res.status(429).json({
+        error: 'Rate limit exceeded',
+        detail: {
+          message: `Shared community quota pause (${MAX_REQUESTS_PER_MINUTE} req/min). You can wait ${limitStatus.resetSeconds}s, or add your personal API key in Settings (⚙️ BYOM) to continue with zero limits.`,
+          reset_seconds: limitStatus.resetSeconds,
+        },
+      });
+    }
+
     const geminiKey =
-      headers['x-gemini-api-key'] ||
-      body.byom_gemini_key ||
+      userGeminiKey ||
       process.env.GEMINI_API_KEY ||
       process.env.VITE_GEMINI_API_KEY;
 
     const typesafeKey =
-      headers['x-typesafe-api-key'] ||
-      body.byom_typesafe_key ||
+      userTypesafeKey ||
       process.env.TYPESAFE_API_KEY;
 
     const lower = text.toLowerCase();
@@ -334,10 +386,13 @@ export default async function handler(req, res) {
         for (const model of modelsToTry) {
           try {
             const resp = await fetch(
-              `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`,
+              `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
               {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-goog-api-key': geminiKey,
+                },
                 body: JSON.stringify({
                   contents: [{ parts: [{ text: prompt }] }],
                   generationConfig: { temperature: 0.5, maxOutputTokens: 600 },
@@ -417,7 +472,7 @@ export default async function handler(req, res) {
       model: "gemini-3.8-flash-high",
       mode,
       user_graph_updated: false,
-      is_byom: Boolean(geminiKey || typesafeKey),
+      is_byom: isUserByom,
     });
   } catch (err) {
     console.error('Error in /api/interact handler:', err);

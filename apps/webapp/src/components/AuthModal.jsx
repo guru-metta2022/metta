@@ -241,7 +241,6 @@ export default function AuthModal({
         setStatusNotice({
           type: 'info',
           message: data.message || 'Password reset link sent! Check your inbox to choose a new password.',
-          recovery_link: data.recovery_link,
         });
       }
     } catch (err) {
@@ -456,16 +455,6 @@ export default function AuthModal({
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <div className="space-y-1 w-full">
                   <span className="leading-relaxed block">{statusNotice.message}</span>
-                  {statusNotice.recovery_link && (
-                    <a
-                      href={statusNotice.recovery_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block mt-1 font-semibold underline text-[#93c5fd] hover:text-white"
-                    >
-                      Reset password now →
-                    </a>
-                  )}
                 </div>
               </div>
             )}

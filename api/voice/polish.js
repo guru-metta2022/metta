@@ -42,10 +42,13 @@ export default async function handler(req, res) {
           const userPrompt = `Raw spoken transcript to polish into a neat inquiry:\n${raw}`;
 
           const geminiRes = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`,
             {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': geminiKey,
+              },
               body: JSON.stringify({
                 contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
                 generationConfig: { temperature: 0.2, maxOutputTokens: 256 },

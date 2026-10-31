@@ -2,9 +2,7 @@ const SUPABASE_URL = (process.env.SUPABASE_URL || 'https://wbncptxcoihmzlfuhqac.
 const SUPABASE_ANON_KEY =
   process.env.SUPABASE_ANON_KEY ||
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndibmNwdHhjb2lobXpsZnVocWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzMzUxNDMsImV4cCI6MjEwODkxMTE0M30.crH9s2eSwZw9qGPsDxf44QcWUHoGi9jaPCm_LogRn-E';
-const SUPABASE_SERVICE_KEY =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndibmNwdHhjb2lobXpsZnVocWFjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MzMzNTE0MywiZXhwIjoyMTA4OTExMTQzfQ.Tb11F_XnwcCeGdd97f_pH8Wa4_ifxta4L_cIYTT0r2Q';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export default async function handler(req, res) {
   // Set CORS headers
@@ -18,6 +16,10 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  if (!SUPABASE_SERVICE_KEY) {
+    return res.status(503).json({ error: 'Cloud authentication service temporarily unavailable.' });
   }
 
   try {
@@ -232,39 +234,16 @@ export default async function handler(req, res) {
 
       if (!recoverRes.ok) {
         const errData = await recoverRes.json().catch(() => ({}));
-        // If free-tier SMTP rate limit is reached, use Supabase admin generate_link to generate recovery link directly
-        if (
-          recoverRes.status === 429 ||
-          errData.error_code === 'over_email_send_rate_limit' ||
-          (errData.msg && errData.msg.toLowerCase().includes('rate limit'))
-        ) {
-          try {
-            const genRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/generate_link`, {
-              method: 'POST',
-              headers: adminHeaders,
-              body: JSON.stringify({ type: 'recovery', email }),
-            });
-            if (genRes.ok) {
-              const genData = await genRes.json();
-              return res.status(200).json({
-                success: true,
-                recovery_link: genData.action_link,
-                message: 'Recovery link generated. Click the link provided to reset your password.',
-              });
-            }
-          } catch (e) {
-            console.error('Failed generating admin recovery link:', e);
-          }
+        let msg = errData.msg || errData.error_description || 'Unable to send password recovery email.';
+        if (recoverRes.status === 429 || errData.error_code === 'over_email_send_rate_limit') {
+          msg = 'Password recovery rate limit reached. Please wait a few minutes before requesting another reset email.';
         }
-
-        return res.status(recoverRes.status).json({
-          error: errData.msg || 'Unable to send password recovery email.',
-        });
+        return res.status(recoverRes.status).json({ error: msg });
       }
 
       return res.status(200).json({
         success: true,
-        message: 'Password reset link sent to your email address.',
+        message: 'Password reset link sent to your email address. Please check your inbox and spam folder.',
       });
     }
 

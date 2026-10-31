@@ -650,10 +650,13 @@ async function polishTextWithAI(raw) {
       const userPrompt = `Raw spoken transcript to polish into a neat inquiry:\n${raw}`;
 
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${byomGeminiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': byomGeminiKey,
+          },
           body: JSON.stringify({
             contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
             generationConfig: { temperature: 0.2, maxOutputTokens: 256 },
