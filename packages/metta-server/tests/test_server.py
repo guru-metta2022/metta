@@ -276,3 +276,42 @@ async def test_voice_polish_endpoint():
         assert " uh " not in data["polished"].lower()
         assert data["polished"].endswith("?")
         assert data["polished"].startswith("Will")
+
+
+@pytest.mark.asyncio
+async def test_headless_endpoints():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        # 1. GET JSON
+        get_res = await ac.get("/api/headless")
+        assert get_res.status_code == 200
+        data = get_res.json()
+        assert data["status"] == "online"
+        assert "Reflection (Sati)" in data["framework"]
+
+        # 2. GET Markdown
+        get_md = await ac.get("/api/headless?format=markdown")
+        assert get_md.status_code == 200
+        assert "# Project Metta: Headless Agent API" in get_md.text
+
+        # 3. POST Headless Consultation (JSON)
+        post_res = await ac.post(
+            "/api/headless",
+            json={"query": "I feel anxious about an upcoming engineering release."},
+        )
+        assert post_res.status_code == 200
+        res_data = post_res.json()
+        assert res_data["status"] == "success"
+        assert "triad" in res_data
+        assert "reflection" in res_data["triad"]
+        assert "decision" in res_data["triad"]
+        assert "resolution" in res_data["triad"]
+        assert res_data["triad"]["decision"]["verdict"] in ["YES", "NO"]
+
+        # 4. POST Headless Consultation (Markdown)
+        post_md = await ac.post(
+            "/api/headless",
+            headers={"Accept": "text/markdown"},
+            json={"query": "How to resolve team conflict?"},
+        )
+        assert post_md.status_code == 200
+        assert "# Metta Triadic Decision & Reflection" in post_md.text

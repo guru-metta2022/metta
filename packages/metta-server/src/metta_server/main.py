@@ -99,6 +99,15 @@ class CanonicalVerifyRequest(BaseModel):
     byom_typesafe_key: Optional[str] = Field(default=None, description="Optional BYOM TypeSafe key")
 
 
+class HeadlessRequest(BaseModel):
+    query: Optional[str] = Field(default=None, description="Inquiry or dilemma to reflect upon")
+    proposal: Optional[str] = Field(default=None, description="Candidate action or tool call to audit")
+    context: Optional[str] = Field(default=None, description="Optional background context")
+    format: Optional[str] = Field(default="json", description="'json' or 'markdown'")
+    byom_gemini_key: Optional[str] = Field(default=None, description="Optional BYOM Gemini key")
+    byom_typesafe_key: Optional[str] = Field(default=None, description="Optional BYOM TypeSafe key")
+
+
 class ProviderSettingsUpdate(BaseModel):
     provider: str = Field(..., description="Target provider ('gemini', 'local_llm', 'open_source')")
     model: Optional[str] = Field(default=None, description="Optional model target")
@@ -321,6 +330,114 @@ async def guardrail_endpoint(req: GuardrailRequest, request: Request, response: 
     except Exception as e:
         logger.error("Error during guardrail evaluation: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/headless")
+async def get_headless_info(request: Request):
+    """Retrieve machine-readable metadata and documentation for autonomous AI agents."""
+    accept = request.headers.get("accept", "")
+    if "text/markdown" in accept or request.query_params.get("format") == "markdown":
+        markdown_body = (
+            "# Project Metta: Headless Agent API\n\n"
+            "> Decision-Safety and Reflection Layer for Autonomous AI Agents.\n\n"
+            "## Triadic Framework\n"
+            "- **Reflection (Sati)**: Underlying emotional knot & core need.\n"
+            "- **Decision (Sīla)**: Sub-second 5 Precepts & Ahimsa audit.\n"
+            "- **Resolution (Karunā)**: Perspective reframe & compassionate step.\n\n"
+            "## Endpoints\n"
+            "- `POST /api/headless`: Send `{\"query\": \"...\"}` or `{\"proposal\": \"...\"}` for direct triadic audit.\n"
+            "- `GET /llms.txt`: Standard machine catalog.\n"
+        )
+        return Response(content=markdown_body, media_type="text/markdown; charset=utf-8")
+
+    return {
+        "status": "online",
+        "name": "Project Metta Headless Module",
+        "version": "0.4.0",
+        "description": "Headless Reflection, Decision & Resolution API for AI models and autonomous agents",
+        "framework": ["Reflection (Sati)", "Decision (Sīla)", "Resolution (Karunā)"],
+        "supported_methods": ["GET", "POST"],
+        "endpoints": {
+            "headless": "/api/headless",
+            "guardrail": "/api/guardrail",
+            "interact": "/api/interact",
+            "voice_polish": "/api/voice/polish",
+            "llms_catalog": "/llms.txt",
+            "llms_full": "/llms-full.txt",
+        },
+    }
+
+
+@app.post("/api/headless")
+async def post_headless_consult(req: HeadlessRequest, request: Request):
+    """Direct headless reflection, decision, and resolution consultation for external AI agents."""
+    target_query = (req.query or req.proposal or "").strip()
+    if not target_query:
+        raise HTTPException(status_code=400, detail="Field 'query' or 'proposal' is required")
+
+    byom_gemini = request.headers.get("x-gemini-api-key") or req.byom_gemini_key
+    byom_typesafe = request.headers.get("x-typesafe-api-key") or req.byom_typesafe_key
+
+    # Run triadic consultation via AIAgent
+    response = await ai_agent.ask(
+        payload=f"{req.context + ': ' if req.context else ''}{target_query}",
+        source="headless_api",
+        mode="guest",
+        byom_gemini_key=byom_gemini,
+        byom_typesafe_key=byom_typesafe,
+    )
+
+    accept = request.headers.get("accept", "")
+    wants_markdown = "text/markdown" in accept or req.format == "markdown"
+
+    triad_data = {
+        "status": "success",
+        "query": target_query,
+        "triad": {
+            "reflection": {
+                "emotional_state": response.observation.get("emotional_state") if response.observation else "deliberative",
+                "cognitive_knot": response.observation.get("cognitive_knot") if response.observation else "Search for clarity",
+                "core_need": response.observation.get("core_need") if response.observation else "Equanimity",
+            },
+            "decision": {
+                "verdict": "NO" if (response.evaluation and not response.evaluation.get("passed", True)) else "YES",
+                "passed": response.evaluation.get("passed", True) if response.evaluation else True,
+                "precepts_audit": "Ahimsa & 5 Precepts Verified" if (response.evaluation and response.evaluation.get("passed", True)) else "Precept Violation Flagged",
+                "requires_silence": response.evaluation.get("requires_silence", False) if response.evaluation else False,
+                "violations": response.evaluation.get("violations", []) if response.evaluation else [],
+            },
+            "resolution": {
+                "summary": response.response_text,
+                "perspective_reframe": response.graph_match.get("path", {}).get("reframe") if response.graph_match else "Act with wisdom and restraint.",
+                "immediate_action": response.graph_match.get("path", {}).get("immediate_action") if response.graph_match else "Take one conscious step forward.",
+                "canonical_sutta": {
+                    "ref": response.graph_match.get("path", {}).get("sutta_ref") if response.graph_match else "MN 61",
+                    "url": response.graph_match.get("path", {}).get("sutta_link") if response.graph_match else "https://suttacentral.net/mn61",
+                },
+            },
+        },
+    }
+
+    if wants_markdown:
+        md = (
+            f"# Metta Triadic Decision & Reflection\n\n"
+            f"**Query:** {target_query}\n\n"
+            f"## 1. 🌱 Reflection (Sati)\n"
+            f"- **Observed State:** {triad_data['triad']['reflection']['emotional_state']}\n"
+            f"- **Underlying Knot:** {triad_data['triad']['reflection']['cognitive_knot']}\n"
+            f"- **Core Need:** {triad_data['triad']['reflection']['core_need']}\n\n"
+            f"## 2. ⚡ Decision (Sīla & Jev)\n"
+            f"- **Verdict:** {triad_data['triad']['decision']['verdict']} ({'Wholesome / Safe' if triad_data['triad']['decision']['passed'] else 'Harm / Caution'})\n"
+            f"- **Precepts Audit:** {triad_data['triad']['decision']['precepts_audit']}\n\n"
+            f"## 3. 🕊️ Resolution (Karunā)\n"
+            f"- **Summary:** {triad_data['triad']['resolution']['summary']}\n"
+            f"- **Perspective Reframe:** {triad_data['triad']['resolution']['perspective_reframe']}\n"
+            f"- **Action Step:** {triad_data['triad']['resolution']['immediate_action']}\n"
+            f"- **Canonical Anchor:** [{triad_data['triad']['resolution']['canonical_sutta']['ref']}]({triad_data['triad']['resolution']['canonical_sutta']['url']})\n"
+        )
+        return Response(content=md, media_type="text/markdown; charset=utf-8")
+
+    return triad_data
 
 
 @app.post("/api/auth/google")

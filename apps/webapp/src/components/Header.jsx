@@ -1,11 +1,12 @@
 import React from 'react';
-import { Shield, Network, Sparkles, Settings, User, Brain, PanelLeft, MessageSquare, Activity } from 'lucide-react';
+import { Shield, Network, Sparkles, Settings, User, Brain, PanelLeft, MessageSquare, Activity, Compass } from 'lucide-react';
 
 export default function Header({
   onOpenPrecepts,
   onOpenGraph,
   onOpenMeditate,
   onOpenSettings,
+  onOpenFramework,
   isMeditating,
   identityMode = 'guest',
   userProfile = null,
@@ -108,6 +109,15 @@ export default function Header({
             <span className="hidden sm:inline">Guest Mode</span>
           </button>
         )}
+
+        <button
+          onClick={onOpenFramework}
+          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium text-[#b0b6c2] hover:text-[#f0f2f5] hover:bg-[#181c24] border border-[#1f242e] transition"
+          title="Reflection, Decision & Resolution Framework Reference"
+        >
+          <Compass className="w-3.5 h-3.5 text-[#7ec69d]" />
+          <span className="hidden xl:inline">Framework</span>
+        </button>
 
         <button
           onClick={onOpenPrecepts}

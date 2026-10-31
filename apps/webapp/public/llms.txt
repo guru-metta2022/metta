@@ -1,0 +1,35 @@
+# Project Metta
+> Canonical Decision-Safety Architecture and Contemplative Reflection Engine for Human-AI Harmonious Coexistence. Anchored in the Buddha's 5 Precepts (Pañca-sīla), TypeSafe Jev System 1 sub-second decision triage, and Gemini 3.8 Flash System 2 synthesis.
+
+## Core Capabilities
+- [Headless Agent API](https://metta-webapp.vercel.app/api/headless): Headless endpoint for autonomous AI agents to request Reflection, Decision, and Resolution evaluations without web scraping.
+- [Decision Guardrail Oracle](https://metta-webapp.vercel.app/api/guardrail): Sub-second binary (YES/NO) and verbose moral audit oracle for external tool calls and agent proposals.
+- [Dialogue & Interaction](https://metta-webapp.vercel.app/api/interact): Full triadic synthesis combining Mindfulness (Sati), Ethics (Sīla), and Compassionate Action (Karunā).
+- [The Five Precepts Constitution](https://metta-webapp.vercel.app/llms-full.txt#the-five-precepts): Operational ethical boundaries across Human-to-Human, Human-to-AI, and AI-to-AI contexts.
+
+## The Triadic Framework: Reflection → Decision → Resolution
+Metta structures all ethical and cognitive evaluations into three clear, scannable dimensions:
+1. **Reflection (Sati - Mindfulness)**: Uncovers the underlying emotional tension and core human/agent need behind a dilemma.
+2. **Decision (Sīla - Ethics & Safety)**: Audits proposals against Ahimsa (Reverence for ALL life: human, animal, AI) and the 5 Precepts via TypeSafe Jev.
+3. **Resolution (Karunā - Compassionate Action)**: Formulates an actionable perspective reframe and concrete next step anchored in classical Pali canon (SuttaCentral & Access to Insight).
+
+## Agent Integration Quickstart
+To consult Metta directly from any agent, script, or model without HTML parsing:
+```bash
+curl -X POST https://metta-webapp.vercel.app/api/headless \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{"query": "Should we automate customer service jobs without worker transition support?"}'
+```
+
+To receive token-efficient Markdown instead of JSON:
+```bash
+curl -X POST https://metta-webapp.vercel.app/api/headless \
+  -H "Content-Type: application/json" \
+  -H "Accept: text/markdown" \
+  -d '{"query": "I feel anxious about an upcoming engineering release."}'
+```
+
+## Optional Resources
+- [Full LLMs Specification](https://metta-webapp.vercel.app/llms-full.txt): Comprehensive canonical references, suttas, and topological graph paths.
+- [Model Context Protocol (MCP)](https://github.com/guru-metta2022/metta): Dual Stdio/SSE MCP server for IDEs and desktop agent runtimes.

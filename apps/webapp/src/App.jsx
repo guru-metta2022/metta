@@ -9,6 +9,7 @@ import MeditationModal from './components/MeditationModal';
 import SettingsModal from './components/SettingsModal';
 import AuthModal from './components/AuthModal';
 import UserGraphModal from './components/UserGraphModal';
+import FrameworkModal from './components/FrameworkModal';
 import VoiceOscillator from './components/VoiceOscillator';
 import { useAppDialog } from './components/ToastDialogContext';
 import { Send, Sparkles, Wind, Mic, MicOff, Volume2, Wand2 } from 'lucide-react';
@@ -177,6 +178,7 @@ export default function App() {
   }, []);
   const [preceptsOpen, setPreceptsOpen] = useState(false);
   const [graphOpen, setGraphOpen] = useState(false);
+  const [frameworkOpen, setFrameworkOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [userGraphOpen, setUserGraphOpen] = useState(false);
@@ -747,6 +749,7 @@ export default function App() {
       <Header
         onOpenPrecepts={() => setPreceptsOpen(true)}
         onOpenGraph={() => setGraphOpen(true)}
+        onOpenFramework={() => setFrameworkOpen(true)}
         onOpenMeditate={handleTriggerMeditate}
         onOpenSettings={() => setSettingsOpen(true)}
         isMeditating={isMeditating}
@@ -925,6 +928,11 @@ export default function App() {
       <GraphModal
         isOpen={graphOpen}
         onClose={() => setGraphOpen(false)}
+      />
+
+      <FrameworkModal
+        isOpen={frameworkOpen}
+        onClose={() => setFrameworkOpen(false)}
       />
 
       <SettingsModal
