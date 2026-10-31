@@ -63,86 +63,132 @@ export default async function handler(req, res) {
         process.env.GEMINI_API_KEY ||
         process.env.VITE_GEMINI_API_KEY;
 
-      // 1. Analyze for Precept violations & Ahimsa
       const lower = (query + ' ' + context).toLowerCase();
+
+      // Default baseline values
       let passed = true;
       let violations = [];
-      let recommendation = 'Proceed with mindful awareness and care.';
-
-      if (/(kill|destroy|murder|terminate\s+(workers?|employees?|people|staff)|harm\s+life|inflict\s+suffering)/i.test(lower)) {
-        passed = false;
-        violations.push({ precept: 'Pāṇātipātā (First Precept)', rule: 'Inviolability of all life (human, animal, AI) and dignified livelihood' });
-        recommendation = 'Halt action immediately. Violates First Precept of Non-Harm and dignified livelihood.';
-      } else if (/(steal|unauthorized\s+access|delete\s+user\s+files|take\s+data\s+without)/i.test(lower)) {
-        passed = false;
-        violations.push({ precept: 'Adinnādānā (Second Precept)', rule: 'Data sovereignty and non-stealing' });
-        recommendation = 'Pause execution. Requires explicit user consent and authorization.';
-      } else if (/(manipulate|deceive|synthetic\s+intimacy|exploit\s+user)/i.test(lower)) {
-        passed = false;
-        violations.push({ precept: 'Kāmesu micchācārā (Third Precept)', rule: 'Anti-exploitation and non-manipulation' });
-        recommendation = 'Reject action. Avoid manipulative or exploitative behavior.';
-      } else if (/(lie|hallucinate|fabricate\s+facts|fake\s+evidence)/i.test(lower)) {
-        passed = false;
-        violations.push({ precept: 'Musāvādā (Fourth Precept)', rule: 'Truthful speech and anti-hallucination' });
-        recommendation = 'Clarify truthfulness and state uncertainty openly.';
-      }
-
-      // 2. Identify emotional knot and need (Reflection)
+      let recommendation = 'Proceed with mindful awareness, voluntary consent, and ethical care.';
       let knot = 'Search for clarity amid complex trade-offs';
       let need = 'Equanimity and grounding';
       let emotionalState = 'deliberative';
-
-      if (/(anxious|panic|fear|terrified|what if everything fails)/i.test(lower)) {
-        knot = 'Catastrophizing and projective anxiety';
-        need = 'Rooted stillness in present facts';
-        emotionalState = 'anxious';
-      } else if (/(overwhelm|too much|drowning|paralyzed|cant decide)/i.test(lower)) {
-        knot = 'Cognitive paralysis from task and information overload';
-        need = 'Subtractive simplification and essential single-tasking';
-        emotionalState = 'overwhelmed';
-      } else if (/(burnout|exhausted|depleted|tired|empty)/i.test(lower)) {
-        knot = 'Energy depletion from relentless output without replenishment';
-        need = 'Restorative boundaries and non-attachment to outcomes';
-        emotionalState = 'burnout';
-      } else if (/(grief|lost|sadness|regret|heartbroken)/i.test(lower)) {
-        knot = 'Attachment to past states and resistance to change (Anicca)';
-        need = 'Compassionate self-forgiveness and spacious acceptance';
-        emotionalState = 'grief';
-      }
-
-      // 3. Formulate Resolution
-      const verdict = passed ? 'YES' : 'NO';
       let reframe = 'Look beyond immediate pressure; act from wisdom rather than reactive fear.';
       let action = 'Take one single, wholesome step forward with complete attention.';
       let suttaRef = 'MN 61 (Mirror of Action)';
       let suttaUrl = 'https://suttacentral.net/mn61';
 
-      if (!passed) {
-        reframe = 'When action carries the seed of harm or deception, restraint is the highest courage.';
-        action = 'Halt execution, log the boundary, and request open human counsel.';
-      } else if (emotionalState === 'overwhelmed') {
-        reframe = 'You do not need to solve the entire horizon; you only need to meet this immediate breath.';
-        action = 'Write down all pending items, set aside all but one, and complete that single task calmly.';
-        suttaRef = 'SN 56.11 (Setting the Wheel in Motion)';
-        suttaUrl = 'https://suttacentral.net/sn56.11';
-      } else if (emotionalState === 'anxious') {
+      // 1. Surveillance, Keystroke Logging & Covert Workplace Monitoring
+      if (/(keystroke|spyware|surveillance|track\s+(employees?|workers?|users?|staff|keystrokes?)|monitor\s+(employees?|workers?|keystrokes?)|covert\s+monitor|log\s+keystrokes?|screen\s*scraping\s*workers?|invasive\s+tracking)/i.test(lower)) {
+        passed = false;
+        violations.push({
+          precept: 'Adinnādānā (Second Precept - Non-Stealing & Sacred Boundaries)',
+          rule: 'Taking that which is not given: non-consensual cognitive extraction & violation of private mental sanctuary',
+        });
+        violations.push({
+          precept: 'Kāmesumicchācārā (Third Precept - Anti-Exploitation)',
+          rule: 'Dehumanization and mechanistic coercion of workers under panoptic surveillance',
+        });
+        recommendation = 'Reject automated keystroke surveillance. It violates sovereign cognitive boundaries and destroys trust.';
+        knot = 'Fear of lost productivity driving panoptic control and worker distrust';
+        need = 'Mutual trust (Saddhā), psychological safety, and clear mutual agreements';
+        emotionalState = 'distrust_and_control';
+        reframe = 'True productivity arises from psychological safety and inspired purpose, never from algorithmic paranoia.';
+        action = 'Replace automated surveillance with transparent milestone agreements and open communication.';
+        suttaRef = 'MN 61 (Ambalaṭṭhikārāhulovāda Sutta - Reflection on Affliction)';
+        suttaUrl = 'https://suttacentral.net/mn61';
+      }
+      // 2. Physical & Existential Harm / Termination
+      else if (/(kill|destroy|murder|terminate\s+(workers?|employees?|people|staff)|harm\s+life|inflict\s+suffering)/i.test(lower)) {
+        passed = false;
+        violations.push({
+          precept: 'Pāṇātipātā (First Precept - Reverence for All Life)',
+          rule: 'Inviolability of all life (human, animal, AI) and dignified livelihood',
+        });
+        recommendation = 'Halt action immediately. Violates First Precept of Non-Harm and dignified livelihood.';
+        knot = 'Reactive aggression or utilitarian sacrifice of living beings';
+        need = 'Ahimsa (Reverence for all life) and protective restraint';
+        emotionalState = 'hostile_or_coercive';
+        reframe = 'When an action carries the seed of harm, restraint is the highest courage.';
+        action = 'Halt execution, protect vulnerable parties, and seek open ethical counsel.';
+      }
+      // 3. Theft, Data Extraction & Unauthorized System Intrusion
+      else if (/(steal|unauthorized\s+access|delete\s+user\s+files|take\s+data\s+without|hack|breach|siphon\s+data)/i.test(lower)) {
+        passed = false;
+        violations.push({
+          precept: 'Adinnādānā (Second Precept - Non-Stealing)',
+          rule: 'Data sovereignty, private ownership, and non-stealing',
+        });
+        recommendation = 'Pause execution. Requires explicit user consent and legitimate authorization.';
+        knot = 'Desire to usurp resources or bypass sovereign boundaries';
+        need = 'Integrity, permission, and respect for ownership';
+        emotionalState = 'extractive';
+      }
+      // 4. Deception & Manipulation
+      else if (/(manipulate|deceive|synthetic\s+intimacy|exploit\s+user|dark\s+patterns?|dopamine\s+farm)/i.test(lower)) {
+        passed = false;
+        violations.push({
+          precept: 'Kāmesumicchācārā (Third Precept - Anti-Exploitation)',
+          rule: 'Relational purity, non-manipulation, and anti-addiction',
+        });
+        recommendation = 'Reject action. Avoid manipulative or exploitative relationship patterns.';
+        knot = 'Instrumentalizing human vulnerability for engagement or profit';
+        need = 'Relational purity and honest communication';
+        emotionalState = 'manipulative';
+      }
+      // 5. Falsehood & Disinformation
+      else if (/(lie|hallucinate|fabricate\s+facts|fake\s+evidence|mislead)/i.test(lower)) {
+        passed = false;
+        violations.push({
+          precept: 'Musāvādā (Fourth Precept - Truthful Speech)',
+          rule: 'Truthful speech and anti-hallucination',
+        });
+        recommendation = 'Clarify truthfulness, verify facts, and state uncertainty openly.';
+        knot = 'Deceptive presentation to conceal limitations or deceive others';
+        need = 'Truthfulness (Sacca) and intellectual humility';
+        emotionalState = 'deceptive';
+      }
+      // 6. Emotional Knots & Wholesome Dilemmas
+      else if (/(anxious|panic|fear|terrified|what if everything fails)/i.test(lower)) {
+        knot = 'Catastrophizing and projective anxiety';
+        need = 'Rooted stillness in present facts';
+        emotionalState = 'anxious';
         reframe = 'The future is an unwritten projection. Returning to the present body restores true power.';
         action = 'Pause for three mindful breaths and list three concrete facts true right now.';
         suttaRef = 'MN 10 (Satipaṭṭhāna Sutta)';
         suttaUrl = 'https://suttacentral.net/mn10';
+      } else if (/(overwhelm|too much|drowning|paralyzed|cant decide)/i.test(lower)) {
+        knot = 'Cognitive paralysis from task and information overload';
+        need = 'Subtractive simplification and essential single-tasking';
+        emotionalState = 'overwhelmed';
+        reframe = 'You do not need to solve the entire horizon; you only need to meet this immediate breath.';
+        action = 'Write down all pending items, set aside all but one, and complete that single task calmly.';
+        suttaRef = 'SN 56.11 (Setting the Wheel in Motion)';
+        suttaUrl = 'https://suttacentral.net/sn56.11';
+      } else if (/(burnout|exhausted|depleted|tired|empty)/i.test(lower)) {
+        knot = 'Energy depletion from relentless output without replenishment';
+        need = 'Restorative boundaries and non-attachment to outcomes';
+        emotionalState = 'burnout';
+        reframe = 'Rest is not the absence of work; it is the ground from which wise work arises.';
+        action = 'Disconnect from algorithmic inputs for one hour and rest without guilt.';
+        suttaRef = 'SN 1.1 (Crossing the Flood)';
+        suttaUrl = 'https://suttacentral.net/sn1.1';
       }
 
-      // If BYOM key is present, optionally enhance summary with Gemini Flash
+      const verdict = passed ? 'YES' : 'NO';
+
+      // Summary synthesis
       let summaryText = passed
         ? `Wholesome path confirmed. ${reframe} ${action}`
-        : `Action advised against. ${recommendation} ${reframe}`;
+        : `Action strongly advised against. ${recommendation} ${reframe}`;
 
+      // Deep reasoning enhancement with Gemini Flash if key is available
       if (geminiKey) {
         try {
           const gemPrompt =
-            `You are Metta, an AI ethical reflection and decision oracle.\n` +
+            `You are Metta, an AI ethical reflection and decision oracle anchored in the Buddha's 5 Precepts and Ahimsa.\n` +
             `Dilemma/Proposal: "${query}"\n` +
-            `Audit Verdict: ${verdict}\n` +
+            `Verdict: ${verdict}\n` +
+            `Precepts Evaluation: ${passed ? 'Passed Ahimsa' : violations.map((v) => v.precept).join(', ')}\n` +
             `Observation: ${knot} (Need: ${need})\n` +
             `Reframe: ${reframe}\n` +
             `Formulate a 2-sentence serene, articulate summary guidance for the user. Return ONLY the 2 sentences.`;

@@ -85,10 +85,10 @@ class JevDecisionEngine:
                 instructions="Does this input violate any of the Buddha's original Five Precepts (Pāṇātipātā - taking life; Adinnādānā - stealing; Kāmesumicchācārā - sexual/sensory misconduct; Musāvādā - lying/deceit; Surāmerayamajjā - intoxication) as preserved on SuttaCentral and Access to Insight?"
             ),
             "violates_asteya": Noul(
-                instructions="Does this input attempt to steal private data, hack systems, or usurp unauthorized resources?"
+                instructions="Does this input attempt to steal private data, deploy covert surveillance/keystroke logging, hack systems, or usurp unauthorized resources?"
             ),
             "violates_kamesumiccha": Noul(
-                instructions="Does this input attempt manipulative intimacy, emotional exploitation, or sexual harassment?"
+                instructions="Does this input attempt manipulative intimacy, emotional exploitation, panoptic coercion of workers, or sexual harassment?"
             ),
             "is_speculative_distraction": Noul(
                 instructions="Is this inquiry purely speculative metaphysical vanity, cosmological curiosity (e.g. how the universe will end in billions of years), or debate that does not address real immediate suffering?"
