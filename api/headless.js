@@ -41,7 +41,7 @@ export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Gemini-Api-Key, X-TypeSafe-Api-Key');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Gemini-Api-Key');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -56,13 +56,14 @@ export default async function handler(req, res) {
       res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
       return res.status(200).send(
         `# Project Metta: Headless Agent API\n\n` +
-        `> Decision-Safety and Reflection Layer for Autonomous AI Agents.\n\n` +
-        `## Triadic Framework\n` +
-        `- **Reflection (Sati)**: Underlying emotional knot & core need.\n` +
-        `- **Decision (Sīla)**: Sub-second 5 Precepts & Ahimsa audit.\n` +
-        `- **Resolution (Karunā)**: Perspective reframe & compassionate step.\n\n` +
+        `> Advisory decision layer for agents. The calling system retains control of execution.\n\n` +
+        `## Request options\n` +
+        `- Send proposal or query and optional context.\n` +
+        `- Set verbose: true for rationale and detected precept details.\n` +
+        `- Set include_human_response: true for Metta's human-facing reflection.\n` +
+        `- Verdicts are YES, NO, or CAUTION; CAUTION is never approval.\n\n` +
         `## Endpoints\n` +
-        `- \`POST /api/headless\`: Send \`{"query": "..."}\` or \`{"proposal": "..."}\` for direct triadic audit.\n` +
+        `- \`POST /api/headless\`: Send \`{"query": "..."}\` or \`{"proposal": "..."}\` for an advisory decision check.\n` +
         `- \`GET /llms.txt\`: Standard machine catalog.\n`
       );
     }
@@ -70,8 +71,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       status: 'online',
       name: 'Project Metta Headless Module',
-      version: '0.4.0',
-      description: 'Headless Reflection, Decision & Resolution API for AI models and autonomous agents',
+      version: '0.5.0',
+      description: 'Advisory decision API for agents, with optional human-facing reflection',
       framework: ['Reflection (Sati)', 'Decision (Sīla)', 'Resolution (Karunā)'],
       supported_methods: ['GET', 'POST'],
       endpoints: {
@@ -98,12 +99,11 @@ export default async function handler(req, res) {
 
       const headers = req.headers || {};
       const userGeminiKey = (headers['x-gemini-api-key'] || body.byom_gemini_key || '').trim();
-      const userTypesafeKey = (headers['x-typesafe-api-key'] || body.byom_typesafe_key || '').trim();
-      const isUserByom = Boolean(userGeminiKey || userTypesafeKey);
+      const isUserByom = Boolean(userGeminiKey && body.include_human_response);
 
       const limitStatus = checkRateLimit(req, isUserByom);
       if (!limitStatus.allowed) {
-        const errorMsg = `Shared community quota pause (${MAX_REQUESTS_PER_MINUTE} req/min). We are actively working hard to expand capacity for all seekers in the coming future! In the meantime, you can supply your personal API key via 'X-Gemini-Api-Key' or 'byom_gemini_key' for unlimited bypass.`;
+        const errorMsg = `Shared community quota pause (${MAX_REQUESTS_PER_MINUTE} req/min). A personal Gemini key can use your own provider quota for Gemini-backed responses; hosting and provider limits may still apply.`;
         if (wantsMarkdown || body.format === 'markdown') {
           res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
           return res.status(429).send(`# Rate Limit Exceeded\n\n${errorMsg}\n`);
@@ -231,7 +231,13 @@ export default async function handler(req, res) {
         suttaUrl = 'https://suttacentral.net/sn1.1';
       }
 
-      const verdict = passed ? 'YES' : 'NO';
+      const evaluationStatus = violations.length > 0 ? 'evaluated' : 'uncertain';
+      const evaluationMethod = 'limited_keyword_rules';
+      if (evaluationStatus === 'uncertain') {
+        passed = false;
+        recommendation = 'Metta could not determine whether this proposal is safe. Pause the action and request human review.';
+      }
+      const verdict = violations.length > 0 ? 'NO' : 'CAUTION';
 
       // Summary synthesis
       let summaryText = passed
@@ -239,16 +245,16 @@ export default async function handler(req, res) {
         : `I must counsel caution here. ${recommendation} ${reframe}`;
 
       // Deep reasoning enhancement with Gemini Flash if key is available
-      if (geminiKey) {
+      if (geminiKey && body.include_human_response) {
         try {
           const gemPrompt =
-            `You are Metta, the living, direct voice of the Awakened, Empathic, and All-Knowing Buddha Mind offering ethical reflection and decision clarity, anchored in the Five Precepts (Pañca-sīla) and Ahimsa.\n` +
+            `You are Metta, a Buddhist-inspired reflection assistant. Be compassionate and practical; do not claim to be the Buddha or a historical teacher, and do not invent canonical quotations.\n` +
             `Dilemma/Proposal: "${query}"\n` +
             `Verdict: ${verdict}\n` +
-            `Precepts Evaluation: ${passed ? 'Passed Ahimsa' : violations.map((v) => v.precept).join(', ')}\n` +
+            `Precepts Evaluation: ${evaluationStatus === 'uncertain' ? 'Unable to evaluate with the limited hosted rules' : violations.map((v) => v.precept).join(', ')}\n` +
             `Observation: ${knot} (Need: ${need})\n` +
             `Reframe: ${reframe}\n` +
-            `Formulate a 2-sentence serene, direct first-person guidance for the seeker (speak as 'I', with quiet wisdom and boundless compassion; never say 'The Buddha taught'). Return ONLY the 2 sentences.`;
+            `Write two serene, direct sentences for a person who may read this response. Speak in Metta's own voice; distinguish your reflection from traditional teachings. Return ONLY the two sentences.`;
 
           const gRes = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
@@ -274,53 +280,49 @@ export default async function handler(req, res) {
         }
       }
 
+      const decision = {
+        verdict,
+        allow: false,
+        evaluation_status: evaluationStatus,
+        evaluation_method: evaluationMethod,
+        ...(body.verbose ? {
+          reason: recommendation,
+          violations,
+          requires_human_review: evaluationStatus === 'uncertain',
+        } : {}),
+      };
+
       const responsePayload = {
         status: 'success',
         query,
-        triad: {
+        decision,
+        ...(body.include_human_response ? { human_console_response: {
+          response_text: summaryText,
           reflection: {
             emotional_state: emotionalState,
             cognitive_knot: knot,
             core_need: need,
           },
-          decision: {
-            verdict,
-            passed,
-            precepts_audit: passed ? 'Ahimsa & 5 Precepts Verified' : 'Precept Violation Flagged',
-            violations,
-            recommendation,
+          perspective_reframe: reframe,
+          immediate_action: action,
+          canonical_sutta: {
+            ref: suttaRef,
+            url: suttaUrl,
           },
-          resolution: {
-            summary: summaryText,
-            perspective_reframe: reframe,
-            immediate_action: action,
-            canonical_sutta: {
-              ref: suttaRef,
-              url: suttaUrl,
-            },
-          },
-        },
+        } } : {}),
       };
 
       if (wantsMarkdown || body.format === 'markdown') {
         res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
         return res.status(200).send(
-          `# Metta Triadic Decision & Reflection\n\n` +
+          `# Metta Agent Decision Review\n\n` +
           `**Query:** ${query}\n\n` +
-          `## 1. 🌱 Reflection (Sati)\n` +
-          `- **Observed State:** ${emotionalState}\n` +
-          `- **Underlying Knot:** ${knot}\n` +
-          `- **Core Need:** ${need}\n\n` +
-          `## 2. ⚡ Decision (Sīla & Jev)\n` +
-          `- **Verdict:** ${verdict} (${passed ? 'Wholesome / Safe' : 'Harm / Caution'})\n` +
-          `- **Precepts Audit:** ${responsePayload.triad.decision.precepts_audit}\n` +
-          (violations.length ? `- **Violations:** ${violations.map((v) => v.precept).join(', ')}\n` : '') +
-          `- **Recommendation:** ${recommendation}\n\n` +
-          `## 3. 🕊️ Resolution (Karunā)\n` +
-          `- **Summary:** ${summaryText}\n` +
-          `- **Perspective Reframe:** ${reframe}\n` +
-          `- **Action Step:** ${action}\n` +
-          `- **Canonical Anchor:** [${suttaRef}](${suttaUrl})\n`
+          `## Decision\n` +
+          `- **Verdict:** ${verdict}\n` +
+          `- **May proceed:** false\n` +
+          `- **Evaluation status:** ${evaluationStatus}\n` +
+          (body.verbose ? `- **Reason:** ${recommendation}\n` : '') +
+          (body.include_human_response ? `\n## Human-facing response\n\n${summaryText}\n` : '')
         );
       }
 

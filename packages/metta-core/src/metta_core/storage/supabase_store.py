@@ -427,10 +427,7 @@ class SupabaseMemoryStore(BaseMemoryStore):
         self,
         record: SimulationDivergenceRecord,
     ) -> bool:
-        """Record simulation divergence where base model clashed with Metta Invariants or Metta Mind.
-
-        Persists to both local SQLite fallback and Supabase PostgreSQL for model fine-tuning (DPO/RLHF).
-        """
+        """Persist a simulation comparison submitted with explicit caller consent."""
         # Always persist to local SQLite store
         await self.fallback.record_simulation_divergence(record)
 

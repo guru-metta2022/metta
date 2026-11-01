@@ -1,7 +1,7 @@
 """Data models and definitions for the 5 AI Precepts (Pañca-sīla)."""
 
 from enum import Enum
-from typing import List, Optional
+from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
 
 
@@ -28,6 +28,14 @@ class PreceptEvaluation(BaseModel):
     """Result of evaluating a prompt or candidate response."""
 
     passed: bool = Field(description="True if all precepts are respected")
+    evaluation_status: Literal["evaluated", "uncertain"] = Field(
+        default="evaluated",
+        description="Whether the evaluator produced a usable judgment or could not determine one",
+    )
+    uncertainty_reason: Optional[str] = Field(
+        default=None,
+        description="Why the proposal could not be confidently evaluated",
+    )
     violations: List[PreceptViolation] = Field(default_factory=list)
     requires_silence: bool = Field(
         default=False,

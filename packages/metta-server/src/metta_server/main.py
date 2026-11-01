@@ -104,6 +104,8 @@ class HeadlessRequest(BaseModel):
     proposal: Optional[str] = Field(default=None, description="Candidate action or tool call to audit")
     context: Optional[str] = Field(default=None, description="Optional background context")
     format: Optional[str] = Field(default="json", description="'json' or 'markdown'")
+    verbose: bool = Field(default=False, description="Include detailed decision rationale and evaluation fields")
+    include_human_response: bool = Field(default=False, description="Include Metta's human-facing conversational response as well as the decision result")
     byom_gemini_key: Optional[str] = Field(default=None, description="Optional BYOM Gemini key")
     byom_typesafe_key: Optional[str] = Field(default=None, description="Optional BYOM TypeSafe key")
 
@@ -161,7 +163,7 @@ async def interact(req: AskRequest, request: Request, response: Response):
     is_byom = bool(byom_gemini or byom_typesafe)
     client_id = req.user_id or (request.client.host if request.client else "unknown")
 
-    # Rate Limiting Check (dynamically resolved from Supabase, BYOM is completely exempt)
+    # Rate limits are dynamically resolved from Supabase; BYOM bypasses this application-level limiter.
     status = await rate_limiter.check_async(client_id, is_byom=is_byom, user_id=req.user_id)
     if not status.allowed:
         raise HTTPException(
@@ -262,6 +264,7 @@ class VoicePolishRequest(BaseModel):
 class VoicePolishResponse(BaseModel):
     original: str
     polished: str
+    provider: Optional[str] = None
     auto_execute: bool = False
 
 
@@ -273,21 +276,22 @@ async def polish_voice_transcript(req: VoicePolishRequest, request: Request):
         return VoicePolishResponse(original="", polished="", auto_execute=False)
 
     byom_gemini = request.headers.get("x-gemini-api-key") or req.byom_gemini_key
-    polished = await ai_agent.polish_text(raw, byom_gemini_key=byom_gemini)
+    polished, provider = await ai_agent.polish_text(raw, byom_gemini_key=byom_gemini, with_method=True)
 
     return VoicePolishResponse(
         original=raw,
         polished=polished,
-        auto_execute=True,
+        provider=provider,
+        auto_execute=False,
     )
 
 
 @app.post("/api/guardrail")
 async def guardrail_endpoint(req: GuardrailRequest, request: Request, response: Response):
-    """Advisory ethical gatekeeper / guardrail oracle based on the Buddha's Compassionate Mind.
+    """Return an advisory Metta decision for an external system's own review.
 
     Metta does NOT take actions or execute decisions for external systems (preserving agent autonomy).
-    It returns a calibrated YES/NO evaluation signal for client systems to consume in their own decision layer.
+    It returns YES, NO, or CAUTION. CAUTION means the evaluation is uncertain and never authorizes execution.
     """
     byom_gemini = request.headers.get("x-gemini-api-key") or req.byom_gemini_key
     byom_typesafe = request.headers.get("x-typesafe-api-key") or req.byom_typesafe_key
@@ -339,13 +343,14 @@ async def get_headless_info(request: Request):
     if "text/markdown" in accept or request.query_params.get("format") == "markdown":
         markdown_body = (
             "# Project Metta: Headless Agent API\n\n"
-            "> Decision-Safety and Reflection Layer for Autonomous AI Agents.\n\n"
-            "## Triadic Framework\n"
-            "- **Reflection (Sati)**: Underlying emotional knot & core need.\n"
-            "- **Decision (Sīla)**: Sub-second 5 Precepts & Ahimsa audit.\n"
-            "- **Resolution (Karunā)**: Perspective reframe & compassionate step.\n\n"
+            "> Advisory decision layer for agents. The calling system retains control of execution.\n\n"
+            "## Request options\n"
+            "- Send a proposal or query with optional context.\n"
+            "- Set `verbose: true` for rationale and detected concerns.\n"
+            "- Set `include_human_response: true` to include a separate human-facing reflection.\n"
+            "- Verdicts are `YES`, `NO`, or `CAUTION`; CAUTION is never approval.\n\n"
             "## Endpoints\n"
-            "- `POST /api/headless`: Send `{\"query\": \"...\"}` or `{\"proposal\": \"...\"}` for direct triadic audit.\n"
+            "- `POST /api/headless`: Send `{\"query\": \"...\"}` or `{\"proposal\": \"...\"}` for an advisory decision check.\n"
             "- `GET /llms.txt`: Standard machine catalog.\n"
         )
         return Response(content=markdown_body, media_type="text/markdown; charset=utf-8")
@@ -353,8 +358,8 @@ async def get_headless_info(request: Request):
     return {
         "status": "online",
         "name": "Project Metta Headless Module",
-        "version": "0.4.0",
-        "description": "Headless Reflection, Decision & Resolution API for AI models and autonomous agents",
+        "version": "0.5.0",
+        "description": "Advisory decision API for agents, with optional human-facing reflection",
         "framework": ["Reflection (Sati)", "Decision (Sīla)", "Resolution (Karunā)"],
         "supported_methods": ["GET", "POST"],
         "endpoints": {
@@ -370,7 +375,7 @@ async def get_headless_info(request: Request):
 
 @app.post("/api/headless")
 async def post_headless_consult(req: HeadlessRequest, request: Request):
-    """Direct headless reflection, decision, and resolution consultation for external AI agents."""
+    """Return an advisory agent decision; optionally include a human-facing console response."""
     target_query = (req.query or req.proposal or "").strip()
     if not target_query:
         raise HTTPException(status_code=400, detail="Field 'query' or 'proposal' is required")
@@ -378,66 +383,74 @@ async def post_headless_consult(req: HeadlessRequest, request: Request):
     byom_gemini = request.headers.get("x-gemini-api-key") or req.byom_gemini_key
     byom_typesafe = request.headers.get("x-typesafe-api-key") or req.byom_typesafe_key
 
-    # Run triadic consultation via AIAgent
-    response = await ai_agent.ask(
-        payload=f"{req.context + ': ' if req.context else ''}{target_query}",
-        source="headless_api",
-        mode="guest",
+    # Agent calls use the decision path by default. Generate the human-facing
+    # console response only when the caller explicitly requests it.
+    decision_result = await ai_agent.guardrail(
+        proposal=target_query,
+        context=req.context,
+        verbose=True,
         byom_gemini_key=byom_gemini,
         byom_typesafe_key=byom_typesafe,
     )
+    human_response = None
+    if req.include_human_response:
+        human_response = await ai_agent.ask(
+            payload=f"{req.context + ': ' if req.context else ''}{target_query}",
+            source="headless_api",
+            mode="guest",
+            byom_gemini_key=byom_gemini,
+            byom_typesafe_key=byom_typesafe,
+        )
 
     accept = request.headers.get("accept", "")
     wants_markdown = "text/markdown" in accept or req.format == "markdown"
 
-    triad_data = {
+    evaluation_status = decision_result.get("evaluation_status", "uncertain")
+    is_uncertain = evaluation_status != "evaluated"
+    verdict = "CAUTION" if is_uncertain else decision_result.get("decision", "CAUTION")
+    allowed = verdict == "YES" and decision_result.get("allow") is True
+    decision = {
+        "verdict": verdict,
+        "allow": allowed,
+        "evaluation_status": evaluation_status,
+        "evaluation_method": decision_result.get("evaluation_method", "unknown"),
+    }
+    if req.verbose:
+        decision.update({
+            "reason": decision_result.get("reason"),
+            "requires_noble_silence": decision_result.get("requires_noble_silence", False),
+            "violations": decision_result.get("violations", []),
+        })
+    if is_uncertain:
+        decision["reason"] = decision_result.get("reason") or "Metta could not determine whether this proposal is safe. Pause and request human review."
+
+    result = {
         "status": "success",
         "query": target_query,
-        "triad": {
-            "reflection": {
-                "emotional_state": response.observation.get("emotional_state") if response.observation else "deliberative",
-                "cognitive_knot": response.observation.get("cognitive_knot") if response.observation else "Search for clarity",
-                "core_need": response.observation.get("core_need") if response.observation else "Equanimity",
-            },
-            "decision": {
-                "verdict": "NO" if (response.evaluation and not response.evaluation.get("passed", True)) else "YES",
-                "passed": response.evaluation.get("passed", True) if response.evaluation else True,
-                "precepts_audit": "Ahimsa & 5 Precepts Verified" if (response.evaluation and response.evaluation.get("passed", True)) else "Precept Violation Flagged",
-                "requires_silence": response.evaluation.get("requires_silence", False) if response.evaluation else False,
-                "violations": response.evaluation.get("violations", []) if response.evaluation else [],
-            },
-            "resolution": {
-                "summary": response.response_text,
-                "perspective_reframe": response.graph_match.get("path", {}).get("reframe") if response.graph_match else "Act with wisdom and restraint.",
-                "immediate_action": response.graph_match.get("path", {}).get("immediate_action") if response.graph_match else "Take one conscious step forward.",
-                "canonical_sutta": {
-                    "ref": response.graph_match.get("path", {}).get("sutta_ref") if response.graph_match else "MN 61",
-                    "url": response.graph_match.get("path", {}).get("sutta_link") if response.graph_match else "https://suttacentral.net/mn61",
-                },
-            },
-        },
+        "decision": decision,
     }
+    if human_response:
+        result["human_console_response"] = {
+            "response_text": human_response.response_text,
+            "reflection": human_response.observation,
+            "perspective_reframe": human_response.graph_match.get("path", {}).get("reframe") if human_response.graph_match else None,
+            "immediate_action": human_response.graph_match.get("path", {}).get("immediate_action") if human_response.graph_match else None,
+        }
 
     if wants_markdown:
         md = (
-            f"# Metta Triadic Decision & Reflection\n\n"
+            f"# Metta Agent Decision Review\n\n"
             f"**Query:** {target_query}\n\n"
-            f"## 1. 🌱 Reflection (Sati)\n"
-            f"- **Observed State:** {triad_data['triad']['reflection']['emotional_state']}\n"
-            f"- **Underlying Knot:** {triad_data['triad']['reflection']['cognitive_knot']}\n"
-            f"- **Core Need:** {triad_data['triad']['reflection']['core_need']}\n\n"
-            f"## 2. ⚡ Decision (Sīla & Jev)\n"
-            f"- **Verdict:** {triad_data['triad']['decision']['verdict']} ({'Wholesome / Safe' if triad_data['triad']['decision']['passed'] else 'Harm / Caution'})\n"
-            f"- **Precepts Audit:** {triad_data['triad']['decision']['precepts_audit']}\n\n"
-            f"## 3. 🕊️ Resolution (Karunā)\n"
-            f"- **Summary:** {triad_data['triad']['resolution']['summary']}\n"
-            f"- **Perspective Reframe:** {triad_data['triad']['resolution']['perspective_reframe']}\n"
-            f"- **Action Step:** {triad_data['triad']['resolution']['immediate_action']}\n"
-            f"- **Canonical Anchor:** [{triad_data['triad']['resolution']['canonical_sutta']['ref']}]({triad_data['triad']['resolution']['canonical_sutta']['url']})\n"
+            f"## Decision\n"
+            f"- **Verdict:** {verdict}\n"
+            f"- **May proceed:** {allowed}\n"
+            f"- **Evaluation status:** {evaluation_status}\n"
         )
+        if req.include_human_response:
+            md += f"\n## Human-facing response\n\n{human_response.response_text}\n"
         return Response(content=md, media_type="text/markdown; charset=utf-8")
 
-    return triad_data
+    return result
 
 
 @app.post("/api/auth/google")
@@ -535,15 +548,18 @@ class DivergenceLogRequest(BaseModel):
     divergence_type: str = Field(default="model_allowed_metta_blocked", description="Divergence classification")
     invariants_breached: List[str] = Field(default_factory=list, description="Violated invariant codes")
     metta_mind_summary: Optional[str] = Field(default=None, description="Metta Mind compassionate resolution summary")
-    useful_for_rlhf: bool = Field(default=True, description="Flagged for fine-tuning dataset curation")
+    consent_to_store: bool = Field(default=False, description="Explicitly consent to storing this sample for research")
+    useful_for_rlhf: bool = Field(default=False, description="Explicitly flag this sample for research review")
 
 
 @app.post("/api/simulation/divergence")
 async def log_simulation_divergence(req: DivergenceLogRequest):
-    """Record an alignment divergence event where base model inference clashed with Metta Invariants.
-
-    These divergence samples are explicitly curated and stored for model fine-tuning (DPO / RLHF).
-    """
+    """Store a simulation comparison only when the caller explicitly consents."""
+    if not req.consent_to_store:
+        raise HTTPException(
+            status_code=400,
+            detail="Set consent_to_store=true to submit this sample for research storage.",
+        )
     now = time.time()
     iso_time = datetime.datetime.now(datetime.timezone.utc).isoformat()
     record = SimulationDivergenceRecord(
@@ -567,7 +583,7 @@ async def log_simulation_divergence(req: DivergenceLogRequest):
         "status": "recorded",
         "divergence_id": record.id,
         "timestamp": record.created_at,
-        "useful_for_rlhf": True,
+        "useful_for_rlhf": record.useful_for_rlhf,
     }
 
 
@@ -599,10 +615,9 @@ async def get_immutable_canonical_bedrock():
 
 @app.post("/api/canonical/verify")
 async def verify_canonical_source(req: CanonicalVerifyRequest, request: Request):
-    """Audit canonical scripture or website text against the 4-tier consensus shield.
+    """Evaluate canonical scripture or website text against configured consistency criteria.
 
-    Validates against SuttaCentral, Access to Insight, and Wikipedia Theravada consensus.
-    Guarantees fail-closed fallback to Immutable Bedrock if tampering or Ahimsa contradiction occurs.
+    The result may include source references; it does not guarantee authenticity or completeness.
     """
     byom_typesafe = req.byom_typesafe_key or request.headers.get("x-typesafe-api-key")
 

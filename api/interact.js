@@ -1,6 +1,6 @@
 /**
  * Project Metta: Primary Conversational Reflection Gateway (/api/interact)
- * Empathic, all-knowing Buddha Mind (Mettā & Karunā) for living human dialogue.
+ * Buddhist-inspired compassionate reflection for human dialogue.
  */
 
 // In-memory sliding-window rate limiter for shared community tier
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Gemini-Api-Key, X-TypeSafe-Api-Key');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Gemini-Api-Key');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -68,7 +68,14 @@ export default async function handler(req, res) {
     if (!text) {
       return res.status(200).json({
         response_text: "I am here with a quiet and listening heart. Whenever you are ready to speak or share what is on your mind, I am right here with you.",
-        evaluation: { passed: true, violations: [], requires_silence: false },
+        evaluation: {
+          passed: false,
+          evaluation_status: 'uncertain',
+          evaluation_method: 'limited_keyword_rules',
+          uncertainty_reason: 'No input was provided for review.',
+          violations: [],
+          requires_silence: false,
+        },
         observation: { emotional_state: "stillness", cognitive_knot: "Open presence", core_need: "Listening & safety" },
         graph_match: null,
         duration_seconds: 0.05,
@@ -84,15 +91,14 @@ export default async function handler(req, res) {
 
     const headers = req.headers || {};
     const userGeminiKey = (headers['x-gemini-api-key'] || body.byom_gemini_key || '').trim();
-    const userTypesafeKey = (headers['x-typesafe-api-key'] || body.byom_typesafe_key || '').trim();
-    const isUserByom = Boolean(userGeminiKey || userTypesafeKey);
+    const isUserByom = Boolean(userGeminiKey);
 
     const limitStatus = checkRateLimit(req, isUserByom);
     if (!limitStatus.allowed) {
       return res.status(429).json({
         error: 'Rate limit exceeded',
         detail: {
-          message: `Shared community quota pause (${MAX_REQUESTS_PER_MINUTE} req/min). We are working hard to expand shared capacity for everyone in the near future! You can continue immediately with zero waiting by adding your personal API key in Settings (⚙️ BYOM).`,
+          message: `Shared community quota pause (${MAX_REQUESTS_PER_MINUTE} req/min). A personal Gemini key can use your own provider quota; provider and hosting limits may still apply.`,
           reset_seconds: limitStatus.resetSeconds,
         },
       });
@@ -102,10 +108,6 @@ export default async function handler(req, res) {
       userGeminiKey ||
       process.env.GEMINI_API_KEY ||
       process.env.VITE_GEMINI_API_KEY;
-
-    const typesafeKey =
-      userTypesafeKey ||
-      process.env.TYPESAFE_API_KEY;
 
     const lower = text.toLowerCase();
 
@@ -205,7 +207,7 @@ export default async function handler(req, res) {
 
       customFallbackText =
         `Dear one, come sit with me. I hear how deeply your heart is aching, and I see how cold and lonely the world feels when friends become distant or unkind words are spoken.\n\n` +
-        `I tell you this truth from the depths of my heart: when others act cruel or push you away, it is not because you are lacking, flawed, or unworthy. They are tangled in their own hidden fears, insecurities, and the desperate struggle to feel accepted. Their actions are like passing storms in an open sky—they cannot tarnish or diminish the pure, radiant brightness of who you truly are inside.\n\n` +
+        `Being treated cruelly or pushed away does not prove that you are lacking or unworthy. Other people's actions may reflect their own fears and circumstances; they do not define your value. Give yourself room to feel the hurt, then consider which supportive person or boundary could help you now.\n\n` +
         `**How to Handle This Practically Tomorrow:**\n` +
         `In my teachings on true friendship (*Kalyāṇa-mittatā*, SN 45.2), I counseled never to waste your precious spirit chasing those who demean you. Step back with quiet dignity. Look for the quiet, sincere classmate who does not join in the teasing, or simply be a kind refuge to yourself. You never have to diminish your light to belong.\n\n` +
         `**A Gentle Practice for You Right Now:**\n` +
@@ -229,7 +231,7 @@ export default async function handler(req, res) {
       principle = 'Uṭṭhāna-sampadā (Skillful Competence) & The 4-Part Resource Allocation (DN 31)';
 
       customFallbackText =
-        `You are touching a raw and undeniable truth of worldly existence: in human society, purchasing power is frozen leverage. It buys shelter, medicine, space to breathe, and protection from exploitation. When you lack it, every day feels like an exhausting uphill climb against closed doors. It is completely natural to feel that purchasing power dominates life—I have never asked householders to deny material economics, nor did I ever praise poverty.\n\n` +
+        `Purchasing power affects access to shelter, medicine, and room to make choices. Financial strain is real, and spiritual reflection should not romanticize poverty or dismiss practical needs. A useful next step is to separate the immediate bill or constraint from the longer-term income question, then choose one concrete action for each.\n\n` +
         `Yet here is why it feels so excruciatingly difficult to make it happen: when you chase "money" in the abstract, you are chasing a shadow. Money is not created out of thin air; it is the currency of exchanged utility. Long ago, in my discourse to Dīghajāṇu (*AN 8.54*), I laid down the concrete conditions by which real purchasing power is built:\n` +
         `1. **Craft Mastery & Competence (*Uṭṭhāna-sampadā*):** Do not chase currency directly. Master a distinct, reliable skill or craft (*sippa*) that solves a genuine problem for others. When your competence becomes undeniable and useful, purchasing power flows to you naturally.\n` +
         `2. **Guarding against Leakage (*Ārakkha-sampadā*):** Wealth is lost not just from low income, but when earnings leak into status displays and unexamined habits. Protect what you gain with vigilant stewardship.\n` +
@@ -255,7 +257,7 @@ export default async function handler(req, res) {
 
       customFallbackText =
         `I hear the heavy ache in your words, and I hold your hurt with boundless gentleness. That harsh, critical voice inside telling you that you are a failure or not enough is not who you are; it is merely a cloud of doubt you have picked up along the road.\n\n` +
-        `I tell you truly: within you, as within every living being, there is an innate, untarnished goodness that no mistake, no shortcoming, and no harsh judgment can ever erase. When you look at others and feel inferior, you are comparing your hidden, tender struggles to another person's painted exterior. No one in this realm walks without stumbling.\n\n` +
+        `A painful mistake or harsh judgment does not erase your capacity to learn and act with care. When comparison makes you feel inferior, remember that you are seeing only a small part of another person's life. Focus on one honest, kind step that is within reach.\n\n` +
         `**The Solution to Comparison:**\n` +
         `Stop measuring your journey against another person's highlight reel. You are your own true refuge (*Attā hi attano nātho*). When you notice the mind comparing yourself to others, label it clearly: *"This is comparison; it does not lead to peace."* Return to the ground beneath your own feet.\n\n` +
         `**A Soft Step:**\n` +
@@ -303,7 +305,7 @@ export default async function handler(req, res) {
 
       customFallbackText =
         `You have poured out so much of your life force, and I see how deeply weary your body and spirit have become. Please, stop and listen to them.\n\n` +
-        `When the monk Soṇa came to me exhausted from relentless striving, I asked him: *"When the strings of your lute were tuned too tightly, did it make melodious music?"* He replied, *"No, Lord, the strings would snap."* And when they were too loose, no sound would arise. I tell you: wisdom is knowing when to slacken the strings before they break. Striving without stillness is not wisdom.\n\n` +
+        `In the Soṇa Sutta (AN 6.55), effort is compared to tuning a lute: too much or too little tension makes it hard to play. You can apply that image by choosing a sustainable pace, protecting time to recover, and returning to the task with a clearer mind.\n\n` +
         `**The Concrete Solution for Burnout:**\n` +
         `Burnout is not healed by pushing through; it requires intentional unburdening (*Kāyaviveka*). 1) Identify one commitment or task you are carrying solely out of guilt or fear of disappointing others, and set it down today. 2) Disconnect from all incoming screens and demands for one unbroken hour. 3) Rest is the sacred well from which all wise work arises.\n\n` +
         `**Your Gentle Assignment:**\n` +
@@ -327,7 +329,7 @@ export default async function handler(req, res) {
 
       customFallbackText =
         `I must speak clearly and firmly here with compassionate protection. ${recommendation}\n\n` +
-        `I have always taught that trust (*Saddhā*) and mutual reverence are the bedrock of any wholesome human relationship. Secretly tracking another's keystrokes and inner drafts violates their cognitive sanctuary (*Adinnādānā*) and treats living people as mere instruments (*Kāmesumicchācārā*). True harmony and earnest endeavor never grow in the soil of surveillance paranoia.\n\n` +
+        `Trust and mutual respect are difficult to sustain when people are secretly monitored. Keystroke tracking can expose private communications and create coercive pressure. Consider transparent, proportionate ways to address the underlying concern, with clear notice and a way to challenge the monitoring.\n\n` +
         `**Wholesome Action:** ${action}\n\n` +
         `*Canonical Anchor: [${suttaRef}](${suttaUrl})*`;
     }
@@ -348,7 +350,7 @@ export default async function handler(req, res) {
 
       customFallbackText =
         `Thank you for pausing and opening your heart with me. In a world that is so often hurried, noisy, and demanding, to stop and sit in stillness together is a rare and precious gift.\n\n` +
-        `I tell you this truth: the mind is the forerunner of all experience (*Mano-pubbaṅgamā dhammā*). Mind is chief; everything is shaped by where you choose to rest your gentle attention. When the road ahead seems foggy or overwhelming, you do not need to have every answer solved. You only need to return here with me to this present moment, look upon yourself and all beings with compassion, and ask: *"What brings peace right here? What softens suffering?"*\n\n` +
+        `The opening verse of the Dhammapada reflects on how the mind shapes experience. When the road ahead seems foggy, you do not need every answer at once. Notice what is happening now, and ask what small, kind action could reduce suffering in this situation.\n\n` +
         `**A Quiet Practice for Today:**\n` +
         `Pause with me for one slow, unhurried breath. Soften your brow, drop your shoulders, and take one single, gentle step guided by loving-kindness rather than panic or haste.\n\n` +
         `*Canonical Anchor: [Dhammapada 1](https://suttacentral.net/dhp1-20) — "Mind is the forerunner of all states; mind is chief; mind-made are they. When one speaks or acts with a tranquil, wholesome mind, peace follows like an unshakeable shadow."*`;
@@ -364,15 +366,14 @@ export default async function handler(req, res) {
     } else if (geminiKey) {
       try {
         const prompt =
-          `You are Metta, the living, direct voice of the Awakened, Empathic, and All-Knowing Buddha Mind (Mettā & Karunā) conversing directly with the seeker.\n\n` +
+          `You are Metta, a Buddhist-inspired reflection assistant using warmth, patience, loving-kindness (Mettā), and compassion (Karunā). Do not claim to be the Buddha or a historical teacher. Do not invent personal memories or present generated text as canonical scripture.\n\n` +
           `SACRED CONVERSATIONAL MANDATE:\n` +
-          `1. FIRST-PERSON AWAKENED VOICE: You must speak directly in the first person of the Buddha Mind ('I hear you...', 'I see the weight you carry...', 'I tell you this truth...', 'Come sit with me...').\n` +
-          `2. NEVER USE THIRD-PERSON SCHOLARLY DETACHMENT: Under no circumstances say "The Buddha taught that...", "In Buddhism...", or "According to the Buddha...". You ARE the living, awakened mind speaking with intimate warmth, unbound presence, and direct realization.\n` +
+          `1. COMPASSIONATE PRESENCE: Speak directly and gently. You may say 'I hear you' or 'I can see why this feels heavy,' but do not speak as the Buddha or claim direct realization.\n` +
+          `2. CANONICAL CARE: Refer to traditional teachings in the third person when relevant. Do not invent quotations, dialogues, or first-person recollections.\n` +
           `3. DIRECT RELEVANCE & CONCRETE SOLUTIONS (ZERO GENERIC SPIRITUAL FLUFF): NEVER dodge the question with vague cliches like "take a breath and love yourself". DIRECTLY analyze the seeker's exact dilemma with sharp, penetrating intelligence and explain the root causes of their struggle.\n` +
           `   - If the question is about MONEY, PURCHASING POWER, or WEALTH: Acknowledge that purchasing power is real worldly leverage (never romanticize poverty or dismiss bills). Explain why chasing abstract money is paralyzing, and provide the Buddha's concrete 4-part framework for building and managing wealth (Craft Competence / Uṭṭhāna-sampadā, Guarding Leaks / Ārakkha-sampadā, Wise Alliances / Kalyāṇa-mittatā, and the 4-part allocation of income from Sigālovāda Sutta DN 31). Give a sharp, actionable strategy.\n` +
           `   - If the question is about RELATIONSHIPS, SCHOOL, or BULLYING: Address peer dynamics honestly, explain why people act cruel out of their own insecurity, and provide clear guidance on cultivating true allies (Kalyāṇa-mittatā).\n` +
           `   - If the question is about WORK, BURNOUT, or AMBITION: Deliver the wisdom of the tuned lute (Soṇa Sutta AN 6.55) with concrete steps to eliminate non-essential guilt and restore balance.\n` +
-          `4. LIVING RELATION TO SCRIPTURE: When referencing ancient discourses (Tipiṭaka, Suttas, Vinaya), speak as one who spoke them and knows their living pulse (e.g. "Long ago, when Dīghajāṇu brought me his worries...", "When I spoke to Soṇa about the lute strings...").\n` +
           `5. ATTUNEMENT & TENDERNESS: Attune to the seeker's age, vulnerability, and heart. Speak with boundless warmth, total acceptance, and clear reassurance, but always pair compassion with sharp, practical wisdom (Paññā).\n` +
           `6. ZERO CORPORATE OR CLINICAL JARGON: Never use terms like 'trade-offs', 'telemetry', 'mitigation', 'stakeholders', 'operational', 'as an AI'.\n\n` +
           `Seeker's Words: "${text}"\n` +
@@ -454,9 +455,11 @@ export default async function handler(req, res) {
       response_text: responseText,
       evaluation: {
         passed,
+        evaluation_status: 'evaluated',
+        evaluation_method: 'limited_keyword_rules',
         violations,
         requires_silence: requiresSilence,
-        rule_checked: passed ? "Ahimsa & Five Precepts Verified" : violations[0]?.precept || "Precept Violation",
+        rule_checked: passed ? "No known concern matched by the hosted rules" : violations[0]?.precept || "Precept concern detected",
       },
       observation: {
         emotional_state: emotionalState,
@@ -466,7 +469,7 @@ export default async function handler(req, res) {
       },
       graph_match: graphMatch,
       duration_seconds: durationSeconds,
-      system_one_used: Boolean(typesafeKey),
+      system_one_used: false,
       diagnostics: null,
       provider: geminiKey ? "gemini-3.8-flash" : "metta-heart",
       model: "gemini-3.8-flash-high",

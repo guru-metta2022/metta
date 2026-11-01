@@ -1,8 +1,8 @@
-"""Sliding-Window Rate Limiter with Supabase Cloud Integration and BYOM Unlimited Bypass.
+"""Sliding-window rate limiter with optional Supabase tier configuration and BYOM handling.
 
 Protects shared community server credits from being overloaded or exhausted.
-When a user or external agent supplies their own API key (BYOM), the rate limiter
-is automatically bypassed, permitting unlimited throughput with zero waiting.
+The current implementation exempts requests marked BYOM from this application-level limiter;
+provider quotas, hosting limits, and other limits can still apply.
 
 Dynamically fetches rate limit tiers and per-user custom quotas from Supabase PostgreSQL.
 """
@@ -28,7 +28,7 @@ class RateLimitStatus(BaseModel):
 
 
 class SlidingWindowRateLimiter:
-    """Thread-safe sliding-window rate limiter with Supabase tier resolution and BYOM exemption."""
+    """Thread-safe sliding-window rate limiter with Supabase tier resolution and BYOM handling."""
 
     def __init__(
         self,
@@ -104,7 +104,7 @@ class SlidingWindowRateLimiter:
                 limit=9999,
                 reset_seconds=0,
                 tier="byom",
-                message="Unlimited BYOM active: running on your personal API key quota.",
+                message="Application rate limit bypassed for BYOM; provider and hosting quotas may still apply.",
             )
 
         resolved = await self.resolve_limits(user_id)
@@ -129,7 +129,7 @@ class SlidingWindowRateLimiter:
         tier: str = "standard",
     ) -> RateLimitStatus:
         """Check whether client request is allowed or rate limited."""
-        # 1. BYOM Exemption: Completely bypass rate limits!
+        # BYOM requests bypass this application-level limiter.
         if is_byom:
             return RateLimitStatus(
                 allowed=True,
@@ -138,7 +138,7 @@ class SlidingWindowRateLimiter:
                 limit=9999,
                 reset_seconds=0,
                 tier="byom",
-                message="Unlimited BYOM active: running on your personal API key quota.",
+                message="Application rate limit bypassed for BYOM; provider and hosting quotas may still apply.",
             )
 
         effective_max_minute = max_per_minute or self.max_per_minute
@@ -168,7 +168,7 @@ class SlidingWindowRateLimiter:
                     message=(
                         f"Shared community quota paused ({effective_max_minute} req/min for {tier} tier). "
                         f"Please wait {reset_seconds}s for reset, or supply your own API key in Settings (BYOM) "
-                        "to proceed immediately with zero rate limits."
+                        "to use your own provider quota; shared-server rate limits may still apply."
                     ),
                 )
 

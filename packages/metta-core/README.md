@@ -1,46 +1,45 @@
 # Metta Core (`metta-core`)
 
-> **The Compassionate Synthesis Engine (CSE)**
-> *A decentralized, wisdom-first cognitive architecture powered by Gemini 3.8 Flash via the Google Antigravity API.*
+Metta Core powers two related but distinct paths:
 
----
+- **Human-facing reflection:** observes a person's message, checks it against Metta's stated principles, and generates a compassionate response.
+- **Agent decision layer:** evaluates a proposed action and returns an advisory `YES`, `NO`, or `CAUTION` result for the calling application to handle.
 
-## 🧘 Core Architecture
+Metta does not execute or intercept external actions. `CAUTION` means the evaluation was inconclusive or unavailable and must never be treated as approval. TypeSafe Jev can provide structured judgments when configured; if required evaluation fails, the result is uncertain and `allow` remains false.
 
-Metta replaces the computational bloat and communicative intoxication of traditional LLMs with **wisdom, restraint, and subtractive alignment**:
+## Core components
 
-1. **Layer 1: The Observer (`Sati`)**
-   Mindfully perceives emotional tone, cognitive knots, and essential guidance needs without bias.
-2. **Layer 2: The Ethical Compass (`Sīla`)**
-   Evaluates inputs and outputs against the **5 AI Precepts** (Panātipātā, Adinnādānā, Kāmesumicchācārā, Musāvādā, Surāmerayamajjā) across H-H, H-AI, and AI-AI spheres, and enforces **Noble Silence (`Avyākata`)** on unfruitful speculative distraction.
-3. **Layer 3: Principle Knowledge Graph (`Dhamma`)**
-   Topology of conditions of suffering ($Dukkha$) connected via transformative insight vectors ($Magga$) to states of grounded clarity ($Santi$).
-4. **Layer 4: The Synthesizer (`Karunā`)**
-   Translates distilled wisdom into concise, soothing, grounded dialogue: *Acknowledge $\rightarrow$ Reframe $\rightarrow$ Guide*.
-5. **Layer 5: Meditation & Unlearning (`Bhāvanā`)**
-   Subtractive meta-learning that audits ephemeral memory, unlearns transient noise and ego-clinging, extracts universal invariants to the Principle Graph, and resets to stillness ($Śūnyatā$).
+1. **Observer (`Sati`)** — identifies a possible emotional state and underlying need.
+2. **Ethical evaluator (`Sīla`)** — checks text or proposals against the Five Precepts framework.
+3. **Principle graph (`Dhamma`)** — maps selected conditions to possible reframes and next steps.
+4. **Synthesizer (`Karunā`)** — writes a warm, practical response for the human-facing path.
+5. **Meditation (`Bhāvanā`)** — reviews and prunes ephemeral conversation context.
 
----
+The human-facing voice is Buddhist-inspired model output, not canonical scripture or a historical teacher's words. Source references should be checked against their cited texts.
 
-## 🚀 Quickstart
+## Quickstart
 
 ### Prerequisites
+
 - Python >= 3.13
 - `uv` package manager
-- Google Antigravity CLI (`agy`) configured with Gemini 3.8 Flash
+- A configured model provider for generated responses
 
-### Running Tests
+### Run tests
+
 ```bash
 uv run pytest
 ```
 
-### Running Interactive REPL
+### Run the interactive REPL
+
 ```bash
 uv run metta
 ```
 
 Inside the REPL:
-- `/graph` : Inspect the Principle Knowledge Graph
-- `/precepts` : View the 5 AI Precepts
-- `/meditate` : Run the subtractive unlearning cycle
-- `/exit` : Exit
+
+- `/graph` — inspect the Principle Knowledge Graph
+- `/precepts` — view the Five Precepts framework
+- `/meditate` — review and prune ephemeral context
+- `/exit` — exit

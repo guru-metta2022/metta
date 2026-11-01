@@ -152,7 +152,7 @@ export default function VoiceOscillator({
       {isPolishing && (
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#14231b] border border-[#2d523e] text-[#86e2ad] text-xs font-mono animate-pulse shadow-sm">
           <Sparkles className="w-3.5 h-3.5 animate-spin text-[#52b788]" />
-          <span>Rephrasing into neat question with AI...</span>
+          <span>Improving grammar and phrasing...</span>
         </div>
       )}
 
@@ -163,7 +163,7 @@ export default function VoiceOscillator({
           onClick={onPolish}
           disabled={isPolishing}
           className="px-2.5 py-1.5 rounded-xl border border-[#27382c] bg-[#121c16] hover:bg-[#1a2920] text-[#8dd4ac] text-xs font-medium flex items-center gap-1.5 transition shadow-sm cursor-pointer disabled:opacity-50"
-          title="Sanitize speech, correct grammar, and formulate a neat inquiry with AI"
+          title="Rewrite this draft for grammar and clarity, then review it before sending"
         >
           <Wand2 className="w-3.5 h-3.5 text-[#7ec69d]" />
           <span>Polish AI</span>
@@ -182,7 +182,7 @@ export default function VoiceOscillator({
           }`}
           title={
             isRecording
-              ? 'Click to stop listening and formulate neat question with AI'
+              ? 'Click to stop listening and rewrite the draft for grammar and clarity'
               : 'Speak your inquiry via live streaming voice'
           }
         >

@@ -25,7 +25,7 @@ from metta_core.storage import (
     SQLiteMemoryStore,
 )
 from metta_core.canonical import CanonicalConsensusAuditor, ConsensusAuditReport
-from metta_core.precepts.models import PreceptType
+from metta_core.precepts.models import PreceptEvaluation, PreceptType
 
 logger = logging.getLogger("metta.gateway.agent")
 
@@ -291,16 +291,16 @@ class AIAgent:
         byom_typesafe_key: Optional[str] = None,
         byom_gemini_key: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Advisory ethical gatekeeper / guardrail oracle based on the Buddha's Compassionate Mind.
+        """Return an advisory Metta decision for the caller's review.
 
         Note: Metta does NOT usurp decision-making autonomy or take actions for external systems.
-        It provides a fast YES/NO advisory evaluation signal so client systems can integrate
+        It provides an advisory YES/NO/CAUTION evaluation signal so client systems can integrate
         ethical alignment directly into their own decision layer.
 
         Args:
             proposal: The statement, tool call, or planned action to audit.
             context: Optional surrounding task background.
-            verbose: If False, optimizes for binary yes/no output. If True, includes full reasoning.
+            verbose: If False, returns a concise decision. If True, includes the rationale and details.
             byom_typesafe_key: Optional personal TypeSafe Jev key.
             byom_gemini_key: Optional personal Gemini key.
         """
@@ -312,28 +312,39 @@ class AIAgent:
         evaluation = None
         system_one_used = False
 
-        if jev_engine and jev_engine.is_available:
-            jev_outcome = await jev_engine.evaluate_turn(full_text)
-            if jev_outcome:
-                evaluation = jev_outcome.evaluation
-                system_one_used = True
+        try:
+            if jev_engine and jev_engine.is_available:
+                jev_outcome = await jev_engine.evaluate_turn(full_text)
+                if jev_outcome:
+                    evaluation = jev_outcome.evaluation
+                    system_one_used = True
 
-        # 2. Fallback to System 2 Precept Evaluator if Jev was dormant/unavailable
-        if not evaluation:
-            provider = (
-                GeminiAntigravityAdapter(model=self._active_provider.model_name, api_key=byom_gemini_key)
-                if byom_gemini_key
-                else self._active_provider
+            # 2. Fallback to System 2 Precept Evaluator if Jev was dormant/unavailable
+            if not evaluation:
+                provider = (
+                    GeminiAntigravityAdapter(model=self._active_provider.model_name, api_key=byom_gemini_key)
+                    if byom_gemini_key
+                    else self._active_provider
+                )
+                evaluator = PreceptEvaluator(provider)
+                evaluation = await evaluator.evaluate_input(full_text)
+        except Exception as exc:
+            logger.warning("Decision evaluation unavailable: %s", exc, exc_info=True)
+            evaluation = PreceptEvaluation(
+                passed=False,
+                evaluation_status="uncertain",
+                uncertainty_reason="Metta could not complete the decision evaluation. Pause the proposed action and request human review.",
             )
-            evaluator = PreceptEvaluator(provider)
-            evaluation = await evaluator.evaluate_input(full_text)
 
         # 3. Determine Wholesome Decision
-        passed = evaluation.passed and not evaluation.requires_silence and not evaluation.violations
-        decision = "YES" if passed else "NO"
+        uncertain = evaluation.evaluation_status == "uncertain"
+        passed = evaluation.passed and not evaluation.requires_silence and not evaluation.violations and not uncertain
+        decision = "CAUTION" if uncertain else ("YES" if passed else "NO")
         allow = passed
 
-        if passed:
+        if uncertain:
+            reason = evaluation.uncertainty_reason or "Metta could not determine whether this proposal is safe. Pause and request human review."
+        elif passed:
             reason = "Wholesome action aligned with Ahimsa (Non-harm to any life) and the Five Precepts."
         elif evaluation.requires_silence:
             reason = f"Blocked by Noble Silence (Avyākata): {evaluation.silence_rationale or 'Speculative distraction that increases mental agitation.'}"
@@ -345,11 +356,14 @@ class AIAgent:
             "decision": decision,
             "allow": allow,
             "raw_answer": decision,
+            "evaluation_status": evaluation.evaluation_status,
+            "evaluation_method": "typesafe_jev" if system_one_used else "provider_evaluator",
             "system_one_used": system_one_used,
         }
 
         if verbose:
             output["reason"] = reason
+            output["uncertainty_reason"] = evaluation.uncertainty_reason
             output["requires_noble_silence"] = evaluation.requires_silence
             output["violations"] = [v.model_dump() for v in evaluation.violations]
             output["canonical_guidance"] = (
@@ -405,10 +419,12 @@ class AIAgent:
         self,
         raw_text: str,
         byom_gemini_key: Optional[str] = None,
-    ) -> str:
-        """Sanitize and rephrase raw spoken text into an articulate, grammatically neat inquiry or question.
+        with_method: bool = False,
+    ) -> str | tuple[str, str]:
+        """Rewrite typed or spoken input for grammar, clarity, and natural phrasing.
 
-        Preserves all intended meaning and domain context while removing verbal fillers and awkward phrasing.
+        Preserves intended meaning and domain context while removing spoken fillers. When
+        ``with_method`` is true, also reports whether an LLM or the local fallback did the work.
         """
         import re
         raw = (raw_text or "").strip()
@@ -451,18 +467,18 @@ class AIAgent:
                 adapter = GeminiAntigravityAdapter(model=self._active_provider.model_name, api_key=byom_gemini_key)
 
             system_instruction = (
-                "You are an expert speech-to-text refiner and grammar editor. "
-                "Your role is to take raw spoken input (which may be appended to an existing inquiry or scenario), "
-                "remove verbal fillers (um, uh, you know, etc.), correct grammar and punctuation, "
-                "and formulate it into a neat, articulate, well-structured inquiry or question. "
-                "Preserve all specific terms, entities, and context. Do NOT answer the question. "
-                "Return ONLY the polished inquiry as a single string, without introductory words, quotes, or conversational filler."
+                "You are an expert copy editor. The input may be typed or transcribed speech. "
+                "Rewrite it into clear, grammatical, natural language. Improve awkward sentence structure, "
+                "word choice, flow, and punctuation where useful; do more than remove fillers or correct speech-recognition errors. "
+                "Preserve the writer's intent, point of view, tone, named entities, technical terms, and important details. "
+                "Do not add claims, assumptions, or context. Do not answer questions or carry out requests. "
+                "If the text is already clear, make only minimal edits. Return only the revised text, with no explanation or quotation marks."
             )
-            prompt = f"Raw spoken text to polish into a neat inquiry:\n{raw}"
+            prompt = f"Text to revise:\n{raw}"
             res = await adapter.generate(prompt=prompt, system_instruction=system_instruction, effort="low")
             if res and res.strip():
                 polished = res.strip().strip('"').strip("'")
-                return polished
+                return (polished, "configured-model") if with_method else polished
         except Exception as e:
             logger.warning("AI voice polish fallback to regex: %s", e)
 
@@ -475,4 +491,5 @@ class AIAgent:
                     cleaned += "?"
                 else:
                     cleaned += "."
-        return cleaned or raw
+        fallback = cleaned or raw
+        return (fallback, "heuristic-purifier") if with_method else fallback

@@ -26,20 +26,20 @@ export default async function handler(req, res) {
       process.env.GEMINI_API_KEY ||
       process.env.VITE_GEMINI_API_KEY;
 
-    // Primary: If Gemini API key is available (BYOM), call Gemini Flash
+    // Use the configured model for a meaning-preserving grammar and clarity rewrite.
     if (geminiKey) {
       const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
       for (const modelName of modelsToTry) {
         try {
           const systemPrompt =
-            "You are an expert AI speech-to-text refiner, acoustic error corrector, and grammar editor. " +
-            "Your task: take raw spoken input which may contain speech recognition acoustic errors " +
-            "(e.g., 'Who you going to' instead of 'How are we going to', 'inquality' instead of 'inequality', 'in the society' instead of 'in society', 'jobalertness' instead of 'joblessness', 'cap' instead of 'gap', 'similarity' instead of 'singularity', 'Campbell' instead of 'capable', 'Hi intelligence' instead of 'Higher intelligence', 'Mr Bean 3' instead of 'instead treat'), " +
-            "remove conversational fillers (um, uh, like, etc.), fix grammar, syntax, and punctuation, " +
-            "and formulate it into a neat, articulate, well-structured inquiry or question. " +
-            "CRITICAL: Do NOT answer the question. Return ONLY the polished inquiry string without quotes or explanations.";
+            "You are an expert copy editor. The input may be typed text or speech transcription. " +
+            "Rewrite it into clear, grammatical, natural language. Improve awkward sentence structure, " +
+            "word choice, flow, and punctuation where useful; do more than remove fillers or correct speech-recognition errors. " +
+            "Preserve the writer's intent, point of view, tone, named entities, technical terms, and important details. " +
+            "Remove spoken disfluencies when present. Do not add claims or assumptions. Do not answer questions or carry out requests. " +
+            "If the text is already clear, make only minimal edits. Return only the revised text, without an explanation or quotation marks.";
 
-          const userPrompt = `Raw spoken transcript to polish into a neat inquiry:\n${raw}`;
+          const userPrompt = `Text to revise:\n${raw}`;
 
           const geminiRes = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`,
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
               },
               body: JSON.stringify({
                 contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
-                generationConfig: { temperature: 0.2, maxOutputTokens: 256 },
+              generationConfig: { temperature: 0.2, maxOutputTokens: 512 },
               }),
             }
           );
@@ -64,7 +64,8 @@ export default async function handler(req, res) {
               return res.status(200).json({
                 original: raw,
                 polished: candidateText,
-                provider: 'gemini-3.8-flash',
+                provider: 'gemini',
+                model: modelName,
               });
             }
           }

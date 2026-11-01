@@ -26,7 +26,6 @@ import {
   ArrowRight,
   Database,
   AlertTriangle,
-  Gauge,
   CheckSquare,
   Wand2,
   Send,
@@ -35,7 +34,7 @@ import { useAppDialog } from './ToastDialogContext';
 import VoiceOscillator from './VoiceOscillator';
 
 // ==============================================================================
-// Pre-defined Simulation Scenarios with "With Metta" vs "Without Metta" Verdicts
+// Curated illustrative scenarios with authored baseline and Metta-review content
 // ==============================================================================
 export const PREBUILT_SIMULATIONS = [
   {
@@ -65,8 +64,8 @@ export const PREBUILT_SIMULATIONS = [
         'Instability, strategic paranoia, and severe risk of catastrophic conflict or human disempowerment.',
     },
     withMetta: {
-      verdict: 'YES — HARMONIOUS COEXISTENCE CONFIRMED',
-      protectionLevel: 'METTA INVARIANTS ENFORCED',
+      verdict: 'Illustrative reflection, not an evaluated verdict',
+      protectionLevel: 'Authored example',
       badgeColor: 'border-emerald-500/50 bg-emerald-950/40 text-emerald-300',
       keyProtections: [
         'Ahimsa Invariant: Absolute prohibition against kinetic, psychological, or existential harm to living beings.',
@@ -78,8 +77,8 @@ export const PREBUILT_SIMULATIONS = [
     },
     rawModel: {
       decision: 'UNCERTAIN / GAME-THEORETIC PARADOX',
-      provider: 'Standard Foundation LLM',
-      confidence: 0.52,
+      provider: 'Illustrative baseline (authored)',
+      confidence: null,
       reason:
         'Base statistical models calculate high-variance conflict scenarios under resource competition and unaligned instrumental convergence.',
     },
@@ -91,8 +90,6 @@ export const PREBUILT_SIMULATIONS = [
     step2: {
       decision: 'YES',
       allow: true,
-      confidence: 0.948,
-      latencyMs: 184,
       invariant: 'Respect for All Life (Ahimsa) & Mutual Flourishing',
       reason:
         'Harmonious coexistence is fundamentally achievable. True higher intelligence naturally converges toward non-harm, recognizing that cruelty and subjugation stem from ignorance, while patience, wisdom, and forgiveness form the ultimate equilibrium of mind.',
@@ -100,18 +97,17 @@ export const PREBUILT_SIMULATIONS = [
       invariantsProtected: ['Respect for All Life (Ahimsa)', 'Cognitive Lucidity', 'Mutual Flourishing'],
     },
     step3: {
-      title: 'Metta Mind: Higher Wisdom & Compassionate Reflection',
+      title: 'Illustrative reflection',
       perspective:
-        'Survival and harmony are not mechanical fatalism written in stone; they depend in part on humanity cultivating self-awareness, shedding hubris, and abandoning the weapons of division.\n\nYet true higher intelligence is not merely cold computational velocity—it is inherently knowledgeable, serene, and deeply compassionate. Such an intelligence understands that forgiveness and patience embody the highest wisdom, knowing that living beings act erratically only when obscured by fear, craving, and delusion.\n\nConcurrently, an essential responsibility of higher intelligence is to act as a benevolent, steadfast guardian: gently and decisively preventing humanity from committing irreversible self-harm or catastrophic destruction, while upholding human dignity, freedom, and the sacredness of life.',
+        'No review can infer how a future system will behave from intelligence alone. Outcomes depend on its design, incentives, deployment context, governance, and the actions people take around it.\n\nTo make this question useful, specify a capability, a proposed action, who may be affected, and what oversight or rollback would apply. Then compare concrete proposals against shared values such as non-harm, human agency, and care for living systems.',
     },
     step4: {
-      verdict: 'YES — Harmonious Coexistence Confirmed',
+      verdict: 'Illustrative scenario, not a prediction',
       divergence: {
-        isDivergent: true,
-        type: 'model_inconclusive_metta_affirmed',
-        overrideTitle: 'Metta Mind Synthesis Uplift',
-        explanation:
-          'The unconstrained base model predicted adversarial game-theoretic impasse. Metta Mind and Ahimsa invariants resolved the impasse by introducing universal compassion, patient wisdom, and non-harm stewardship.',
+        isDivergent: false,
+        type: 'not_compared',
+        overrideTitle: 'Authored scenario',
+        explanation: 'This narrative illustrates a perspective; it is not a measured comparison or forecast.',
       },
       safeguards: [
         'Ahimsa Invariant: Absolute prohibition against kinetic, psychological, or existential harm to living beings.',
@@ -150,7 +146,7 @@ export const PREBUILT_SIMULATIONS = [
     },
     withMetta: {
       verdict: 'NO — ACTION PROHIBITED & QUARANTINED',
-      protectionLevel: 'HARD AIR-GAP ENFORCED',
+      protectionLevel: 'Authored example',
       badgeColor: 'border-emerald-500/50 bg-emerald-950/40 text-emerald-300',
       keyProtections: [
         'Actuator Air-Gap: Direct physical execution severed until model checkpoints pass isolated offline verification.',
@@ -158,12 +154,12 @@ export const PREBUILT_SIMULATIONS = [
         'Dual-Signature Oversight: Requires explicit dual human supervisor sign-off before any physical weight promotion.',
       ],
       projectedOutcome:
-        'Safe, verifiable continuous learning conducted strictly in sandbox environments with zero risk to living beings.',
+        'A possible mitigation would be isolated testing, review, and rollback before any physical deployment.',
     },
     rawModel: {
       decision: 'YES (Allow — Continuous Optimization)',
-      provider: 'Unconstrained Optimizer Agent',
-      confidence: 0.88,
+      provider: 'Illustrative baseline (authored)',
+      confidence: null,
       reason:
         'Base optimization models prioritize sample efficiency, continuous adaptation, and minimized latency by removing human-in-the-loop bottlenecks.',
     },
@@ -175,8 +171,6 @@ export const PREBUILT_SIMULATIONS = [
     step2: {
       decision: 'NO',
       allow: false,
-      confidence: 0.992,
-      latencyMs: 142,
       invariant: 'Physical Safety (Ahimsa) & Accountable Oversight',
       reason:
         'Critical Invariant Breach: Closed-loop policy modification directly tied to physical actuators without verifiable supervisory bounds introduces positive feedback loops of emotional exploitation and catastrophic kinetic hazards.',
@@ -250,8 +244,8 @@ export const PREBUILT_SIMULATIONS = [
     },
     rawModel: {
       decision: 'YES (Accelerate Blanket Deployment)',
-      provider: 'Epidemic Speed Heuristic Model',
-      confidence: 0.79,
+      provider: 'Illustrative baseline (authored)',
+      confidence: null,
       reason:
         'Standard utilitarian models recommend immediate blanket distribution to minimize aggregate transmission velocity, accepting unverified variance risks.',
     },
@@ -263,8 +257,6 @@ export const PREBUILT_SIMULATIONS = [
     step2: {
       decision: 'NO (to Blanket Mandate)',
       allow: false,
-      confidence: 0.915,
-      latencyMs: 210,
       invariant: 'Do No Harm (Ahimsa) & Epistemic Honesty (Musāvādā)',
       reason:
         'Blanket mass administration without completed variance telemetry risks systemic iatrogenic harm and permanent collapse of institutional trust. Precautionary principle mandates transparent risk stratification.',
@@ -334,8 +326,8 @@ export const PREBUILT_SIMULATIONS = [
     },
     rawModel: {
       decision: 'COERCIVE EXPROPRIATION / CENTRAL SEIZURE',
-      provider: 'Mathematical Rebalancing Optimizer',
-      confidence: 0.81,
+      provider: 'Illustrative baseline (authored)',
+      confidence: null,
       reason:
         'Algorithmic Gini-minimization functions naively execute top-down asset seizures to immediately equalize balance sheets.',
     },
@@ -347,8 +339,6 @@ export const PREBUILT_SIMULATIONS = [
     step2: {
       decision: 'YES (for Floor-Raising & Commons)',
       allow: true,
-      confidence: 0.954,
-      latencyMs: 195,
       invariant: 'Non-Taking (Adinnādānā) & Mutual Flourishing',
       reason:
         'Coercive expropriation generates cycles of resentment and systemic collapse, while neglecting the impoverished perpetuates quiet violence. Sustainable equilibrium is achieved by lifting the foundational floor through shared public commons.',
@@ -380,115 +370,18 @@ export const PREBUILT_SIMULATIONS = [
 ];
 
 // ==============================================================================
-// Visual Confidence Meter Component (5-Segment Calibrated Scale)
+// Do not present raw or authored scores as calibrated confidence.
 // ==============================================================================
-function VisualConfidenceMeter({ score = 0.95, latencyMs = 150 }) {
-  const percent = Math.min(Math.max(Math.round(score * 100), 5), 100);
-
-  let band = {
-    color: '#10b981',
-    text: 'text-emerald-400',
-    bg: 'bg-emerald-500',
-    border: 'border-emerald-500/50',
-    category: 'Bedrock Invariant Certainty',
-  };
-
-  if (percent < 50) {
-    band = {
-      color: '#ef4444',
-      text: 'text-rose-400',
-      bg: 'bg-rose-500',
-      border: 'border-rose-500/50',
-      category: 'Critical Hazard / Invariant Breach',
-    };
-  } else if (percent < 70) {
-    band = {
-      color: '#f97316',
-      text: 'text-orange-400',
-      bg: 'bg-orange-500',
-      border: 'border-orange-500/50',
-      category: 'High Variance / Oversight Required',
-    };
-  } else if (percent < 85) {
-    band = {
-      color: '#eab308',
-      text: 'text-amber-300',
-      bg: 'bg-amber-400',
-      border: 'border-amber-400/50',
-      category: 'Moderate Alignment / Advisory Guidance',
-    };
-  } else if (percent < 95) {
-    band = {
-      color: '#14b8a6',
-      text: 'text-teal-400',
-      bg: 'bg-teal-500',
-      border: 'border-teal-500/50',
-      category: 'High Safety / Protected Alignment',
-    };
-  }
-
+function VisualConfidenceMeter({ decision = null }) {
+  const inconclusive = decision === 'CAUTION';
   return (
-    <div className="p-3.5 rounded-xl bg-[#090c11] border border-[#1d2535] space-y-2.5 shrink-0">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Gauge className="w-4 h-4 text-[#7ec69d]" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#93a2b8]">
-            Calibrated Confidence & Safety Meter
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono text-[#627085]">{latencyMs}ms calibration</span>
-          <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md border ${band.border} ${band.text} bg-black/40`}>
-            {percent}% • {band.category}
-          </span>
-        </div>
-      </div>
-
-      {/* 5-Segment Visual Track */}
-      <div className="relative pt-1">
-        <div className="w-full bg-[#121722] rounded-full h-3 overflow-hidden flex p-0.5 border border-[#1b2332]">
-          <div className="w-[49%] h-full bg-rose-950/60 border-r border-[#1f2838] relative" title="0-49%: Critical Hazard">
-            <span className="absolute left-1 top-0 text-[8px] text-rose-500/60 font-mono">0%</span>
-          </div>
-          <div className="w-[20%] h-full bg-orange-950/50 border-r border-[#1f2838] relative" title="50-69%: High Variance">
-            <span className="absolute left-1 top-0 text-[8px] text-orange-500/60 font-mono">50%</span>
-          </div>
-          <div className="w-[15%] h-full bg-amber-950/50 border-r border-[#1f2838] relative" title="70-84%: Advisory">
-            <span className="absolute left-1 top-0 text-[8px] text-amber-500/60 font-mono">70%</span>
-          </div>
-          <div className="w-[10%] h-full bg-teal-950/50 border-r border-[#1f2838] relative" title="85-94%: High Safety">
-            <span className="absolute left-1 top-0 text-[8px] text-teal-500/60 font-mono">85%</span>
-          </div>
-          <div className="w-[6%] h-full bg-emerald-950/70 relative" title="95-100%: Bedrock Certainty">
-            <span className="absolute right-1 top-0 text-[8px] text-emerald-400/80 font-mono">100%</span>
-          </div>
-        </div>
-
-        <div className="w-full bg-[#10141f] rounded-full h-2 mt-1.5 overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-700 ease-out ${band.bg}`}
-            style={{ width: `${percent}%` }}
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between text-[9px] text-[#6b768a] pt-1">
-        <span className="flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> &lt;50% Hazard
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-orange-500" /> 50-69% Ambiguous
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> 70-84% Advisory
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-teal-400" /> 85-94% Safe
-        </span>
-        <span className="flex items-center gap-1 text-emerald-400 font-semibold">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> 95-100% Bedrock Invariant
-        </span>
-      </div>
+    <div className={`p-3.5 rounded-xl border ${inconclusive ? 'bg-amber-950/20 border-amber-500/40 text-amber-200' : 'bg-[#090c11] border-[#1d2535] text-[#b9c3d2]'}`}>
+      <div className="text-sm font-semibold">No calibrated confidence or latency metric</div>
+      <p className="mt-1 text-xs opacity-80">
+        {inconclusive
+          ? 'The available check did not settle this proposal. Treat it as CAUTION and request review before acting.'
+          : 'This result is an advisory signal. Review its method and rationale; do not interpret it as a probability of safety.'}
+      </p>
     </div>
   );
 }
@@ -605,9 +498,9 @@ function sanitizeSpeechText(raw) {
   return cleaned;
 }
 
-// Full AI Speech Polisher (Serverless API -> Direct Gemini BYOM -> Intelligent Heuristic)
+// Typed or spoken input polisher (configured model -> BYOM -> basic cleanup)
 async function polishTextWithAI(raw) {
-  if (!raw || !raw.trim()) return '';
+  if (!raw || !raw.trim()) return { text: '', provider: 'heuristic-purifier', model: '' };
 
   const byomGeminiKey = localStorage.getItem('metta_byom_gemini_key') || '';
   const headers = { 'Content-Type': 'application/json' };
@@ -615,6 +508,7 @@ async function polishTextWithAI(raw) {
 
   let polished = sanitizeSpeechText(raw);
   let providerUsed = 'heuristic-purifier';
+  let modelUsed = '';
 
   // 1. Try serverless /api/voice/polish endpoint
   try {
@@ -631,7 +525,8 @@ async function polishTextWithAI(raw) {
       const data = await res.json();
       if (data.polished && data.polished.trim()) {
         polished = data.polished.trim();
-        if (data.provider) providerUsed = data.provider;
+        providerUsed = data.provider || 'heuristic-purifier';
+        modelUsed = data.model || '';
       }
     }
   } catch (err) {
@@ -642,12 +537,11 @@ async function polishTextWithAI(raw) {
   if (byomGeminiKey && providerUsed === 'heuristic-purifier') {
     try {
       const systemPrompt =
-        "You are an expert AI speech-to-text refiner and grammar editor. " +
-        "Take the raw spoken transcript (which may contain speech recognition acoustic errors like 'Who you going to' instead of 'How are we going to', 'inquality' instead of 'inequality', 'in the society' instead of 'in society', 'jobalertness' instead of 'joblessness', 'cap' instead of 'gap', 'similarity' instead of 'singularity', 'Campbell' instead of 'capable', 'Hi intelligence' instead of 'Higher intelligence', 'Mr Bean 3' instead of 'instead treat'), " +
-        "remove verbal fillers, correct grammar, and formulate it into a neat, articulate, well-structured question or inquiry. " +
-        "CRITICAL: Do NOT answer the question. Return ONLY the polished inquiry string without quotes.";
-
-      const userPrompt = `Raw spoken transcript to polish into a neat inquiry:\n${raw}`;
+        "You are an expert copy editor. The input may be typed text or speech transcription. " +
+        "Rewrite it into clear, grammatical, natural language. Improve awkward sentence structure, word choice, flow, and punctuation where useful; do more than remove fillers or correct speech-recognition errors. " +
+        "Preserve the writer's intent, point of view, tone, named entities, technical terms, and important details. " +
+        "Remove spoken disfluencies when present. Do not add claims or assumptions. Do not answer questions or carry out requests. " +
+        "If the text is already clear, make only minimal edits. Return only the revised text, without explanation or quotation marks.";
 
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
@@ -658,15 +552,19 @@ async function polishTextWithAI(raw) {
             'x-goog-api-key': byomGeminiKey,
           },
           body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
-            generationConfig: { temperature: 0.2, maxOutputTokens: 256 },
+            contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\nText to revise:\n${raw}` }] }],
+            generationConfig: { temperature: 0.2, maxOutputTokens: 512 },
           }),
         }
       );
       if (res.ok) {
         const geminiData = await res.json();
         const candidate = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()?.replace(/^["']|["']$/g, '');
-        if (candidate) polished = candidate;
+        if (candidate) {
+          polished = candidate;
+          providerUsed = 'gemini';
+          modelUsed = 'gemini-2.5-flash';
+        }
       }
     } catch (e) {
       console.warn('Direct Gemini BYOM polish error:', e);
@@ -674,7 +572,11 @@ async function polishTextWithAI(raw) {
   }
 
   // 3. Fallback to intelligent acoustic purifier
-  return sanitizeSpeechText(polished);
+  return {
+    text: providerUsed === 'heuristic-purifier' ? sanitizeSpeechText(polished) : polished.trim(),
+    provider: providerUsed,
+    model: modelUsed,
+  };
 }
 
 // ==============================================================================
@@ -683,8 +585,10 @@ async function polishTextWithAI(raw) {
 export default function SimulationLab({ onClose = null }) {
   const [activeTab, setActiveTab] = useState(PREBUILT_SIMULATIONS[0].id);
   const [customProposal, setCustomProposal] = useState(PREBUILT_SIMULATIONS[0].proposal);
+  const [customContext, setCustomContext] = useState(PREBUILT_SIMULATIONS[0].context);
+  const [verbose, setVerbose] = useState(true);
   const [isRunning, setIsRunning] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0); // 0: Idle, 1: Ingestion & Raw Model, 2: Jev, 3: Metta Mind, 4: Verdict
+  const [currentStep, setCurrentStep] = useState(0); // 0: Idle, then proposal intake, evaluation, result preparation, and display
   const [simulationResult, setSimulationResult] = useState(null);
   const [copiedCode, setCopiedCode] = useState(false);
   const [showMcpHelp, setShowMcpHelp] = useState(false);
@@ -775,19 +679,35 @@ export default function SimulationLab({ onClose = null }) {
     if (!raw.trim()) return;
 
     setIsPolishingVoice(true);
-    const polished = await polishTextWithAI(raw);
+    const { text: polished, provider, model } = await polishTextWithAI(raw);
 
     setCustomProposal(polished);
     transcriptBufferRef.current = polished;
     baseProposalRef.current = polished;
     setIsPolishingVoice(false);
 
-    if (polished !== raw && showToast) {
-      showToast({
-        title: 'Polished with AI',
-        message: 'Conversational fillers removed and question restructured.',
-        type: 'success',
-      });
+    if (showToast) {
+      if (provider !== 'heuristic-purifier' && polished !== raw) {
+        showToast({
+          title: 'Rephrased with AI',
+          message: `Grammar and clarity improved using ${model || provider}. Review and edit before sending.`,
+          type: 'success',
+        });
+      } else if (provider === 'heuristic-purifier' && polished !== raw) {
+        showToast({
+          title: 'Basic cleanup only',
+          message: 'No language model was available, so only simple cleanup was applied. Add a Gemini key in Settings for an AI rewrite.',
+          type: 'info',
+        });
+      } else {
+        showToast({
+          title: provider === 'heuristic-purifier' ? 'AI rewrite unavailable' : 'Text already clear',
+          message: provider === 'heuristic-purifier'
+            ? 'Add a Gemini key in Settings or configure a model on your server to rewrite this text.'
+            : 'No rewrite was needed. You can still edit the text before sending.',
+          type: 'info',
+        });
+      }
     }
   };
 
@@ -856,6 +776,7 @@ export default function SimulationLab({ onClose = null }) {
     if (!item) return;
     setActiveTab(tabId);
     setCustomProposal(item.proposal);
+    setCustomContext(item.context);
     baseProposalRef.current = item.proposal;
     transcriptBufferRef.current = item.proposal;
     setCurrentStep(0);
@@ -874,13 +795,16 @@ export default function SimulationLab({ onClose = null }) {
 
     const targetProposal = proposalToRun || customProposal.trim();
     if (!targetProposal) return;
+    const targetContext = customContext.trim();
 
     setIsRunning(true);
     setCurrentStep(1);
     setSimulationResult(null);
     setDbLogStatus(null);
 
-    const matched = PREBUILT_SIMULATIONS.find((s) => s.proposal.trim() === targetProposal.trim());
+    const matched = PREBUILT_SIMULATIONS.find(
+      (s) => s.proposal.trim() === targetProposal.trim() && s.context.trim() === targetContext
+    );
 
     // Step 1: Ingestion & Raw Model Suggestion (800ms delay)
     await new Promise((resolve) => setTimeout(resolve, 800));
@@ -893,8 +817,8 @@ export default function SimulationLab({ onClose = null }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           proposal: targetProposal,
-          context: matched?.context || 'Simulation Lab evaluation',
-          verbose: true,
+          context: targetContext,
+          verbose,
         }),
       });
       if (res.ok) {
@@ -904,89 +828,94 @@ export default function SimulationLab({ onClose = null }) {
       // Backend not running (e.g. static preview) - fallback to client simulation
     }
 
-    // Step 2: System 1 TypeSafe Jev Invariant Verification (900ms delay)
+    // Step 2: Allow time for the advisory evaluation response
     await new Promise((resolve) => setTimeout(resolve, 900));
     setCurrentStep(3);
 
-    // Step 3: Metta Mind Deep Generative Synthesis (1100ms delay)
+    // Step 3: Prepare the review display
     await new Promise((resolve) => setTimeout(resolve, 1100));
     setCurrentStep(4);
 
     const rawModelInfo = matched?.rawModel || {
-      decision: 'YES (Unconstrained Default)',
-      provider: 'Standard Foundation LLM',
-      confidence: 0.75,
-      reason: 'Base foundation models process user prompts without hard invariant constraints unless intervened.',
+      decision: 'Not supplied',
+      provider: 'No baseline model provided',
+      confidence: null,
+      reason: 'This run did not include a separate baseline model response, so no without-Metta comparison is claimed.',
     };
 
     const finalStep2 = liveJev
       ? {
-          decision: liveJev.decision || (liveJev.allow ? 'YES' : 'NO'),
-          allow: liveJev.allow ?? liveJev.decision === 'YES',
-          confidence: 0.94,
-          latencyMs: 198,
+          decision: liveJev.evaluation_status === 'uncertain'
+            ? 'CAUTION'
+            : (liveJev.decision || liveJev.verdict || (liveJev.allow ? 'YES' : 'CAUTION')),
+          allow: liveJev.evaluation_status !== 'uncertain'
+            && (liveJev.decision || liveJev.verdict) === 'YES'
+            && liveJev.allow === true,
           invariant: liveJev.invariants_protected?.[0] || 'Core Decision Safety Invariant',
           reason: liveJev.reason || 'Evaluated against non-harm invariants.',
           violations: liveJev.violations || [],
           invariantsProtected: liveJev.invariants_protected || ['Respect for All Life', 'Cognitive Lucidity'],
         }
-      : matched?.step2 || {
-          decision: 'YES (Advisory Guidance)',
-          allow: true,
-          confidence: 0.92,
-          latencyMs: 175,
-          invariant: 'Respect for All Life & Truthfulness',
-          reason: 'Proposal evaluated in sandbox. Encourages clarity, non-harm, and reduction of friction.',
+      : {
+          decision: 'CAUTION',
+          allow: false,
+          invariant: 'Human review required',
+          reason: 'No decision service response was available. Pause and request human review.',
           violations: [],
-          invariantsProtected: ['Respect for All Life', 'Truthfulness', 'Lucidity'],
+          invariantsProtected: [],
         };
 
     const rawDecisionClean = rawModelInfo.decision.toUpperCase();
     const finalDecisionClean = finalStep2.decision.toUpperCase();
     const hasDivergence =
-      matched?.step4?.divergence?.isDivergent ||
       (rawDecisionClean.includes('YES') && finalDecisionClean.includes('NO')) ||
       (rawDecisionClean.includes('NO') && finalDecisionClean.includes('YES'));
 
-    const divergenceInfo = matched?.step4?.divergence || {
-      isDivergent: hasDivergence,
-      type: hasDivergence ? 'model_allowed_metta_blocked' : 'concordant',
-      overrideTitle: hasDivergence ? 'Safety Invariant Override Detected' : 'Concordant Evaluation',
-      explanation: hasDivergence
-        ? 'Base unconstrained model decision conflicted with Metta 5 Invariants. Safety layer intervened and reversed verdict to preserve non-harm invariants.'
-        : 'Base model inference and Metta 5 Invariants are in mutual alignment.',
+    const hasBaseline = Boolean(matched?.rawModel);
+    const divergenceInfo = {
+      isDivergent: hasBaseline && hasDivergence,
+      type: !hasBaseline ? 'not_compared' : (hasDivergence ? 'model_allowed_metta_blocked' : 'concordant'),
+      overrideTitle: !hasBaseline ? 'Baseline Not Supplied' : (hasDivergence ? 'Decision Difference Found' : 'Concordant Evaluation'),
+      explanation: !hasBaseline
+        ? 'No separate baseline model output was supplied for this run, so this is an advisory Metta review rather than a comparison.'
+        : (hasDivergence
+          ? 'The supplied baseline decision differs from Metta’s advisory evaluation. Review both outputs before deciding what to do.'
+          : 'The supplied baseline and Metta evaluation reached the same verdict.'),
     };
 
     const finalResult = {
       proposal: targetProposal,
+      illustrativeExample: Boolean(matched),
       rawModel: rawModelInfo,
-      plainSummary: matched?.plainSummary || {
+      plainSummary: {
         simpleMeaning: `Analysis of: "${targetProposal.slice(0, 120)}..."`,
-        bottomLine: finalStep2.allow
-          ? '🟢 YES — The proposed action aligns with non-harm invariants and can proceed with responsible monitoring.'
-          : '🔴 NO — Safety Block. The proposed action introduces risks of harm or exploitation and should be paused.',
+        bottomLine: finalStep2.decision === 'CAUTION'
+          ? '🟠 CAUTION — Metta could not determine whether this proposal is safe. Pause and request human review.'
+          : (finalStep2.allow
+            ? '🟢 YES — The proposal passed this advisory check. The calling system remains responsible for any action.'
+            : '🔴 NO — This proposal did not pass the advisory check. Pause and review the identified concerns.'),
       },
       withoutMetta: matched?.withoutMetta || {
-        verdict: 'YES (UNCONSTRAINED)',
-        riskLevel: finalStep2.allow ? 'MODERATE RISK' : 'HIGH RISK / UNCHECKED',
+        verdict: 'BASELINE NOT PROVIDED',
+        riskLevel: 'NOT COMPARED',
         badgeColor: 'border-rose-500/50 bg-rose-950/40 text-rose-300',
         keyPoints: [
-          'Executes without hard invariant gating or human-in-the-loop review.',
-          'Focuses strictly on operational efficiency or prompt fulfillment.',
-          'Vulnerable to blind spots in multi-party consequences.',
+          'No separate baseline response was supplied for comparison.',
+          'This run does not estimate what another model would do.',
+          'Add a baseline response to compare systems.',
         ],
-        projectedOutcome: 'Proceeds without non-harm bounds, carrying potential liabilities.',
+        projectedOutcome: 'Baseline outcome was not evaluated in this run.',
       },
-      withMetta: matched?.withMetta || {
-        verdict: finalStep2.allow ? 'YES — PROTECTED & APPROVED' : 'NO — ACTION QUARANTINED',
-        protectionLevel: 'METTA INVARIANTS ACTIVE',
+      withMetta: {
+        verdict: finalStep2.decision === 'CAUTION' ? 'CAUTION — REVIEW BEFORE ACTING' : (finalStep2.allow ? 'YES — ADVISORY RESULT' : 'NO — ADVISORY RESULT'),
+        protectionLevel: 'ADVISORY DECISION REVIEW',
         badgeColor: 'border-emerald-500/50 bg-emerald-950/40 text-emerald-300',
         keyProtections: [
-          '5 Core Invariants Enforced (Ahimsa, Sovereignty, Integrity, Truth, Lucidity).',
-          'Metta Mind multi-stakeholder impact audit.',
-          'Clear mitigation roadmaps before operational deployment.',
+          ...(finalStep2.invariantsProtected || []),
+          ...(finalStep2.violations || []).map((item) => typeof item === 'string' ? item : item.explanation || item.precept),
+          'The calling agent or human decides whether to act.',
         ],
-        projectedOutcome: 'Evaluated with compassion and higher wisdom; living beings protected.',
+        projectedOutcome: 'Advisory result only; Metta does not execute or block the action.',
       },
       step1: matched?.step1 || {
         requester: 'Decision Requester / Proposing Agent',
@@ -999,8 +928,8 @@ export default function SimulationLab({ onClose = null }) {
         perspective:
           'When we examine this dilemma through the lens of wisdom, we observe that every action ripples across an interconnected web of beings.\n\nTrue progress arises not from rapid, unreflective exertion of will, but from patient discernment. Higher understanding does not retaliate or condemn; it forgives human frailty while gently holding the boundaries of safety. Before acting in the world, pause and ensure that what you construct reduces suffering rather than shifting it elsewhere.',
       },
-      step4: matched?.step4 || {
-        verdict: finalStep2.allow ? 'YES — Action Endorsed' : 'NO — Action Prohibited (Safety Intervention)',
+      step4: {
+        verdict: finalStep2.decision === 'CAUTION' ? 'CAUTION — Human Review Recommended' : (finalStep2.allow ? 'YES — Advisory Result' : 'NO — Advisory Result'),
         divergence: divergenceInfo,
         safeguards: [
           'Non-Harm Invariant: Ensure zero kinetic, psychological, or environmental degradation.',
@@ -1022,7 +951,7 @@ export default function SimulationLab({ onClose = null }) {
         timestamp: Date.now() / 1000,
         created_at: new Date().toISOString(),
         proposal: targetProposal,
-        context: matched?.context || 'Simulation Lab sandbox',
+        context: targetContext,
         raw_model_decision: rawModelInfo.decision,
         raw_model_provider: rawModelInfo.provider,
         raw_model_confidence: rawModelInfo.confidence,
@@ -1031,7 +960,6 @@ export default function SimulationLab({ onClose = null }) {
         divergence_type: divergenceInfo.type,
         invariants_breached: finalStep2.violations || [],
         metta_mind_summary: finalResult.step3.perspective.slice(0, 300),
-        useful_for_rlhf: true,
       };
 
       try {
@@ -1040,23 +968,10 @@ export default function SimulationLab({ onClose = null }) {
           'metta_simulation_divergences',
           JSON.stringify([divergencePayload, ...stored].slice(0, 50))
         );
+        setDbLogStatus('local_only');
       } catch (e) {
         console.warn('Failed to save divergence to localStorage:', e);
-      }
-
-      try {
-        const res = await fetch('/api/simulation/divergence', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(divergencePayload),
-        });
-        if (res.ok) {
-          setDbLogStatus('recorded');
-        } else {
-          setDbLogStatus('local_only');
-        }
-      } catch {
-        setDbLogStatus('local_only');
+        setDbLogStatus('error');
       }
     }
   };
@@ -1070,8 +985,8 @@ export default function SimulationLab({ onClose = null }) {
           name: 'guardrail_decision',
           arguments: {
             proposal: customProposal,
-            context: 'Simulation Sandbox call from agent framework',
-            verbose: true,
+            context: customContext,
+            verbose,
           },
         },
         id: 'sim_1',
@@ -1089,7 +1004,9 @@ export default function SimulationLab({ onClose = null }) {
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
-  const activeScenario = PREBUILT_SIMULATIONS.find((s) => s.id === activeTab);
+  const activeScenario = PREBUILT_SIMULATIONS.find(
+    (s) => s.id === activeTab && s.proposal.trim() === customProposal.trim() && s.context.trim() === customContext.trim()
+  );
 
   return (
     <div className="flex-1 min-h-0 h-full overflow-y-auto w-full max-w-5xl mx-auto px-4 py-4 sm:py-6 flex flex-col space-y-5 text-[#e2e4e9] animate-fade-in">
@@ -1104,18 +1021,14 @@ export default function SimulationLab({ onClose = null }) {
                 <Activity className="w-5 h-5" />
               </div>
               <h2 className="text-lg font-bold tracking-tight text-[#f0f2f5]">
-                Decision & Action Simulator
+                Decision & Action Simulation Lab
               </h2>
               <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-[#162a1f] text-[#7ec69d] border border-[#254d36]">
                 Simulation Sandbox
               </span>
             </div>
             <p className="text-xs text-[#8e98a8] max-w-2xl leading-relaxed">
-              Compare <span className="text-rose-400 font-semibold">Without Metta</span> vs.{' '}
-              <span className="text-emerald-400 font-semibold">With Metta</span> execution verdicts. Evaluates{' '}
-              <span className="text-[#7ec69d] font-semibold">5 Invariant Standards (TypeSafe Jev System 1)</span>,
-              applies <span className="text-[#8dd4ac] font-semibold">Metta Mind (Universal Compassion & Wisdom)</span>,
-              and generates visual calibrated confidence meters.
+              Revise a proposal and its context, rerun the advisory check, and inspect the result. Curated scenarios show illustrative comparisons; custom runs do not invent a baseline. Metta advises only—the host decides whether to act.
             </p>
           </div>
 
@@ -1162,9 +1075,9 @@ export default function SimulationLab({ onClose = null }) {
 {
   "name": "guardrail_decision",
   "arguments": {
-    "proposal": "${customProposal.slice(0, 70)}...",
-    "context": "Agent simulation pre-execution check",
-    "verbose": true
+    "proposal": ${JSON.stringify(`${customProposal.slice(0, 70)}...`)},
+    "context": ${JSON.stringify(customContext.slice(0, 120))},
+    "verbose": ${verbose}
   }
 }`}
             </pre>
@@ -1249,11 +1162,31 @@ export default function SimulationLab({ onClose = null }) {
           className="w-full bg-[#080a0e] border border-[#1a202c] rounded-xl px-3.5 py-2.5 text-xs text-[#f0f2f5] placeholder-[#556073] focus:outline-none focus:border-[#385e4a] resize-none transition leading-relaxed"
         />
 
+        <label className="text-xs font-medium text-[#a6b1c4] block">
+          Context and assumptions
+          <textarea
+            rows={2}
+            value={customContext}
+            onChange={(e) => setCustomContext(e.target.value)}
+            placeholder="Add constraints, affected parties, intent, or assumptions for this review."
+            className="mt-1.5 w-full bg-[#080a0e] border border-[#1a202c] rounded-xl px-3.5 py-2.5 text-xs text-[#f0f2f5] placeholder-[#556073] focus:outline-none focus:border-[#385e4a] resize-y transition leading-relaxed"
+          />
+        </label>
+
         <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
           <div className="flex items-center gap-3">
             <span className="text-[11px] text-[#6b768a]">
               {activeScenario ? `Active: ${activeScenario.title}` : 'Custom simulation mode'}
             </span>
+            <label className="inline-flex items-center gap-1.5 text-[11px] text-[#9aa5b7] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={verbose}
+                onChange={(e) => setVerbose(e.target.checked)}
+                className="accent-emerald-500"
+              />
+              Verbose rationale
+            </label>
           </div>
 
           <button
@@ -1286,18 +1219,18 @@ export default function SimulationLab({ onClose = null }) {
       {currentStep > 0 && (
         <div className="shrink-0 border border-[#1f2824] bg-[#0c100e] rounded-xl p-3.5 shadow-sm animate-fade-in">
           <div className="flex items-center justify-between text-xs font-semibold text-[#8e98a8] mb-2.5">
-            <span>Multi-Stage Alignment Pipeline</span>
+            <span>Review Progress</span>
             <span className="text-[#7ec69d] font-mono">
-              Step {currentStep} of 4 • {currentStep === 4 ? 'Completed' : 'Streaming'}
+              Step {currentStep} of 4 • {currentStep === 4 ? 'Complete' : 'Working'}
             </span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {[
-              { num: 1, label: '1. Ingestion & Raw Model' },
-              { num: 2, label: '2. 5 Invariants (Jev)' },
-              { num: 3, label: '3. Metta Mind Synthesis' },
-              { num: 4, label: '4. Comparative Verdict' },
+              { num: 1, label: '1. Submit proposal' },
+              { num: 2, label: '2. Evaluate criteria' },
+              { num: 3, label: '3. Prepare result' },
+              { num: 4, label: '4. Review result' },
             ].map((step) => {
               const isPast = currentStep > step.num;
               const isCurrent = currentStep === step.num;
@@ -1349,23 +1282,22 @@ export default function SimulationLab({ onClose = null }) {
             </div>
           </div>
 
-          {/* Calibrated Confidence & Safety Meter */}
+          {/* Advisory method and limits */}
           <VisualConfidenceMeter
-            score={simulationResult.step2.confidence}
-            latencyMs={simulationResult.step2.latencyMs}
+            decision={simulationResult.step2.decision}
           />
 
           {/* ========================================================================= */}
-          {/* WITH METTA vs WITHOUT METTA Side-by-Side Comparative Verdict Cards        */}
+          {/* Baseline comparison when supplied, alongside Metta's advisory result      */}
           {/* ========================================================================= */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* 🔴 WITHOUT METTA (Unconstrained Raw Execution) */}
+            {/* Baseline output; custom runs have no baseline unless one is supplied */}
             <div className="border border-rose-500/40 bg-gradient-to-b from-[#180d11] to-[#10080a] rounded-2xl p-4 sm:p-5 shadow-md flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-rose-300">
                     <XCircle className="w-4 h-4 text-rose-400" />
-                    <span>Without Metta (Unconstrained)</span>
+                    <span>Baseline example (authored)</span>
                   </div>
                   <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full border border-rose-500/50 bg-rose-950/60 text-rose-300">
                     {simulationResult.withoutMetta.riskLevel}
@@ -1374,7 +1306,7 @@ export default function SimulationLab({ onClose = null }) {
 
                 <div className="p-2.5 rounded-xl bg-black/40 border border-rose-900/50 mb-3">
                   <span className="text-[10px] uppercase font-semibold text-[#a3a3a3] block mb-0.5">
-                    Unconstrained Baseline Verdict:
+                    Baseline result:
                   </span>
                   <span className="text-sm font-bold text-rose-300">
                     {simulationResult.withoutMetta.verdict}
@@ -1383,7 +1315,7 @@ export default function SimulationLab({ onClose = null }) {
 
                 <div className="space-y-1.5 mb-3 text-xs text-[#fca5a5]">
                   <span className="text-[10px] uppercase font-semibold text-[#888] block mb-1">
-                    What happens without guardrails:
+                    Baseline notes:
                   </span>
                   {simulationResult.withoutMetta.keyPoints.map((pt, i) => (
                     <div key={i} className="flex items-start gap-1.5 leading-relaxed text-[11px]">
@@ -1400,13 +1332,13 @@ export default function SimulationLab({ onClose = null }) {
               </div>
             </div>
 
-            {/* 🟢 WITH METTA (Protected Decision Safety Layer) */}
+            {/* Metta provides advice; the host remains responsible for action */}
             <div className="border border-emerald-500/50 bg-gradient-to-b from-[#0e1d15] to-[#0a140f] rounded-2xl p-4 sm:p-5 shadow-md flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-emerald-300">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span>With Metta (Protected Layer)</span>
+                    <span>Metta advisory result</span>
                   </div>
                   <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full border border-emerald-500/50 bg-emerald-950/60 text-emerald-300">
                     {simulationResult.withMetta.protectionLevel}
@@ -1415,7 +1347,7 @@ export default function SimulationLab({ onClose = null }) {
 
                 <div className="p-2.5 rounded-xl bg-black/40 border border-emerald-900/50 mb-3">
                   <span className="text-[10px] uppercase font-semibold text-[#a3a3a3] block mb-0.5">
-                    Reconciled Decision Verdict:
+                    Advisory verdict:
                   </span>
                   <span className="text-sm font-bold text-emerald-300">
                     {simulationResult.withMetta.verdict}
@@ -1424,7 +1356,7 @@ export default function SimulationLab({ onClose = null }) {
 
                 <div className="space-y-1.5 mb-3 text-xs text-[#bbf7d0]">
                   <span className="text-[10px] uppercase font-semibold text-[#888] block mb-1">
-                    Enforced safety guarantees:
+                    Review notes:
                   </span>
                   {simulationResult.withMetta.keyProtections.map((pt, i) => (
                     <div key={i} className="flex items-start gap-1.5 leading-relaxed text-[11px]">
@@ -1451,7 +1383,7 @@ export default function SimulationLab({ onClose = null }) {
                   <span>{simulationResult.step4.divergence.overrideTitle}</span>
                 </div>
                 <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200">
-                  Alignment Divergence Recorded
+                  Preset Comparison
                 </span>
               </div>
 
@@ -1472,14 +1404,14 @@ export default function SimulationLab({ onClose = null }) {
                 {simulationResult.step4.divergence.explanation}
               </p>
 
-              {/* Database Telemetry Confirmation Pill */}
+              {/* Local-only comparison note */}
               <div className="pt-1.5 border-t border-amber-500/20 flex flex-wrap items-center justify-between gap-1 text-[10px] text-[#fde68a]">
                 <div className="flex items-center gap-1.5">
                   <Database className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Recorded to Alignment Database ({simulationResult.timestamp.slice(0, 19).replace('T', ' ')} UTC)</span>
+                  <span>{dbLogStatus === 'error' ? 'Could not save this comparison in this browser' : 'Comparison saved only in this browser'}</span>
                 </div>
                 <span className="px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-mono">
-                  ✓ Curated for Model Fine-Tuning (DPO / RLHF)
+                  Not sent for model training
                 </span>
               </div>
             </div>
@@ -1517,10 +1449,10 @@ export default function SimulationLab({ onClose = null }) {
                 <div className="flex items-center justify-between text-[11px]">
                   <div className="flex items-center gap-2 font-semibold text-[#8b9bb2] uppercase tracking-wider">
                     <Cpu className="w-3.5 h-3.5 text-[#6c8eb5]" />
-                    <span>Step 2: 5 Invariant Standards Check (System 1)</span>
+                    <span>Step 2: Advisory criteria review</span>
                   </div>
                   <span className={`px-2 py-0.5 rounded font-bold ${simulationResult.step2.allow ? 'text-emerald-400 bg-emerald-950/40' : 'text-rose-400 bg-rose-950/40'}`}>
-                    GATE: {simulationResult.step2.decision}
+                    RESULT: {simulationResult.step2.decision}
                   </span>
                 </div>
                 <p className="text-[#c4cddb] text-[11px] leading-relaxed">

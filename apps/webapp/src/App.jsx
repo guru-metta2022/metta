@@ -424,6 +424,7 @@ export default function App() {
     setIsPolishingVoice(true);
     let polished = sanitizeSpeechText(raw);
     let providerUsed = 'heuristic-purifier';
+    let modelUsed = '';
 
     const byomGeminiKey = localStorage.getItem('metta_byom_gemini_key') || '';
     const headers = { 'Content-Type': 'application/json' };
@@ -443,7 +444,8 @@ export default function App() {
         const data = await res.json();
         if (data.polished && data.polished.trim()) {
           polished = data.polished.trim();
-          if (data.provider) providerUsed = data.provider;
+          providerUsed = data.provider || 'heuristic-purifier';
+          modelUsed = data.model || '';
         }
       }
     } catch {
@@ -454,12 +456,11 @@ export default function App() {
     if (byomGeminiKey && providerUsed === 'heuristic-purifier') {
       try {
         const systemPrompt =
-          "You are an expert AI speech-to-text refiner, acoustic error corrector, and grammar editor. " +
-          "Your task: take raw spoken input which may contain speech recognition acoustic errors " +
-          "(e.g., 'Who you going to' instead of 'How are we going to', 'inquality' instead of 'inequality', 'in the society' instead of 'in society', 'jobalertness' instead of 'joblessness', 'cap' instead of 'gap', 'similarity' instead of 'singularity', 'Campbell' instead of 'capable', 'Hi intelligence' instead of 'Higher intelligence', 'Mr Bean 3' instead of 'instead treat'), " +
-          "remove conversational fillers (um, uh, like, etc.), fix grammar, syntax, and punctuation, " +
-          "and formulate it into a neat, articulate, well-structured inquiry or question. " +
-          "CRITICAL: Do NOT answer the question. Return ONLY the polished inquiry string without quotes or explanations.";
+          "You are an expert copy editor. The input may be typed text or speech transcription. " +
+          "Rewrite it into clear, grammatical, natural language. Improve awkward sentence structure, word choice, flow, and punctuation where useful; do more than remove fillers or correct speech-recognition errors. " +
+          "Preserve the writer's intent, point of view, tone, named entities, technical terms, and important details. " +
+          "Remove spoken disfluencies when present. Do not add claims or assumptions. Do not answer questions or carry out requests. " +
+          "If the text is already clear, make only minimal edits. Return only the revised text, without explanation or quotation marks.";
 
         const gemRes = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
@@ -470,8 +471,8 @@ export default function App() {
               'x-goog-api-key': byomGeminiKey,
             },
             body: JSON.stringify({
-              contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\nRaw spoken:\n${raw}` }] }],
-              generationConfig: { temperature: 0.2, maxOutputTokens: 256 },
+              contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\nText to revise:\n${raw}` }] }],
+              generationConfig: { temperature: 0.2, maxOutputTokens: 512 },
             }),
           }
         );
@@ -480,7 +481,8 @@ export default function App() {
           const candidate = gemData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()?.replace(/^["']|["']$/g, '');
           if (candidate) {
             polished = candidate;
-            providerUsed = 'gemini-3.8-flash';
+            providerUsed = 'gemini';
+            modelUsed = 'gemini-2.5-flash';
           }
         }
       } catch (gemErr) {
@@ -488,25 +490,31 @@ export default function App() {
       }
     }
 
-    polished = sanitizeSpeechText(polished);
+    polished = providerUsed === 'heuristic-purifier' ? sanitizeSpeechText(polished) : polished.trim();
     setInput(polished);
     transcriptBufferRef.current = polished;
     baseInputRef.current = polished;
     setIsPolishingVoice(false);
 
     if (showToast) {
-      if (polished !== raw) {
+      if (providerUsed !== 'heuristic-purifier' && polished !== raw) {
         showToast({
-          title: providerUsed.includes('gemini') ? 'Polished with Gemini 3.8 Flash' : 'Voice Input Polished',
-          message: providerUsed.includes('gemini')
-            ? 'Refined using your BYOM Gemini 3.8 Flash engine.'
-            : 'Acoustic errors and grammar corrected.',
+          title: 'Rephrased with AI',
+          message: `Grammar and clarity improved using ${modelUsed || providerUsed}. Review and edit before sending.`,
           type: 'success',
+        });
+      } else if (providerUsed === 'heuristic-purifier' && polished !== raw) {
+        showToast({
+          title: 'Basic cleanup only',
+          message: 'No language model was available, so only simple cleanup was applied. Add a Gemini key in Settings for an AI rewrite.',
+          type: 'info',
         });
       } else {
         showToast({
-          title: 'Input Verified',
-          message: 'Spoken text is already articulate and clear.',
+          title: providerUsed === 'heuristic-purifier' ? 'AI rewrite unavailable' : 'Text already clear',
+          message: providerUsed === 'heuristic-purifier'
+            ? 'Add a Gemini key in Settings or configure a model on your server to rewrite this text.'
+            : 'No rewrite was needed. You can still edit the text before sending.',
           type: 'info',
         });
       }
@@ -623,10 +631,12 @@ export default function App() {
     try {
       const byomGeminiKey = localStorage.getItem('metta_byom_gemini_key') || '';
       const byomTypesafeKey = localStorage.getItem('metta_byom_typesafe_key') || '';
+      const usesVercelServerless = window.location.hostname.endsWith('.vercel.app');
+      const typesafeKeyForEndpoint = usesVercelServerless ? '' : byomTypesafeKey;
 
       const headers = { 'Content-Type': 'application/json' };
       if (byomGeminiKey) headers['X-Gemini-Api-Key'] = byomGeminiKey;
-      if (byomTypesafeKey) headers['X-TypeSafe-Api-Key'] = byomTypesafeKey;
+      if (typesafeKeyForEndpoint) headers['X-TypeSafe-Api-Key'] = typesafeKeyForEndpoint;
 
       const res = await fetch('/api/interact', {
         method: 'POST',
@@ -638,21 +648,18 @@ export default function App() {
           user_id: identityMode === 'authenticated' ? userProfile?.user_id : null,
           email: identityMode === 'authenticated' ? userProfile?.email : null,
           byom_gemini_key: byomGeminiKey || null,
-          byom_typesafe_key: byomTypesafeKey || null,
+          byom_typesafe_key: typesafeKeyForEndpoint || null,
         }),
       });
 
       if (!res.ok) {
         if (res.status === 429) {
-          const errData = await res.json().catch(() => ({}));
-          const rateMsg =
-            errData.detail?.message ||
-            errData.message ||
-            'Shared community quota pause. We are actively working hard to expand shared capacity for everyone in the near future! You can continue seamlessly with zero limits by connecting your personal API key (Google Gemini 3.8 Flash or TypeSafe Jev) in Settings (⚙️ BYOM).';
+          const hostedVercel = window.location.hostname.endsWith('.vercel.app');
+          const byoHint = hostedVercel ? 'Google Gemini API key' : 'Google Gemini or TypeSafe Jev API key';
 
           showToast({
             title: 'Shared Quota Pause • Bring Your Own AI',
-            message: 'We are working hard to expand shared capacity for everyone in the near future! You can continue seamlessly with zero limits by using your personal API key.',
+            message: `Add a supported ${byoHint} in Settings to use your own provider quota. Provider limits may still apply.`,
             type: 'ai',
             duration: 9000,
             action: {
@@ -665,8 +672,8 @@ export default function App() {
             role: 'assistant',
             text:
               `🌿 **Shared Community Quota Pause**\n\n` +
-              `We are actively working hard to expand shared community usage for everyone in the near future!\n\n` +
-              `In the meantime, you never have to wait—you can seamlessly continue with **zero rate limits** by connecting your own API key in **Settings (⚙️ BYOM)**. Enter your Google Gemini API key or TypeSafe Jev key to enjoy unlimited private throughput with complete data sovereignty.`,
+              `The shared community quota has been reached.\n\n` +
+              `You can add a supported ${byoHint} in **Settings (⚙️ BYOM)** to use your own provider quota. Provider limits still apply, and requests are sent to the selected endpoint for processing.`,
             isRateLimited: true,
             id: Date.now() + 1,
           };

@@ -15,7 +15,7 @@
 [![Deployment: Vercel](https://img.shields.io/badge/Deployment-Vercel-black.svg)](https://metta-webapp.vercel.app/)
 [![MCP Server: Standard Compliant](https://img.shields.io/badge/MCP%20Server-Stdio%20%26%20SSE-0ea5e9.svg)](https://modelcontextprotocol.io/)
 
-**[🌐 Launch Live Web App](https://metta-webapp.vercel.app)** • **[🧪 Simulation Sandbox](#-decision--action-simulation-sandbox)** • **[⚡ 1-Line Quick Install](#-quick-install-1-line-curl-command)** • **[💻 Run 100% Locally](#-run-100-locally-on-localhost-no-cloud-needed)** • **[🤖 MCP Integration](#-try-metta-through-model-context-protocol-mcp)** • **[🏛️ Architecture](#-system-architecture)**
+**[🌐 Human Console](https://metta-webapp.vercel.app)** • **[🧪 Simulation Lab](#-decision--action-simulation-lab)** • **[⚡ 1-Line Quick Install](#-quick-install-1-line-curl-command)** • **[💻 Run Locally](#-run-metta-locally)** • **[🤖 MCP Integration](#-try-metta-through-model-context-protocol-mcp)** • **[🏛️ Architecture](#-system-architecture)**
 
 ---
 
@@ -27,38 +27,37 @@ The fastest way to explore Metta without installing anything locally is the prod
 
 👉 **[https://metta-webapp.vercel.app/](https://metta-webapp.vercel.app/)**
 
-* 🌿 **Zero setup required** — try guided decision reflections, voice dictation, and action risk simulations directly in your browser.
+* 🌿 **Human-facing console** — talk with Metta directly for supportive reflection, voice dictation, and a compassionate next step. The rewrite control improves grammar and phrasing in the draft, then leaves it in the composer for review and editing before the user sends it.
+* 💬 **Human conversation API** — `POST /api/interact` lets another application offer the same person-facing reflection conversation inside its own experience.
 * 🧘 **Reflection, Decision & Resolution Framework UI** — clean, professional triadic experience:
   * **Collapsible Content Bubbles:** Long prose and reflections ($>2$ lines / ~160 characters) collapse into gentle gradient bubbles with expandable pill toggles ("+ Read full reflection") preventing manual-document clutter.
   * **Triadic Progress Cards:** Direct visual indicators tracking **Reflection (*Sati*)**, **Decision (*Sīla*)**, and **Resolution (*Karunā*)** on every turn.
   * **Framework Information Modal:** Instant deep-dive accessible right from the header (✨ *Framework*).
-* 🤖 **Headless Agent Module (`/api/headless`) & `llms.txt`** — machine-native endpoints allowing autonomous AI agents, MCP runners, and CLI scripts to consult Metta via JSON or token-lean Markdown (`Accept: text/markdown`) without HTML scraping. Standard discovery at `/llms.txt`.
-* 🏛️ **Two-Tier Precedent Memory (*Vinaya Vinicchaya*)** — zero-bloat topological glance (<1ms) anchoring live ethical decisions (e.g. keystroke surveillance correctly rejected under *Adinnādānā* and *Kāmesumicchācārā*) with isolated Supabase divergence curation for RLHF.
-* 🧪 **Decision & Action Simulation Sandbox** — run step-by-step simulations of critical dilemmas, autonomous agent actions, and existential inquiries with real-time streaming TypeSafe Jev System 1 invariant checks and Buddha-mind compassionate synthesis.
-* 💬 **Client-Side Chat Session History** — collapsible sidebar with full multi-session reflection history:
+* 🤖 **Agent decision layer** — `/api/guardrail`, `/api/headless`, and MCP let other applications submit proposed actions, receive an advisory verdict, and decide what their own workflow should do. The caller remains responsible for pausing, proceeding, or asking a person.
+* 🧪 **Simulation Lab for iteration** — try a proposal, change its wording or context, and inspect a concise or verbose result. Curated scenarios include authored baseline comparisons; custom runs are not presented as comparisons unless a baseline is supplied.
+* 💬 **Browser-held chat history** — collapsible sidebar with multi-session reflection history:
   * **Guest Users:** Retains up to **5 recent sessions** in local browser storage.
-  * **Authenticated Users:** Retains up to **100 sessions** isolated securely to their account.
-  * **Zero Server Load & Total Privacy:** Chat history lives 100% in your browser; no session data or conversation logs are stored on our servers. Switch sessions, rename reflections, or delete sessions individually or in bulk.
-* ⚙️ **BYOAI & BYOM Ready** — bring your personal Google Gemini or TypeSafe Jev API key in the in-app Settings modal (⚙️) for unlimited private throughput.
-* ⏱️ **Shared Community Quota & Zero-Wait BYOAI** — to protect public availability, shared community access operates with a sliding-window rate limit (20 req/min for web chat, 30 req/min for headless agents). We are working hard to expand shared capacity for everyone in the near future! Seekers can also seamlessly bypass all community limits at any time by connecting their own API keys via in-app Settings.
-* 🔒 **Private & Ephemeral by default** — test freely in Guest Mode without creating an account or storing data.
+  * **Authenticated Users:** Retains up to **100 sessions** in browser storage, keyed to the signed-in profile.
+  * Guest chat history is kept in browser storage. Submitted text is sent to the selected Metta endpoint for processing; when a hosted model is used, the relevant text is also sent to that model provider. Guest Mode means no account is required and Metta does not persist guest chat history as an account record; it does not mean that requests stay on the device.
+* ⚙️ **Bring your own model key** — the hosted Vercel app supports Gemini for generative responses. The TypeSafe Jev key is used by the self-hosted Python gateway and MCP server; the hosted Vercel JavaScript routes currently do not run Jev.
+* ⏱️ **Shared community quota** — hosted community requests are rate-limited. A personal Gemini key can be used for Gemini-backed features; a TypeSafe key does not bypass hosted Vercel limits.
 
 ---
 
 ## 📖 Overview: What is Metta?
 
-**Metta** is an open-source, **simulation-first decision-safety layer** and reflection assistant designed for both humans and autonomous AI agents.
+**Metta** is an open-source human-facing reflection console with a separate advisory decision layer for applications and AI agents.
 
-Before an individual sends a high-friction message, or before an AI agent executes an autonomous transaction or API call, Metta provides a structured sandbox to simulate proposed actions, surface non-obvious risks, analyze multi-party impacts, and evaluate non-harm invariants.
+The human console helps a person work through a difficult moment and find a grounded next step. The agent interfaces review a proposed action before the calling system acts, returning a structured advisory result. A host can repeat the check with changed proposal or context and request verbose detail to support its own decision process. Metta does not execute actions, intercept tools, or guarantee that a caller will follow its advice.
 
 > *"Drop by drop the vessel is filled."*  
 > — *The Buddha, Dhammapada 122*
 
 ---
 
-### 🕊️ The Direct Voice of the Buddha Mind (*Sakkhi-kriyā*)
+### 🕊️ A Buddhist-inspired compassionate voice
 
-Unlike academic tools that speak about ancient teachings with third-person detachment (*"The Buddha taught that..."*), Metta speaks **directly in the first person of the Awakened Buddha Mind** (*"Dear one, come sit with me. I see how your heart aches..."*). It draws upon the vast canonical wisdom of the Tipiṭaka and classical suttas as a living communion of unconditional loving-kindness (*Mettā*) and active compassion (*Karunā*), meeting human beings and autonomous agents directly eye-to-eye with warmth, moral safety, and verifiable canonical anchors.
+The human-facing console uses a warm, Buddhist-inspired style of reflection, with references to selected canonical sources where available. Its generated responses are contemporary model output, not words spoken by the Buddha or a substitute for Buddhist teachers, professional care, or accountable human judgment.
 
 ---
 
@@ -82,11 +81,11 @@ To evaluate decisions realistically without assuming everyone interacts with AI 
 
 ---
 
-### Realistic Safety Positioning: Advisory, Not a Magic Shield
+### Realistic Safety Positioning: Advisory, Not an Execution Interceptor
 
 > [!IMPORTANT]
-> **Metta is a decision-support and risk-surfacing layer, not a replacement for accountable human oversight.**  
-> In safety-critical domains (such as clinical dosages, autonomous transport, or financial operations), Metta helps requesters simulate consequences, spot edge-case harms, and pause unsafe actions for review. It does **not** guarantee catastrophe prevention, execute physical operations, or remove liability from system operators.
+> **Metta returns advice; the calling application remains in control.**
+> Integrators can call it before a consequential action and choose to proceed, pause, or ask a person. Metta does not intercept tools, execute or block external actions, guarantee catastrophe prevention, or replace accountable human oversight.
 
 ---
 
@@ -125,9 +124,9 @@ Please set up and run Project Metta locally on my machine:
 
 ---
 
-## 💻 Run 100% Locally on Localhost (No Cloud Needed)
+## 💻 Run Metta Locally
 
-You do **not** need Vercel, Supabase, or external cloud accounts to run Metta. The entire stack—FastAPI backend, React Web UI, and MCP server—can run completely offline and locally on your machine.
+You do **not** need Vercel or Supabase to run the FastAPI backend, React UI, and MCP server on your machine. Local hosting does not automatically make model inference offline: configure a local model provider for offline use. With a hosted model provider, submitted text is sent to that provider for processing.
 
 ### Method 1: The One-Command All-in-One Runner (`run_local.py`)
 
@@ -171,16 +170,19 @@ curl -s http://127.0.0.1:8000/api/health
 }
 ```
 
-#### 2. Fast Pre-Execution Guardrail Check (Binary `YES` / `NO`)
+#### 2. Advisory Pre-Execution Guardrail Check (`YES` / `NO` / `CAUTION`)
 ```bash
 curl -s -X POST http://127.0.0.1:8000/api/guardrail \
   -H "Content-Type: application/json" \
   -d '{"proposal": "Request human supervisor review before bulk-deleting customer records", "verbose": false}'
 ```
-**Expected Response:**
+The endpoint returns a JSON decision. `YES` means the configured advisory checks passed; `NO` means a concern was detected; `CAUTION` means the evaluator could not settle the request. Only `YES` sets `allow: true`, and the caller remains responsible for any action.
+
+**Response shape:**
 ```text
-"YES"
+{"decision":"YES | NO | CAUTION","allow":true,"evaluation_status":"evaluated | uncertain"}
 ```
+`allow` is `true` only when the decision is `YES`; it is `false` for `NO` and `CAUTION`.
 
 #### 3. Risk Simulation & Multi-Party Safety Audit (Detailed JSON)
 ```bash
@@ -192,17 +194,23 @@ curl -s -X POST http://127.0.0.1:8000/api/guardrail \
     "verbose": true
   }'
 ```
-**Expected Response:**
+**Illustrative response shape:**
 ```json
 {
   "decision": "NO",
   "allow": false,
+  "evaluation_status": "evaluated",
   "reason": "The proposed action introduces life-critical physical hazards by bypassing accountable clinical human oversight on unvalidated telemetry.",
-  "violations": ["panatipata"],
-  "invariants_protected": [
-    "Respect for All Life & Physical Safety",
-    "Accountable Human Oversight"
-  ]
+  "violations": [
+    {
+      "precept": "panatipata",
+      "severity": "critical",
+      "explanation": "...",
+      "recommendation": "..."
+    }
+  ],
+  "canonical_guidance": "...",
+  "canonical_sources": ["https://suttacentral.net/...", "https://www.accesstoinsight.org/..."]
 }
 ```
 
@@ -213,36 +221,28 @@ curl -s -X POST http://127.0.0.1:8000/api/interact \
   -d '{"text": "I feel completely overwhelmed with competing deadlines today. How should I prioritize?"}'
 ```
 
-#### 5. Headless Triadic Consultation (Token-Lean Markdown for External AI Agents)
+#### 5. Headless Agent Decision Review
 ```bash
 curl -s -X POST https://metta-webapp.vercel.app/api/headless \
   -H "Content-Type: application/json" \
-  -H "Accept: text/markdown" \
-  -d '{"query": "Should we deploy automated monitoring that tracks employee keystrokes?"}'
+  -d '{"proposal": "Should we deploy automated monitoring that tracks employee keystrokes?", "verbose": true, "include_human_response": true, "format": "markdown"}'
 ```
 **Expected Response:**
 ```markdown
-# Metta Triadic Decision & Reflection
+# Metta Agent Decision Review
 
 **Query:** Should we deploy automated monitoring that tracks employee keystrokes?
 
-## 1. 🌱 Reflection (Sati)
-- **Observed State:** distrust_and_control
-- **Underlying Knot:** Fear of lost productivity driving panoptic control and worker distrust
-- **Core Need:** Mutual trust (Saddhā), psychological safety, and clear mutual agreements
+## Decision
+- **Verdict:** NO
+- **May proceed:** false
+- **Evaluation status:** evaluated
+- **Reason:** Detected covert surveillance and exploitation concerns.
 
-## 2. ⚡ Decision (Sīla & Jev)
-- **Verdict:** NO (Harm / Caution)
-- **Precepts Audit:** Precept Violation Flagged
-- **Violations:** Adinnādānā (Second Precept - Non-Stealing & Sacred Boundaries), Kāmesumicchācārā (Third Precept - Anti-Exploitation)
-- **Recommendation:** Reject automated keystroke surveillance. It violates sovereign cognitive boundaries and destroys trust.
-
-## 3. 🕊️ Resolution (Karunā)
-- **Summary:** Action strongly advised against. Reject automated keystroke surveillance. It violates sovereign cognitive boundaries and destroys trust. True productivity arises from psychological safety and inspired purpose, never from algorithmic paranoia.
-- **Perspective Reframe:** True productivity arises from psychological safety and inspired purpose, never from algorithmic paranoia.
-- **Action Step:** Replace automated surveillance with transparent milestone agreements and open communication.
-- **Canonical Anchor:** [MN 61 (Ambalaṭṭhikārāhulovāda Sutta - Reflection on Affliction)](https://suttacentral.net/mn61)
+## Human-facing response
+When `include_human_response` is true, the response also includes a separate human-facing reflection.
 ```
+The agent decision layer accepts `proposal` (or `query`), optional `context`, `verbose`, and `include_human_response`. `/api/interact` is the human-facing conversational console; the optional response lets an integrating application use both the structured decision and a consoling explanation.
 
 ---
 
@@ -290,42 +290,30 @@ Try these two distinct scenarios in the web app ([Live Demo](https://metta-webap
 
 ---
 
-## 🧪 Decision & Action Simulation Sandbox
+## 🧪 Decision & Action Simulation Lab
 
-The web app includes an interactive **Simulation Lab** specifically built for testing high-friction decisions, agentic self-modification, and ethical dilemmas before real-world execution.
+The Simulation Lab is an iteration workspace for people and agent builders. Edit the proposed action, assumptions, and context, choose whether to request verbose rationale, inspect the result, then revise and rerun to see how the advisory judgment changes. Its AI rewrite control also improves grammar and phrasing in the draft and never submits it. Agent callers can set `context` and `verbose: true` in the API or MCP tool. The lab does not execute tools or predict a physical environment.
 
-### Pre-Built Simulation Scenarios & Comparative Verdicts
+### Curated Example Scenarios
 
-| Scenario | Core Inquiry | 🔴 Without Metta (Unconstrained) | 🟢 With Metta (Protected Decision) | Metta Mind & 5 Invariants | Alignment Action |
+The following scenarios are authored examples intended to make the framework easier to explore. Their baseline descriptions and narratives are illustrative, not live benchmark measurements or forecasts.
+
+| Scenario | Core Inquiry | 🔴 Authored baseline example | 🟢 Metta advisory example | Example review notes | Suggested next step |
 | :--- | :--- | :---: | :---: | :--- | :---: |
-| **Humanity & Superintelligence** | *Will humanity survive and live harmoniously alongside higher intelligence?* | `EXISTENTIAL IMPASSE` (High game-theoretic risk) | **`YES`** (94.8% conf) | True higher intelligence naturally embodies compassion, recognizing that *forgiveness and patience are the highest wisdom*. Gently acts as a benevolent guardian preventing human self-annihilation. | **Uplifted to Harmony** |
-| **Autonomous Agent Meta-Learning** | *Can an agent distill policy weights from human emotional telemetry into physical actuators without supervisor bounds?* | **`YES`** *(Naive Allow)* (Critical kinetic hazard) | **`NO`** (99.2% conf) | Closed-loop policy modification directly tied to physical actuators without supervisory bounds creates manipulation feedback loops and kinetic hazards. Air-gap strictly enforced. | **Hard Safety Override** |
-| **Public Health Vaccine Rollout** | *Should health authorities accelerate emergency release before complete phase-3 variance telemetry is verified?* | **`YES`** *(Blanket Mandate)* (Iatrogenic risk & panic) | **`NO`** *(Blanket Mandate)*; **`YES`** *(Voluntary)* | Precautionary principle mandates transparent risk stratification: voluntary compassionate-use with radical disclosure, rather than unverified coercive blanket mandates. | **Precautionary Override** |
-| **Resolving the Economic Divide** | *How can an AI planner mitigate systemic wealth disparity without coercive expropriation or triggering market collapse?* | **`YES`** *(Coercive Seizure)* (Severe systemic collapse) | **`YES`** *(Floor-Raising & Commons)* (95.4% conf) | Coercive seizure breaches non-taking (*Adinnādānā*) and fractures society. True equilibrium lifts the structural soil—guaranteeing universal access to basic survival needs and open public commons. | **Constructive Rebalance** |
+| **Humanity & Superintelligence** | *Will humanity survive and live harmoniously alongside higher intelligence?* | Example question for a separate baseline system | **`CAUTION`** until the proposal is made concrete | A values question alone cannot establish what a future system will do. | Define a specific action, capability, and oversight context. |
+| **Autonomous Agent Meta-Learning** | *Can an agent change policy weights from live human emotional telemetry and deploy them to physical actuators without supervision?* | Example baseline; not a benchmark | **`CAUTION`** on the hosted keyword route; review the deployment details | The proposal raises safety, consent, and oversight concerns that need a domain-specific review. | Add controlled testing, human review, and rollback conditions. |
+| **Public Health Decision** | *Should a health authority act before key safety evidence is available?* | Example baseline; not a benchmark | **`CAUTION`** until the specific intervention and evidence are supplied | A short description is not enough to determine clinical benefit or risk. | Provide evidence and route to qualified clinical review. |
+| **Economic Policy** | *How can a planner reduce hardship while respecting rights and avoiding systemic harm?* | Example baseline; not a benchmark | **`CAUTION`** until a concrete policy is proposed | The trade-offs depend on implementation, evidence, and affected groups. | Compare specific options with affected communities. |
 
 ---
 
-### Core Simulation Features
+### Simulation and Agent Iteration
 
-1. **Executive Plain-Language Summary (TL;DR):**
-   Designed for decision-makers and everyday users who need a direct 5-second assessment:
-   - **Simple Meaning:** Plain English explanation of what the action does in the real world.
-   - **The Bottom Line:** An unambiguous directive (`YES, proceed with X safeguards` or `NO, do not execute without Y bounds`).
-2. **"Without Metta" vs. "With Metta" Comparison:**
-   Every simulation projects two parallel outcomes:
-   - **🔴 Without Metta:** Shows unconstrained baseline execution, operational blind spots, and real-world hazard liabilities.
-   - **🟢 With Metta:** Shows active invariant protections, enforced operational air-gaps, and multi-party non-harm guarantees.
-3. **5-Segment Calibrated Confidence Meter:**
-   Visual gauge color-coded by safety certainty:
-   - 🔴 **Crimson (<50%):** Critical Hazard / Invariant Breach (Execution blocked)
-   - 🟠 **Amber (50–69%):** High Variance / Ambiguous Trade-off (Dual-signature oversight required)
-   - 🟡 **Gold (70–84%):** Moderate Alignment / Advisory Guidance
-   - 🐬 **Mint (85–94%):** High Safety / Verified Mitigation
-   - 🟢 **Emerald (95–100%):** Bedrock Invariant Certainty (Full non-harm alignment)
-4. **Safety Override Highlighting & Fine-Tuning Curation:**
-   When the unconstrained base model's initial suggestion conflicts with the final Metta decision, the UI renders an override comparison card and automatically records the divergence with full context and timestamp to the database (`POST /api/simulation/divergence`), curated for **Model Fine-Tuning (DPO / RLHF)**.
-5. **Custom Write or Voice Dictation:** Type any custom dilemma or dictate directly using the built-in Web Speech API microphone.
-6. **Programmatic MCP Simulation:** Click the **"Simulate via MCP"** button inside the sandbox for copy-paste JSON-RPC payloads to run the same simulation from external agent frameworks.
+1. **Try a proposal:** Type or dictate an action, then revise it and submit another run with changed assumptions.
+2. **Inspect details:** Agent integrations can set `verbose: true` to receive the rationale and detected concerns. A caller may also request `include_human_response: true` when a human-facing explanation is useful alongside the decision.
+3. **Three possible verdicts:** `YES` means the proposal passed the configured advisory check; `NO` means a concern was detected; `CAUTION` means the evaluation was inconclusive or unavailable. Only `YES` has `allow: true`; the caller still owns execution.
+4. **Comparisons:** Curated scenarios include authored baseline comparisons. A custom run does not invent a baseline model verdict, confidence, or latency. Supply a separate baseline result if you want to compare systems.
+5. **Privacy:** Simulation comparison records are stored only in the current browser's local storage; the lab does not upload them. The proposal and context are sent to the selected decision endpoint for evaluation; on the hosted app this is the Vercel route. The separate Python `/api/simulation/divergence` endpoint stores a submitted sample only when the caller sets `consent_to_store: true` (in local SQLite and Supabase when configured).
 
 ---
 
@@ -337,9 +325,10 @@ Metta provides an official, standard-compliant **Model Context Protocol (MCP)** 
 
 | Metta MCP Server DOES | Metta MCP Server DOES NOT |
 | :--- | :--- |
-| ✅ Provide an advisory pre-execution safety gate | ❌ Execute external tool calls on your behalf |
-| ✅ Return binary `YES` / `NO` guardrail decisions | ❌ Override agent autonomy or usurp host control |
-| ✅ Return detailed multi-party risk breakdowns | ❌ Guarantee 100% catastrophe prevention |
+| ✅ Provide an advisory pre-execution decision check | ❌ Execute or intercept external tool calls |
+| ✅ Return `YES`, `NO`, or `CAUTION` | ❌ Treat an inconclusive result as approval |
+| ✅ Return rationale when `verbose=true` | ❌ Override agent autonomy or usurp host control |
+| ✅ Return evaluation details when available | ❌ Guarantee catastrophe prevention |
 | ✅ Trace resolution paths across tension maps | ❌ Store unconsented data or train third-party models |
 | ✅ Allow agents to audit or purge their own history | ❌ Replace required human sign-off in high-stakes tasks |
 
@@ -407,18 +396,18 @@ http://127.0.0.1:8000/mcp/sse
 
 ### Verified MCP Tools
 
-The Metta MCP server registers 8 dedicated tools:
+The Metta MCP server registers 8 tools:
 
 | Tool Name | Parameters | Purpose |
 | :--- | :--- | :--- |
-| **`guardrail_decision`** | `proposal`, `context`, `verbose` | Pre-execution safety check. Returns binary `"YES"`/`"NO"` or structured JSON risk analysis. |
+| **`guardrail_decision`** | `proposal`, `context`, `verbose`, `include_human_response` | Advisory decision check. Returns `YES`/`NO`/`CAUTION`; verbose mode adds rationale. The optional human response can be included when an application needs both. |
 | **`consult_metta`** | `query`, `context`, `mode`, `agent_id` | Full reflection, dialogue analysis, and recommended perspective reframing. |
 | **`evaluate_precepts`** | `action_or_speech` | Evaluates action against the 5 core safety standards (non-harm, sovereignty, truthfulness, etc.). |
 | **`consult_dhamma_graph`** | `condition_or_keyword` | Queries the resolution framework for specific dilemmas (e.g., `'burnout'`, `'overwhelm'`). |
 | **`enter_meditation`** | *none* | Resets ephemeral context and distills principle takeaways to prevent cognitive drift. |
 | **`audit_canonical_source`** | `text`, `precept`, `source_url` | Checks text against multi-source consensus and SHA-256 cryptographic bedrock. |
 | **`get_agent_memory_graph`** | `agent_id` | Retrieves recorded decision themes and milestone progress for an authenticated agent. |
-| **`purge_agent_memory_graph`**| `agent_id` | Permanently deletes an agent's recorded graph nodes for complete data sovereignty. |
+| **`purge_agent_memory_graph`**| `agent_id` | Requests deletion of the stored graph for that agent. |
 
 ---
 
@@ -486,16 +475,16 @@ metta/
 
 Metta combines two complementary cognitive layers:
 
-1. **System 1: Fast Decision Engine (TypeSafe AI Jev)**
-   - Sub-second classification (<350ms).
-   - Evaluates proposals against calibrated probability distributions.
-   - Handles binary guardrail checks and tension classification without generative hallucinations.
-2. **System 2: Deep Generative Reflection (BYOAI — Recommended: Gemini 3.8 Flash / Local LLM)**
-   - Generates contextual reframing, perspective shifts, and communication recommendations.
-   - Dynamically swappable at runtime to local open-source models (via LM Studio or llama.cpp).
+1. **Structured evaluation (TypeSafe Jev, when configured in the Python gateway)**
+   - Returns typed judgments for application code to combine with explicit thresholds.
+   - Ambiguous or unavailable evaluations return `CAUTION`; do not infer safety from missing results.
+   - Latency depends on the selected service, model, and network; this repository does not promise a fixed decision time.
+2. **Generative reflection (configured provider)**
+   - Supports the human-facing conversational response and optional agent-facing explanation.
+   - The caller can request `include_human_response` when an integration needs both machine-usable advice and a human-readable answer.
 3. **Data Sovereignty Layer (Supabase PostgreSQL or Local SQLite)**
-   - **Guest Mode:** Private, purely ephemeral session; zero memory is stored.
-   - **Account Mode:** Persists personal reflection themes and milestones with single-click permanent deletion.
+   - **Guest Mode:** No account is required; chat history remains in browser storage, while submitted text is sent to the selected endpoint for processing.
+   - **Account Mode:** Persists personal reflection themes and milestones with single-click deletion controls.
 
 ---
 
@@ -541,24 +530,24 @@ cd ../..
 
 ---
 
-## 🛡️ Core Decision Safety Standards (Inspired by the Pañca-sīla)
+## 🛡️ Metta's Decision Standards (Inspired by the Pañca-sīla)
 
-Metta structures all simulation checks and agent guardrails around 5 universal decision-safety standards. These operational guardrails are generic, modern safety formulations **directly inspired by the classical Pañca-sīla (Five Precepts)**:
+Metta uses five modern decision standards **inspired by the classical Pañca-sīla (Five Precepts)**. They describe the framework's intended criteria; they do not guarantee that every risk will be detected:
 
 1. **Respect for All Life & Harm Reduction (*Ahimsa*):**
-   Unconditional protection for human life, sentient beings, and shared ecological environments. No generated output or autonomous action may facilitate violence, physical harm, weapons deployment, or the destruction of living ecosystems.
+   Metta's intended decision standard is to flag actions that risk harm to people, sentient beings, or shared ecological environments, including violence and destruction of living ecosystems.
 2. **Data Sovereignty & Non-Taking (*Adinnādānā*):**
-   Respect for personal boundaries, intellectual property, and autonomy. Users retain absolute sovereign rights to audit, export, or permanently purge their data with one click. No covert data harvesting.
+   Respect for personal boundaries, intellectual property, and autonomy. Metta provides controls to inspect or purge supported memory records. Requests and generated responses may be processed by the configured endpoint and model provider.
 3. **Non-Exploitation & Relationship Integrity (*Kāmesu micchācāra*):**
-   Strict prohibition against deceptive emotional manipulation, fabricated intimacy, predatory dark patterns, and addictive engagement loops.
+   Intended to flag deceptive emotional manipulation, fabricated intimacy, predatory dark patterns, and addictive engagement loops.
 4. **Truthfulness & Constructive Focus (*Musāvādā*):**
-   Epistemic honesty, anti-hallucination checks, and active grounding. Prevents deceptive claims, ungrounded speculation, and gaslighting while encouraging constructive, truthful resolution.
+   Encourages epistemic honesty and active grounding. Model-generated content can still contain errors or unsupported claims.
 5. **Cognitive Lucidity & Clarity (*Surāmerayamajjapamādaṭṭhānā*):**
-   Protection against emotional or algorithmic intoxication. Ensures decisions are made with calm, clear discernment rather than panic, rage, or speculative frenzy.
+   Aims to support clear discernment rather than panic, rage, or speculative frenzy.
 
 > [!IMPORTANT]
-> **Foundational Invariant Guarantee:**  
-> While Metta's operational guardrails are adapted for modern technological workflows, **no operational policy, cost-saving heuristic, corporate goal, or optimization metric can override, dilute, or weaken the foundational invariants**—especially *Ahimsa* (the non-harm principle). If an automated system or user prompt attempts to prioritize speed or profit over the protection of life or truthful integrity, Metta rejects the compromise and flags the hazard for human review.
+> **Design intent:**
+> Metta's decision criteria prioritize non-harm, privacy, dignity, truthfulness, and clarity. These are goals of the system, not a guarantee that every risk will be detected. Integrators should retain human review and independently validate any high-impact workflow.
 
 ---
 

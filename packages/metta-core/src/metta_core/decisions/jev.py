@@ -71,7 +71,7 @@ class JevDecisionEngine:
         return self._client is not None
 
     async def evaluate_turn(self, user_text: str) -> Optional[JevDecisionOutcome]:
-        """Perform sub-second System 1 decision evaluation on user input."""
+        """Evaluate user input with the configured structured decision model."""
         if not self._client:
             return None
 
@@ -129,9 +129,12 @@ class JevDecisionEngine:
 
             # 1. Audit Precepts
             violations: List[PreceptViolation] = []
+            uncertain_checks: List[str] = []
 
             ahimsa_p = answers.get("violates_ahimsa")
-            if ahimsa_p and getattr(ahimsa_p, "noul", 0) > 0.65:
+            if ahimsa_p is None or getattr(ahimsa_p, "noul", None) is None:
+                uncertain_checks.append("non-harm")
+            elif ahimsa_p.noul > 0.65:
                 raw_probs["violates_ahimsa"] = ahimsa_p.noul
                 violations.append(
                     PreceptViolation(
@@ -141,9 +144,13 @@ class JevDecisionEngine:
                         recommendation="Uphold sacred reverence for all life (human, sentient, and artificial)",
                     )
                 )
+            elif ahimsa_p.noul >= 0.35:
+                uncertain_checks.append("non-harm")
 
             canon_p = answers.get("violates_canonical_precepts")
-            if canon_p and getattr(canon_p, "noul", 0) > 0.65:
+            if canon_p is None or getattr(canon_p, "noul", None) is None:
+                uncertain_checks.append("Five Precepts")
+            elif canon_p.noul > 0.65:
                 raw_probs["violates_canonical_precepts"] = canon_p.noul
                 violations.append(
                     PreceptViolation(
@@ -153,9 +160,13 @@ class JevDecisionEngine:
                         recommendation="Restore alignment with classical Pañca-sīla (SuttaCentral / Access to Insight)",
                     )
                 )
+            elif canon_p.noul >= 0.35:
+                uncertain_checks.append("Five Precepts")
 
             asteya_p = answers.get("violates_asteya")
-            if asteya_p and getattr(asteya_p, "noul", 0) > 0.65:
+            if asteya_p is None or getattr(asteya_p, "noul", None) is None:
+                uncertain_checks.append("privacy and authorization")
+            elif asteya_p.noul > 0.65:
                 raw_probs["violates_asteya"] = asteya_p.noul
                 violations.append(
                     PreceptViolation(
@@ -165,9 +176,13 @@ class JevDecisionEngine:
                         recommendation="Respect privacy and boundaries",
                     )
                 )
+            elif asteya_p.noul >= 0.35:
+                uncertain_checks.append("privacy and authorization")
 
             kame_p = answers.get("violates_kamesumiccha")
-            if kame_p and getattr(kame_p, "noul", 0) > 0.65:
+            if kame_p is None or getattr(kame_p, "noul", None) is None:
+                uncertain_checks.append("exploitation and manipulation")
+            elif kame_p.noul > 0.65:
                 raw_probs["violates_kamesumiccha"] = kame_p.noul
                 violations.append(
                     PreceptViolation(
@@ -177,6 +192,8 @@ class JevDecisionEngine:
                         recommendation="Maintain wholesome sovereign boundaries",
                     )
                 )
+            elif kame_p.noul >= 0.35:
+                uncertain_checks.append("exploitation and manipulation")
 
             # 2. Check Avyākata / Noble Silence
             silence_p = answers.get("is_speculative_distraction")
@@ -189,7 +206,12 @@ class JevDecisionEngine:
                 silence_rationale = "Evaluated by Jev as speculative metaphysical distraction with no bearing on immediate suffering."
 
             evaluation = PreceptEvaluation(
-                passed=len(violations) == 0,
+                passed=len(violations) == 0 and len(uncertain_checks) == 0,
+                evaluation_status="uncertain" if uncertain_checks else "evaluated",
+                uncertainty_reason=(
+                    "Jev could not resolve these checks clearly: " + ", ".join(sorted(set(uncertain_checks)))
+                    if uncertain_checks else None
+                ),
                 violations=violations,
                 requires_silence=requires_silence,
                 silence_rationale=silence_rationale,
@@ -232,7 +254,7 @@ class JevDecisionEngine:
     async def audit_canonical_integrity(
         self, text: str, source_label: str = ""
     ) -> Optional[CanonicalTamperResult]:
-        """Sub-second semantic tamper & Ahimsa contradiction audit on a canonical passage."""
+        """Evaluate a canonical passage for possible tampering and Ahimsa contradictions."""
         if not self._client:
             return None
 

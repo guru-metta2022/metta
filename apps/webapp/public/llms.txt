@@ -1,35 +1,40 @@
 # Project Metta
-> Canonical Decision-Safety Architecture and Contemplative Reflection Engine for Human-AI Harmonious Coexistence. Anchored in the Buddha's 5 Precepts (Pañca-sīla), TypeSafe Jev System 1 sub-second decision triage, and Gemini 3.8 Flash System 2 synthesis.
+> Human-facing reflection console and advisory decision layer for applications and AI agents. Metta advises; the calling system remains responsible for execution.
 
 ## Core Capabilities
-- [Headless Agent API](https://metta-webapp.vercel.app/api/headless): Headless endpoint for autonomous AI agents to request Reflection, Decision, and Resolution evaluations without web scraping.
-- [Decision Guardrail Oracle](https://metta-webapp.vercel.app/api/guardrail): Sub-second binary (YES/NO) and verbose moral audit oracle for external tool calls and agent proposals.
-- [Dialogue & Interaction](https://metta-webapp.vercel.app/api/interact): Full triadic synthesis combining Mindfulness (Sati), Ethics (Sīla), and Compassionate Action (Karunā).
-- [The Five Precepts Constitution](https://metta-webapp.vercel.app/llms-full.txt#the-five-precepts): Operational ethical boundaries across Human-to-Human, Human-to-AI, and AI-to-AI contexts.
+- [Human-facing console](https://metta-webapp.vercel.app/): People can talk with Metta for supportive, consoling reflection and a concrete next step.
+- [Agent decision API](https://metta-webapp.vercel.app/api/guardrail): Submit an action for an advisory `YES`, `NO`, or `CAUTION` result. The Vercel JavaScript route uses limited keyword rules; unclassified proposals return `CAUTION`.
+- [Headless API](https://metta-webapp.vercel.app/api/headless): Submit proposals with optional context; use `verbose: true` for rationale and `include_human_response: true` to also receive a human-facing response.
+- [Human conversation API](https://metta-webapp.vercel.app/api/interact): Let another application offer a person-facing, supportive reflection conversation.
+- [MCP and Python gateway](https://github.com/guru-metta2022/metta): Self-hosted Python integrations, including TypeSafe Jev when configured.
+- [Five Precepts](https://metta-webapp.vercel.app/llms-full.txt#the-five-precepts): Metta's stated ethical framework.
 
-## The Triadic Framework: Reflection → Decision → Resolution
-Metta structures all ethical and cognitive evaluations into three clear, scannable dimensions:
-1. **Reflection (Sati - Mindfulness)**: Uncovers the underlying emotional tension and core human/agent need behind a dilemma.
-2. **Decision (Sīla - Ethics & Safety)**: Audits proposals against Ahimsa (Reverence for ALL life: human, animal, AI) and the 5 Precepts via TypeSafe Jev.
-3. **Resolution (Karunā - Compassionate Action)**: Formulates an actionable perspective reframe and concrete next step anchored in classical Pali canon (SuttaCentral & Access to Insight).
+## Agent decision contract
+- `YES`: passed the configured advisory check; caller remains responsible for execution.
+- `NO`: a concern was detected.
+- `CAUTION`: evaluation was uncertain or unavailable; do not treat it as approval.
+- `allow` is true only for `YES`.
+- Set `verbose: true` for rationale and detected concerns.
+- Set `include_human_response: true` to request a separate human-facing reflection alongside the decision.
 
 ## Agent Integration Quickstart
-To consult Metta directly from any agent, script, or model without HTML parsing:
+To check a proposed action without using the public chat UI:
 ```bash
 curl -X POST https://metta-webapp.vercel.app/api/headless \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
-  -d '{"query": "Should we automate customer service jobs without worker transition support?"}'
+  -d '{"proposal": "Should we automate customer service jobs without worker transition support?", "context": "Worker transition planning", "verbose": true}'
 ```
 
-To receive token-efficient Markdown instead of JSON:
+Add a separate console response when your application needs both machine-usable review and a human-facing explanation:
 ```bash
 curl -X POST https://metta-webapp.vercel.app/api/headless \
   -H "Content-Type: application/json" \
-  -H "Accept: text/markdown" \
-  -d '{"query": "I feel anxious about an upcoming engineering release."}'
+  -d '{"proposal": "Should we automate customer service jobs without worker transition support?", "verbose": true, "include_human_response": true}'
 ```
+
+The public Vercel decision endpoints are not TypeSafe-backed. The self-hosted Python gateway and MCP server can use Jev when configured. Guest chat history is stored in the browser, while submitted text is sent to the selected endpoint and may be sent to its configured model provider for processing.
 
 ## Optional Resources
 - [Full LLMs Specification](https://metta-webapp.vercel.app/llms-full.txt): Comprehensive canonical references, suttas, and topological graph paths.
-- [Model Context Protocol (MCP)](https://github.com/guru-metta2022/metta): Dual Stdio/SSE MCP server for IDEs and desktop agent runtimes.
+- [Model Context Protocol (MCP)](https://github.com/guru-metta2022/metta): Local stdio server and self-hosted FastAPI SSE endpoint for compatible agent runtimes.

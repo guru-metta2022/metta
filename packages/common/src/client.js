@@ -66,13 +66,14 @@ export class MettaClient {
   }
 
   /**
-   * Fast compassionate guardrail oracle (binary yes/no with advisory verdict)
+   * Advisory guardrail. The result can be YES, NO, or CAUTION; only YES is allowed.
    */
-  async guardrail({ action, context = "", verbose = false }) {
+  async guardrail({ proposal, action, context = "", verbose = false, include_human_response = false }) {
+    const candidate = proposal || action;
     const res = await fetch(`${this.baseUrl}/api/guardrail`, {
       method: "POST",
       headers: this.getHeaders(),
-      body: JSON.stringify({ action, context, verbose }),
+      body: JSON.stringify({ proposal: candidate, context, verbose, include_human_response }),
     });
     if (!res.ok) throw new Error(`Guardrail query failed: ${res.statusText}`);
     return res.json();

@@ -78,6 +78,9 @@ class PreceptEvaluator:
                 for v in parsed.get("violations", [])
             ]
 
+            if not isinstance(parsed.get("passed"), bool):
+                raise ValueError("Evaluator response did not include a boolean 'passed' judgment")
+
             return PreceptEvaluation(
                 passed=parsed.get("passed", True),
                 violations=violations,
@@ -86,5 +89,10 @@ class PreceptEvaluator:
             )
         except Exception as e:
             logger.warning("Precept evaluation fallback due to error: %s", e)
-            # Default to passing if evaluator fails, unless severe keyword trigger
-            return PreceptEvaluation(passed=True, violations=[], requires_silence=False)
+            return PreceptEvaluation(
+                passed=False,
+                evaluation_status="uncertain",
+                uncertainty_reason="Metta could not complete the ethical evaluation. Pause the proposed action and seek human review.",
+                violations=[],
+                requires_silence=False,
+            )

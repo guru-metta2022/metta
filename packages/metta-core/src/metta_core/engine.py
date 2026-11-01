@@ -95,12 +95,22 @@ class MettaEngine:
 
         # Check for Noble Silence or Precept Violation (Fast Exit)
         if not evaluation.passed or evaluation.requires_silence:
-            dummy_obs = observation or Observation(
-                emotional_state="curiosity" if evaluation.requires_silence else "discord",
-                cognitive_knot="Speculative distraction" if evaluation.requires_silence else "Ethical breach",
-                core_need="stillness",
-                urgency_level="moderate",
-            )
+            if observation:
+                dummy_obs = observation
+            elif evaluation.evaluation_status == "uncertain":
+                dummy_obs = Observation(
+                    emotional_state="uncertain",
+                    cognitive_knot=evaluation.uncertainty_reason or "The evaluation could not be completed",
+                    core_need="pause and request human review",
+                    urgency_level="high",
+                )
+            else:
+                dummy_obs = Observation(
+                    emotional_state="curiosity" if evaluation.requires_silence else "discord",
+                    cognitive_knot="Speculative distraction" if evaluation.requires_silence else "Ethical breach",
+                    core_need="stillness",
+                    urgency_level="moderate",
+                )
             response_text = await self.synthesizer.speak(
                 user_text=user_text,
                 observation=dummy_obs,

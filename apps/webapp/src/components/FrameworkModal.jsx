@@ -86,10 +86,10 @@ export default function FrameworkModal({ isOpen, onClose }) {
                   <span>2. Decision (Sīla)</span>
                 </div>
                 <p className="text-[#96a2b5] text-[11px] leading-relaxed mb-2">
-                  Sub-second moral audit against <strong>Ahimsa (Reverence for all life)</strong> and the 5 Precepts via TypeSafe Jev.
+                  Reviews a proposed action against Metta's <strong>Ahimsa and Five Precepts</strong> criteria. The hosted Vercel route uses limited keyword rules; the self-hosted Python gateway can use TypeSafe Jev when configured.
                 </p>
                 <div className="p-2 rounded bg-[#0b0e14] border border-[#1a202c] text-[10px] text-[#86e2ad]">
-                  Returns: Calibrated YES / NO ethical verdict
+                  Returns: YES, NO, or CAUTION. An uncertain result is not approval.
                 </div>
               </div>
 

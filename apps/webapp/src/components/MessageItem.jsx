@@ -90,7 +90,7 @@ export default function MessageItem({ message }) {
           <span className="font-semibold text-[#c8ceda] tracking-wide">Metta</span>
           <span className="text-[11px] text-[#555d6b]">•</span>
           <span className="text-[11px] text-[#697282]">
-            {isSilence ? 'Noble Silence / Redirection' : 'Voice of Karunā (Compassionate Mind)'}
+            {isSilence ? 'Noble Silence / Redirection' : 'Metta reflection'}
           </span>
           {message.system_one_used && (
             <span className="text-[10px] text-[#7ec69d] bg-[#14261d] px-1.5 py-0.5 rounded border border-[#274533] font-mono flex items-center gap-1">

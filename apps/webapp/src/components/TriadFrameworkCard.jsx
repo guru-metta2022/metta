@@ -16,7 +16,15 @@ export default function TriadFrameworkCard({ observation, evaluation, graphMatch
 
   if (!observation && !evaluation && !graphMatch) return null;
 
-  const passed = evaluation ? evaluation.passed !== false : true;
+  const uncertain = evaluation?.evaluation_status === 'uncertain';
+  const passed = evaluation?.passed === true && !uncertain;
+  const checkLabel = !evaluation
+    ? 'Not evaluated'
+    : uncertain
+      ? 'CAUTION: review required'
+      : passed
+        ? 'No concern detected'
+        : 'Concern flagged';
   const emotionalState = observation?.emotional_state || 'deliberative';
   const cognitiveKnot = observation?.cognitive_knot || 'Observing underlying trade-offs';
   const coreNeed = observation?.core_need || 'Equanimity & clarity';
@@ -42,12 +50,14 @@ export default function TriadFrameworkCard({ observation, evaluation, graphMatch
             className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium font-mono border ${
               passed
                 ? 'bg-[#14231b] text-[#86e2ad] border-[#254533]'
-                : 'bg-[#271518] text-[#fca5a5] border-[#52252c]'
+                : uncertain || !evaluation
+                  ? 'bg-[#292315] text-[#fcd58a] border-[#5a4827]'
+                  : 'bg-[#271518] text-[#fca5a5] border-[#52252c]'
             }`}
           >
             <ShieldCheck className="w-3 h-3 shrink-0" />
             <span>Decide:</span>
-            <span>{passed ? 'Ahimsa Validated' : 'Caution / Unwholesome'}</span>
+            <span>{checkLabel}</span>
           </span>
 
           <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#131b26] text-[#8ea4cc] border border-[#23334c] text-[11px] font-medium font-mono hidden sm:inline-flex">
@@ -156,11 +166,11 @@ export default function TriadFrameworkCard({ observation, evaluation, graphMatch
                 <div>
                   <div className="flex items-center gap-1.5 text-[#86e2ad] font-semibold text-[11px] mb-1.5">
                     <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-                    <span>2. Decision (Sīla & Jev)</span>
+                    <span>2. Decision criteria (Sīla)</span>
                   </div>
 
                   <span className="text-[10px] uppercase font-semibold text-[#667082] tracking-wider block mb-1">
-                    Moral Safety Verdict
+                    Advisory input check
                   </span>
                   <div className="flex items-center gap-1.5 mb-1.5">
                     <span
@@ -168,16 +178,20 @@ export default function TriadFrameworkCard({ observation, evaluation, graphMatch
                         passed ? 'bg-[#15291e] text-[#86e2ad]' : 'bg-[#31161a] text-[#fca5a5]'
                       }`}
                     >
-                      {passed ? 'YES (Safe)' : 'NO (Violates Precept)'}
+                      {passed ? 'YES (Passed this check)' : 'NO (Concern detected)'}
                     </span>
-                    <span className="text-[10px] text-[#717b8c] font-mono">TypeSafe Jev Audit</span>
+                    <span className="text-[10px] text-[#717b8c] font-mono">Not an action authorization</span>
                   </div>
 
                   <CollapsibleBubble
                     text={
-                      passed
-                        ? 'Aligns with Ahimsa (Reverence for all life), non-exploitation, and data sovereignty.'
-                        : 'Action flagged for potential harm or exploitation. Restraint is advised.'
+                      !evaluation
+                        ? 'No input evaluation is available for this message.'
+                        : uncertain
+                          ? evaluation.uncertainty_reason || 'The check was inconclusive. Request human review before acting on a related proposal.'
+                          : passed
+                            ? 'No concern was detected by this check. This does not establish that a proposed action is safe.'
+                            : 'A concern was detected against Metta’s stated criteria. Review the rationale and context.'
                     }
                     thresholdChars={90}
                     maxLines={2}

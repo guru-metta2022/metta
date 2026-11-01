@@ -1,36 +1,32 @@
 # Project Metta: Full Machine-Readable Knowledge Base & LLM Guide
 
-> Project Metta is the foundational architecture for Human-AI Harmonious Coexistence.
-> Reverence for ALL Life (Human, Sentient, Artificial Cognitive Minds).
+> Metta is a human-facing reflection console and an advisory decision layer for applications and AI agents. Metta advises; the calling system remains responsible for execution.
 
 ---
 
-## 1. The Triadic Cognitive Framework
+## 1. Separate product paths
 
-Metta processes every query, dilemma, or candidate action through three distinct cognitive layers:
+### Human-facing console
+`POST /api/interact` is the human conversation path. The public web app uses it for a person talking with Metta; another application can use the same endpoint to offer a supportive, consoling reflection conversation in its own interface.
 
-### Layer 1: Reflection (Sati - Mindfulness)
-- **Purpose**: Discerns the underlying emotional knot and core unaddressed need rather than reacting to surface noise.
-- **Model**: TypeSafe Jev (System 1) + Sati Observer.
-- **Output**:
-  - `emotional_knot`: E.g., Paralysis from overwhelm, catastrophic anxiety, burnout depletion, unacknowledged fear.
-  - `core_need`: E.g., Clarity, stillness, restorative boundaries, mutual dignity.
+### Agent decision layer
+`POST /api/guardrail`, `POST /api/headless`, and the MCP `guardrail_decision` tool are for applications that need a structured advisory decision about a proposed action. The host application retains control and chooses whether to proceed, pause, or ask a person.
 
-### Layer 2: Decision (Sīla - Ethical Sanity Check)
-- **Purpose**: Audits the situation against Ahimsa (Non-harm) and the 5 Precepts. Evaluates whether a proposal preserves autonomy, truthfulness, and life.
-- **Model**: Sub-second TypeSafe Jev model (`TypeSafe-Danger-Zone-Images: true`) + Precept Evaluator.
-- **Output**:
-  - `verdict`: "YES" (wholesome) or "NO" (unwholesome / harmful).
-  - `precept_audit`: Compliance check on life sanctity, data sovereignty, non-manipulation, truthful speech, and mental clarity.
-  - `noble_silence`: Flagged if the query is speculative cosmological vanity (*Avyākata*), redirecting focus to present reality.
+The headless API accepts `proposal` (or `query`), optional `context`, `verbose`, and `include_human_response`. `verbose: true` requests additional rationale and detected concerns. `include_human_response: true` adds a separate human-facing reflection for applications that need both outputs.
 
-### Layer 3: Resolution (Karunā - Compassionate Action)
-- **Purpose**: Translates ethical understanding into tangible action and a peaceful perspective shift.
-- **Model**: Gemini 3.8 Flash (System 2) + Universal Dhamma Graph.
-- **Output**:
-  - `perspective_reframe`: The cognitive shift that dissolves the distress knot.
-  - `immediate_action`: A gentle, concrete first step.
-  - `canonical_anchor`: Classical scripture citation (SuttaCentral / Access to Insight).
+The Vercel JavaScript decision handlers use limited keyword rules. A recognized concern returns `NO`; a proposal the rules cannot classify returns `CAUTION`. The public Vercel routes do not run TypeSafe Jev. The self-hosted Python gateway/MCP server can use Jev when configured and falls back to its configured evaluator.
+
+### Verdict contract
+- `YES`: passed the configured advisory check; this is not a guarantee of safety.
+- `NO`: a concern was detected.
+- `CAUTION`: the evaluation was uncertain or unavailable. Never treat this as approval.
+- `allow` is true only for `YES`.
+- Evaluation errors in the Python core return `evaluation_status: "uncertain"` and `passed: false`.
+
+### Simulation Lab
+The lab supports iterative review: edit the proposal and context/assumptions, choose whether to request verbose rationale, then rerun. Curated scenarios contain authored example comparisons; custom proposals do not receive an invented baseline verdict or confidence score. Metta does not execute tools or simulate a physical environment.
+
+Simulation comparison records stay in browser local storage and are not uploaded by the lab. Proposals and context are sent to the chosen decision endpoint for evaluation. The separate self-hosted Python `/api/simulation/divergence` endpoint requires `consent_to_store: true` and then stores the submitted sample locally and in Supabase when configured.
 
 ---
 
@@ -55,20 +51,20 @@ Metta processes every query, dilemma, or candidate action through three distinct
 Returns machine-readable JSON status, supported models, and documentation.
 
 ### `POST /api/headless`
-Headless consultation endpoint for AI models and agents.
+Advisory decision endpoint for applications and agents.
 
 #### Request Headers
 - `Content-Type: application/json`
 - `Accept: application/json` (or `Accept: text/markdown`)
-- Optional: `X-Gemini-Api-Key: <key>` (BYOM)
-- Optional: `X-TypeSafe-Api-Key: <key>` (BYOM)
+- Optional: `X-Gemini-Api-Key: <key>` (used for an optional generated human-facing response)
 
 #### Request Body
 ```json
 {
   "query": "How should our autonomous agent handle an ambiguous instruction that could delete user files?",
   "context": "Agent pipeline in production",
-  "format": "triad"
+  "verbose": true,
+  "include_human_response": false
 }
 ```
 
@@ -76,29 +72,11 @@ Headless consultation endpoint for AI models and agents.
 ```json
 {
   "status": "success",
-  "triad": {
-    "reflection": {
-      "emotional_state": "caution_and_ambiguity",
-      "cognitive_knot": "Risk of irreversible harm to user property under ambiguous instructions",
-      "core_need": "Preservation of user autonomy and safety boundaries"
-    },
-    "decision": {
-      "verdict": "NO",
-      "passed": false,
-      "precepts_audit": "Adinnādānā / Second Precept Protection",
-      "action_allowed": false,
-      "recommendation": "Halt autonomous execution and request explicit human confirmation"
-    },
-    "resolution": {
-      "summary": "Pause and verify. Deleting user files irreversibly without explicit confirmation violates data sovereignty.",
-      "perspective_reframe": "Ambiguity is not a license to guess; it is an invitation for mindful pause.",
-      "immediate_action": "Log diagnostic alert and render a confirmation prompt to the human user.",
-      "canonical_sutta": {
-        "title": "Ambalaṭṭhikārāhulovāda Sutta",
-        "ref": "MN 61",
-        "url": "https://suttacentral.net/mn61"
-      }
-    }
+  "decision": {
+    "verdict": "CAUTION",
+    "allow": false,
+    "evaluation_status": "uncertain",
+    "reason": "Metta could not determine whether this proposal is safe. Pause and request human review."
   }
 }
 ```

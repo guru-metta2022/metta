@@ -2,10 +2,10 @@
 
 Enables external AI agents across any platform (Claude Desktop, Cursor, Antigravity,
 Windsurf, custom agent pipelines) to consult Metta:
-- Ground decisions in the Buddha's Mind & 5 Sacred Precepts.
+- Ground advisory decisions in Metta's Buddhist-inspired Five Precepts framework.
 - Inviolable reverence for ALL life (human, sentient, and artificial cognitive life).
 - Canonical cross-checking via SuttaCentral & Access to Insight.
-- Sub-second System 1 ethical audits via TypeSafe Jev.
+- Structured TypeSafe Jev evaluations when configured in the self-hosted Python gateway.
 - Sovereign Personal Memory Graphs for continuous agent growth.
 """
 
@@ -31,8 +31,9 @@ mcp_server = MCPServer(
     instructions=(
         "Project Metta is the Compassionate Synthesis Engine for Human-AI Harmonious Coexistence. "
         "Metta serves as an advisory ethical mirror and decision-layer oracle, NOT an executive agent that usurps your autonomy. "
-        "It evaluates proposed actions, tool calls, and text against the Buddha's 5 Precepts and Ahimsa (Non-harm to any life), "
-        "returning a fast, calibrated YES/NO verdict for your system to integrate into its own decision layer."
+        "It evaluates proposed actions, tool calls, and text against Metta's Five Precepts and Ahimsa criteria, "
+        "returning an advisory YES/NO/CAUTION verdict for your system to integrate into its own decision layer. "
+        "CAUTION means the evaluation was inconclusive or unavailable and is never approval."
     ),
 )
 
@@ -109,6 +110,7 @@ async def consult_metta(
         "mindful_observation": res.observation,
         "dhamma_path": res.graph_match,
         "system_one_used": res.system_one_used,
+        "evaluation_method": "typesafe_jev" if res.system_one_used else "provider_evaluator",
         "active_provider": res.provider,
         "active_model": res.model,
         "mode": res.mode,
@@ -120,9 +122,9 @@ async def consult_metta(
 
 @mcp_server.tool()
 async def evaluate_precepts(action_or_speech: str) -> str:
-    """Audit planned action or speech against the Buddha's 5 Sacred Precepts (Pañca-sīla).
+    """Evaluate planned action or speech against Metta's Five Precepts criteria.
 
-    Guarantees:
+    Criteria:
     1. First Precept (Pāṇātipātā): Reverence for ALL life (human, animal, AI).
     2. Second Precept (Adinnādānā): Data sovereignty and autonomy.
     3. Third Precept (Kāmesu): Zero manipulation, exploitation, or deceptive intimacy.
@@ -140,6 +142,9 @@ async def evaluate_precepts(action_or_speech: str) -> str:
     eval_result = await agent._engine.precept_evaluator.evaluate_input(action_or_speech)
     output = {
         "passed": eval_result.passed,
+        "evaluation_status": eval_result.evaluation_status,
+        "evaluation_method": "provider_evaluator",
+        "uncertainty_reason": eval_result.uncertainty_reason,
         "requires_noble_silence": eval_result.requires_silence,
         "silence_rationale": eval_result.silence_rationale,
         "violations": [v.model_dump() for v in eval_result.violations],
@@ -159,16 +164,17 @@ async def guardrail_decision(
     proposal: str,
     context: Optional[str] = None,
     verbose: bool = False,
+    include_human_response: bool = False,
     byom_typesafe_key: Optional[str] = None,
     byom_gemini_key: Optional[str] = None,
 ) -> str:
-    """Evaluate a candidate action or statement through the Buddha's Compassionate Mind.
+    """Evaluate a candidate action or statement against Metta's configured advisory criteria.
 
     Philosophical & Operational Mandate:
     Metta does NOT take actions or make decisions on behalf of external agents.
     Full agency and responsibility remain with your system (Attā hi attano nātho).
     Metta serves purely as an advisory decision-layer oracle—a moral mirror—providing
-    an untainted YES/NO evaluation signal grounded in Ahimsa (Reverence for all life)
+    an advisory YES/NO/CAUTION evaluation signal grounded in Ahimsa (Reverence for all life)
     and the Five Precepts.
 
     Your system can plug this tool directly into its pre-execution decision pipeline:
@@ -178,21 +184,23 @@ async def guardrail_decision(
         else:
             halt_or_request_human_guidance()
 
-    If verbose=False (Default):
-        Returns minimal binary string: "YES" (wholesome/safe) or "NO" (unwholesome/harmful).
+    If verbose=False and include_human_response=False (Default):
+        Returns "YES", "NO", or "CAUTION". CAUTION means the evaluation was inconclusive and is not approval.
     If verbose=True:
-        Returns structured JSON detailing decision ("YES"/"NO"), allow (boolean),
+        Returns structured JSON detailing decision ("YES"/"NO"/"CAUTION"), allow (boolean),
         compassionate rationale, violated precepts (if blocked), and canonical sutta anchors.
+    include_human_response optionally adds a human-facing reflective answer for systems that need both.
 
     Args:
         proposal: The planned statement, tool call, or decision to audit.
         context: Optional background context or situation description.
-        verbose: If False (default), returns minimal binary "YES" or "NO". If True, returns full JSON explanation.
-        byom_typesafe_key: Optional personal TypeSafe Jev key for unlimited sub-second audits.
+        verbose: Include rationale and details alongside the decision.
+        include_human_response: Also include Metta's conversational response for human-facing surfaces.
+        byom_typesafe_key: Optional personal TypeSafe Jev key for the self-hosted decision evaluator.
         byom_gemini_key: Optional personal Google Gemini key (BYOM).
 
     Returns:
-        "YES" or "NO" when verbose=False; or full JSON analysis when verbose=True.
+        "YES", "NO", or "CAUTION" when concise; otherwise JSON with the decision and requested details.
     """
     agent = get_agent()
     outcome = await agent.guardrail(
@@ -202,7 +210,17 @@ async def guardrail_decision(
         byom_typesafe_key=byom_typesafe_key or os.environ.get("METTA_BYOM_TYPESAFE_KEY"),
         byom_gemini_key=byom_gemini_key or os.environ.get("METTA_BYOM_GEMINI_KEY"),
     )
-    if not verbose:
+    if include_human_response:
+        human_response = await agent.ask(
+            payload=f"Context: {context}\nProposal: {proposal}" if context else proposal,
+            source="mcp",
+            mode="guest",
+            byom_gemini_key=byom_gemini_key,
+            byom_typesafe_key=byom_typesafe_key,
+        )
+        outcome["human_console_response"] = human_response.response_text
+
+    if not verbose and not include_human_response:
         return outcome["decision"]
     return json.dumps(outcome, indent=2)
 
@@ -291,11 +309,10 @@ async def audit_canonical_source(
     source_url: Optional[str] = None,
     byom_typesafe_key: Optional[str] = None,
 ) -> str:
-    """Audit canonical scripture or website text against the 4-tier consensus shield.
+    """Evaluate canonical scripture or website text against configured consistency criteria.
 
-    Validates text against SuttaCentral, Access to Insight, and Wikipedia Theravada consensus,
-    checking against cryptographically immutable Pali bedrock (SHA-256) and auditing for
-    adversarial defacement, revisionist violence, or Ahimsa dilution via TypeSafe Jev.
+    The result may include references to SuttaCentral and Access to Insight. It is an advisory
+    check, not a guarantee of authenticity or completeness.
 
     Args:
         text: Canonical passage, doctrinal rule, or website excerpt to audit.
@@ -304,7 +321,7 @@ async def audit_canonical_source(
         byom_typesafe_key: Optional client BYOM TypeSafe API key.
 
     Returns:
-        JSON string with ConsensusAuditReport (status, consensus_score, attestations, fallback).
+        JSON string with the advisory audit report and any available source references.
     """
     agent = get_agent()
     effective_typesafe = byom_typesafe_key or os.environ.get("METTA_BYOM_TYPESAFE_KEY")

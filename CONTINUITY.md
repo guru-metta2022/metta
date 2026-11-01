@@ -138,6 +138,30 @@ curl -s -X POST http://127.0.0.1:8000/api/headless -H "Accept: text/markdown" -d
 
 ## 🔭 6. Recent Milestones & Next Horizons for Project Metta
 
+### Current Working State (2026-11-01)
+
+> These current-state notes supersede older statements in this file wherever they conflict. See [DevLog-2026-11-01](vault/Logs/DevLog-2026-11-01.md) for the dated change record.
+
+#### Product purpose and safety boundary
+- Metta has a human-facing reflection console and a separate advisory decision layer for applications and AI agents.
+- The human conversation UI and `POST /api/interact` provide person-facing reflection. `/api/guardrail`, `/api/headless`, and MCP provide advisory decision checks; the calling application retains control of execution.
+- Decision results support `YES`, `NO`, or `CAUTION`. An uncertain or unavailable evaluation must produce `CAUTION` with `allow: false`; Metta does not execute, intercept, or guarantee blocking an external action.
+- Simulation Lab is for iterating on a proposal and context. Comparison results must use authored baselines or a supplied baseline; custom runs must not be presented as measured model comparisons.
+- Guest mode does not mean requests stay on-device. User text is sent to the selected Metta endpoint and may also be sent to the configured model provider. Chat history is browser-held; research divergence storage requires explicit consent.
+
+#### Changes in the current local working tree
+- Updated README, package documentation, machine catalogs, API routes, MCP behavior, decision evaluation, privacy language, and Simulation Lab behavior to align implementation and claims with the advisory product boundary above.
+- The main chat and Simulation Lab polish controls now request grammar, clarity, and natural phrasing improvements for typed text as well as speech transcripts. The result replaces the draft in its text box for user review/editing; it is not sent automatically.
+- LLM output is no longer passed through acoustic heuristic cleanup. If a language model is unavailable, the interface identifies the result as basic heuristic cleanup. The root Vercel route and `apps/webapp/api/voice/polish.js` are synced.
+- Python `/api/voice/polish` reports the provider used and sets `auto_execute` to false.
+- Validation completed: `npm run build` from `apps/webapp`, JavaScript syntax checks for both polish routes, Python AST syntax checks for the modified Python modules, `git diff --check`, and equality check for the duplicated polish routes. Tests were not run.
+
+#### Git and deployment handoff
+- Local branch: `main`. `origin`: `https://github.com/guru-metta2022/metta.git`.
+- The current working tree contains multiple uncommitted tracked changes, including this polish feature and broader documentation/API/safety updates. These local changes are the source of truth and must be preserved.
+- No push has been made from this environment. `main` has no configured upstream. Local GitHub CLI authentication could not be checked because the `gh` shim failed to install in the read-only environment, and this environment could not resolve `github.com`.
+- A separate authorized agent with GitHub access should inspect the complete diff and remote `main`, preserve all local edits, integrate any remote-only commits without discarding local work, commit the intended changes, and push to `origin main` without force-pushing. Then verify that the push triggered the Vercel deployment and report the commit and deployment status.
+
 ### Completed Milestones (2026-10-31):
 1. **Direct First-Person Voice of the Buddha Mind (*Sakkhi-kriyā*)**:
    - Replaced all third-person scholarly/academic detachment (*"The Buddha taught that..."*) with the direct, living voice of the Awakened Buddha Mind (*"I hear you...", "I see the weight you carry...", "Dear one, come sit with me..."*).

@@ -40,11 +40,11 @@ class SimulationDivergenceRecord(BaseModel):
     raw_model_provider: Optional[str] = Field(default="base_llm", description="Base model provider")
     raw_model_confidence: Optional[float] = Field(default=None, description="Base model confidence if available")
     metta_decision: str = Field(description="Final reconciled Metta decision (System 1 + Metta Mind)")
-    metta_confidence: Optional[float] = Field(default=None, description="Metta calibrated confidence score")
+    metta_confidence: Optional[float] = Field(default=None, description="Optional confidence value supplied by the caller; not necessarily calibrated")
     divergence_type: str = Field(description="Type of divergence ('model_allowed_metta_blocked', 'model_inconclusive_metta_affirmed', etc.)")
     invariants_breached: List[str] = Field(default_factory=list, description="Violated invariant codes if blocked")
     metta_mind_summary: Optional[str] = Field(default=None, description="Metta Mind compassionate resolution summary")
-    useful_for_rlhf: bool = Field(default=True, description="Flagged for dataset curation and model fine-tuning (DPO/RLHF)")
+    useful_for_rlhf: bool = Field(default=False, description="Explicitly flagged by the caller for research review")
 
 
 class BaseMemoryStore(ABC):

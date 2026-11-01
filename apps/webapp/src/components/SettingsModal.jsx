@@ -81,7 +81,8 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
     }
   };
 
-  const hasByomActive = Boolean(byomGeminiKey.trim() || byomTypesafeKey.trim());
+  const hostedVercel = window.location.hostname.endsWith('.vercel.app');
+  const hasByomActive = Boolean(byomGeminiKey.trim() || (!hostedVercel && byomTypesafeKey.trim()));
 
   if (!isOpen) return null;
 
@@ -121,12 +122,12 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
               <Key className="w-4 h-4 text-[#7ec69d]" />
               <div>
                 <span className="font-semibold block">
-                  {hasByomActive ? 'Personal BYOM Keys Active' : 'Shared Community Tier'}
+                  {hasByomActive ? 'Personal provider key active' : 'Shared Community Tier'}
                 </span>
                 <span className="text-[11px] opacity-80">
                   {hasByomActive
-                    ? 'Unlimited throughput • Server rate limiter completely bypassed'
-                    : 'Configured dynamically via Supabase PostgreSQL. Enter keys below to remove limits.'}
+                    ? 'Shared Metta quota bypassed • Provider limits may still apply'
+                    : 'Shared requests are rate-limited. Add a supported provider key to use your own quota.'}
                 </span>
               </div>
             </div>
@@ -135,7 +136,7 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
                 ? 'bg-[#1a3828] text-[#93dfb4] border-[#2e6245]'
                 : 'bg-[#1f2638] text-[#8fa0ba] border-[#2c3850]'
             }`}>
-              {hasByomActive ? 'UNLIMITED' : 'RATE-LIMITED'}
+              {hasByomActive ? 'BYOM ACTIVE' : 'RATE-LIMITED'}
             </span>
           </div>
 
@@ -170,7 +171,7 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
 
             <div>
               <span className="text-[11px] text-[#717b8c] block mb-1">
-                TypeSafe Jev API Key (Fast Decision & Safety Engine)
+                TypeSafe Jev API Key (self-hosted Python gateway/MCP)
               </span>
               <input
                 type={showKeys ? 'text' : 'password'}
@@ -183,7 +184,7 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
 
             <p className="text-[10px] text-[#616a7a] flex items-center gap-1 pt-1">
               <ShieldCheck className="w-3.5 h-3.5 text-[#5e9e7b] shrink-0" />
-              Keys remain private in your browser's local storage and are sent encrypted per request.
+              Keys are stored in this browser and sent to the selected endpoint when used. The hosted Vercel app currently uses Gemini keys; TypeSafe keys are used by the self-hosted Python gateway and MCP server.
             </p>
           </div>
 
@@ -248,10 +249,10 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
               <Zap className="w-4 h-4 text-[#7ec69d]" />
               <div>
                 <span className="font-semibold text-[#e1ece5] block">
-                  Fast Decision & Safety Layer (TypeSafe Jev)
+                  Structured Decision Model (TypeSafe Jev)
                 </span>
                 <span className="text-[11px] text-[#88a895]">
-                  Sub-second decision classification & safety guardrails
+                  Structured decision review when Jev is configured on a self-hosted gateway
                 </span>
               </div>
             </div>

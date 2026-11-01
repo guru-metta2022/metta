@@ -69,7 +69,7 @@ export default function Header({
               ? 'bg-[#15291e] text-[#86e2ad] border border-[#2d523e] shadow-xs'
               : 'text-[#7d889b] hover:text-[#c4cbda]'
           }`}
-          title="Simulate decisions and agent actions with TypeSafe Jev"
+          title="Explore an advisory review using the configured decision service"
         >
           <Activity className="w-3.5 h-3.5 text-[#7ec69d]" />
           <span>Simulation Lab</span>
