@@ -1,4 +1,5 @@
 import { generateOpenAICompatible } from '../../lib/openaiCompatible.js';
+import { POLISH_SYSTEM_PROMPT, selectSinglePolish } from '../../lib/polishText.js';
 
 export default async function handler(req, res) {
   // Set CORS headers
@@ -25,15 +26,15 @@ export default async function handler(req, res) {
     const openAIConfig = body.byom_openai_config || null;
     if (openAIConfig) {
       try {
-        const systemPrompt = "You are an expert copy editor. Rewrite the user's text into clear, grammatical, natural language. Improve sentence structure, word choice, flow, and punctuation while preserving intent, tone, names, technical terms, and details. Remove speech disfluencies. Do not add claims or answer the text. Return only the revised text.";
-        const polished = await generateOpenAICompatible({
+        const generated = await generateOpenAICompatible({
           baseUrl: openAIConfig.base_url,
           apiKey: openAIConfig.api_key,
           model: openAIConfig.model,
           reasoningEffort: openAIConfig.reasoning_effort || 'auto',
-          messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: raw }],
+          messages: [{ role: 'system', content: POLISH_SYSTEM_PROMPT }, { role: 'user', content: raw }],
           maxTokens: 512,
         });
+        const polished = selectSinglePolish(generated) || raw;
         return res.status(200).json({ original: raw, polished, provider: 'openai-compatible', model: openAIConfig.model });
       } catch (error) {
         console.warn('OpenAI-compatible polish request failed:', error.message);
@@ -52,14 +53,6 @@ export default async function handler(req, res) {
       const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
       for (const modelName of modelsToTry) {
         try {
-          const systemPrompt =
-            "You are an expert copy editor. The input may be typed text or speech transcription. " +
-            "Rewrite it into clear, grammatical, natural language. Improve awkward sentence structure, " +
-            "word choice, flow, and punctuation where useful; do more than remove fillers or correct speech-recognition errors. " +
-            "Preserve the writer's intent, point of view, tone, named entities, technical terms, and important details. " +
-            "Remove spoken disfluencies when present. Do not add claims or assumptions. Do not answer questions or carry out requests. " +
-            "If the text is already clear, make only minimal edits. Return only the revised text, without an explanation or quotation marks.";
-
           const userPrompt = `Text to revise:\n${raw}`;
 
           const geminiRes = await fetch(
@@ -71,7 +64,7 @@ export default async function handler(req, res) {
                 'x-goog-api-key': geminiKey,
               },
               body: JSON.stringify({
-                contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
+                contents: [{ role: 'user', parts: [{ text: `${POLISH_SYSTEM_PROMPT}\n\n${userPrompt}` }] }],
               generationConfig: { temperature: 0.2, maxOutputTokens: 512 },
               }),
             }
@@ -79,8 +72,7 @@ export default async function handler(req, res) {
 
           if (geminiRes.ok) {
             const geminiData = await geminiRes.json();
-            const candidateText =
-              geminiData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()?.replace(/^["']|["']$/g, '');
+            const candidateText = selectSinglePolish(geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '');
             if (candidateText) {
               return res.status(200).json({
                 original: raw,

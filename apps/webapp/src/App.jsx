@@ -13,6 +13,7 @@ import FrameworkModal from './components/FrameworkModal';
 import VoiceOscillator from './components/VoiceOscillator';
 import { useAppDialog } from './components/ToastDialogContext';
 import { Send, Sparkles, Wind, Mic, MicOff, Volume2, Wand2 } from 'lucide-react';
+import { POLISH_SYSTEM_PROMPT, selectSinglePolish } from '../lib/polishText';
 
 function getSessionStorageKey(mode, profile) {
   if (mode === 'authenticated' && profile?.user_id) {
@@ -445,7 +446,7 @@ export default function App() {
       if (res.ok) {
         const data = await res.json();
         if (data.polished && data.polished.trim()) {
-          polished = data.polished.trim();
+          polished = selectSinglePolish(data.polished) || sanitizeSpeechText(raw);
           providerUsed = data.provider || 'heuristic-purifier';
           modelUsed = data.model || '';
         }
@@ -457,13 +458,6 @@ export default function App() {
     // If serverless did not use Gemini but client has personal BYOM key, call direct Gemini Flash
     if (byomGeminiKey && !byomOpenAIConfig && providerUsed === 'heuristic-purifier') {
       try {
-        const systemPrompt =
-          "You are an expert copy editor. The input may be typed text or speech transcription. " +
-          "Rewrite it into clear, grammatical, natural language. Improve awkward sentence structure, word choice, flow, and punctuation where useful; do more than remove fillers or correct speech-recognition errors. " +
-          "Preserve the writer's intent, point of view, tone, named entities, technical terms, and important details. " +
-          "Remove spoken disfluencies when present. Do not add claims or assumptions. Do not answer questions or carry out requests. " +
-          "If the text is already clear, make only minimal edits. Return only the revised text, without explanation or quotation marks.";
-
         const gemRes = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
           {
@@ -473,14 +467,14 @@ export default function App() {
               'x-goog-api-key': byomGeminiKey,
             },
             body: JSON.stringify({
-              contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\nText to revise:\n${raw}` }] }],
+              contents: [{ role: 'user', parts: [{ text: `${POLISH_SYSTEM_PROMPT}\n\nText to revise:\n${raw}` }] }],
               generationConfig: { temperature: 0.2, maxOutputTokens: 512 },
             }),
           }
         );
         if (gemRes.ok) {
           const gemData = await gemRes.json();
-          const candidate = gemData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()?.replace(/^["']|["']$/g, '');
+          const candidate = selectSinglePolish(gemData?.candidates?.[0]?.content?.parts?.[0]?.text || '');
           if (candidate) {
             polished = candidate;
             providerUsed = 'gemini';
