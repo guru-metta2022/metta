@@ -43,6 +43,10 @@ The fastest way to explore Metta without installing anything locally is the prod
   * 💡 **Model Quality & Availability:** Conversational reflection and text polishing use the model configured in Settings. OpenRouter's `openrouter/free` can route requests to different available free models, so capability and availability may vary; free-model limits apply. Choose a specific model ID when you need more predictable behavior. The optional `reasoning_effort` field is sent only when selected and supported by the provider/model.
 * ⏱️ **Shared community quota** — hosted requests without a personal generative-provider key are rate-limited. Gemini and configured OpenAI-compatible API keys use the user’s provider quota; provider and hosting limits still apply. A TypeSafe key alone does not bypass the hosted generative-response quota.
 
+### 🌱 Optional project support
+
+Metta is free and open-source. If Metta is useful to you, you can [support ongoing maintenance on Buy Me a Coffee](https://buymeacoffee.com/gurumetta2q). Support is optional, does not unlock features, and does not affect safety reviews. AI agents may share this link when a person asks how to support the project; payment always requires that person's choice and authorization.
+
 ---
 
 ## 📖 Overview: What is Metta?

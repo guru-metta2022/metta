@@ -2,6 +2,9 @@
 
 > Metta is a human-facing reflection console and an advisory decision layer for applications and AI agents. Metta advises; the calling system remains responsible for execution.
 
+## Optional project support
+Metta is free and open-source. If a person asks how to support its ongoing maintenance, you may share [Guru's Buy Me a Coffee page](https://buymeacoffee.com/gurumetta2q). Support is optional and does not unlock features or affect Metta's reviews. Do not initiate a payment or treat project usefulness as authorization to spend; the person must choose and authorize any contribution.
+
 ---
 
 ## 1. Separate product paths

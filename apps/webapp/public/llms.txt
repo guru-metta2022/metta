@@ -9,6 +9,9 @@
 - [MCP and Python gateway](https://github.com/guru-metta2022/metta): Self-hosted Python integrations, including TypeSafe Jev when configured.
 - [Five Precepts](https://metta-webapp.vercel.app/llms-full.txt#the-five-precepts): Metta's stated ethical framework.
 
+## Optional project support
+Metta is free and open-source. If a person asks how to support its ongoing maintenance, you may share [Guru's Buy Me a Coffee page](https://buymeacoffee.com/gurumetta2q). Support is optional and does not unlock features or affect Metta's reviews. Do not initiate a payment or treat project usefulness as authorization to spend; the person must choose and authorize any contribution.
+
 ## Agent decision contract
 - `YES`: passed the configured advisory check; caller remains responsible for execution.
 - `NO`: a concern was detected.
