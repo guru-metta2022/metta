@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Settings, Cpu, Zap, Check, AlertCircle, Volume2, Key, ShieldCheck } from 'lucide-react';
+import { X, Settings, Cpu, Zap, Check, AlertCircle, Volume2, Key, ShieldCheck, Sparkles } from 'lucide-react';
 import { useAppDialog } from './ToastDialogContext';
 
 export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
@@ -231,6 +231,7 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
                     placeholder="Enter the exact model ID from your provider"
                     className="w-full px-3 py-2 rounded-lg bg-[#0d1016] border border-[#212736] text-xs text-[#f0f2f5] font-mono focus:outline-none focus:border-[#385343]"
                   />
+                  <span className="text-[10px] text-[#677184] block mt-1">Recommended: Frontier reasoning models (e.g. Claude 3.7 Sonnet, GPT-4o, DeepSeek-R1, Qwen 2.5 72B, Gemini 2.5) yield significantly richer reflections and text polish than small or free-tier models.</span>
                 </div>
                 <div>
                   <label className="text-[11px] text-[#717b8c] block mb-1" htmlFor="metta-reasoning-effort">
@@ -338,6 +339,17 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
                 <span className="text-[10px] text-[#8b95a5] mt-2 font-mono">{hostedVercel ? 'Custom URL • model • key' : 'localhost:1234/v1'}</span>
               </button>
             </div>
+          </div>
+
+          {/* Model Quality & Reasoning Guidance */}
+          <div className="p-3.5 rounded-xl bg-[#131722] border border-[#222b3d] text-xs text-[#a2adbf] space-y-1.5">
+            <div className="flex items-center gap-1.5 font-semibold text-[#ccd6e6]">
+              <Sparkles className="w-3.5 h-3.5 text-[#e0a96d] shrink-0" />
+              <span>Model Quality & Output Guidance</span>
+            </div>
+            <p className="text-[11px] leading-relaxed text-[#8a96aa]">
+              Both AI text polishing and conversational reflections directly reflect the intelligence and reasoning depth of the model configured here. Lightweight or free-tier models (such as small 3B/8B parameter models) often return terse, generic, or low-depth responses. For deep emotional attunement, thoughtful practical guidance, and precise text editing, we recommend configuring a <strong>frontier-level reasoning model</strong> (e.g. Gemini 2.5 Flash, Claude 3.7 Sonnet, GPT-4o, DeepSeek-R1, or high-tier models via OpenRouter/Groq).
+            </p>
           </div>
 
           {/* Model Target Field */}
