@@ -702,7 +702,7 @@ export default function App() {
       if (data.generation_status === 'failed' || data.generation_status === 'not_configured') {
         showToast({
           title: 'Reflection response limited',
-          message: 'The compassionate response could not be generated this time. Check the generative provider settings; this brief fallback is editable, but may not fully answer your question.',
+          message: `${data.generation_error || (data.generation_status === 'not_configured' ? 'Add a generative provider key and model in Settings to create the human-facing response.' : 'The provider could not complete the compassionate response.')} This brief fallback is editable and was not sent.`,
           type: 'warning',
           duration: 10000,
           action: { label: '⚙️ Check Settings', onClick: () => setSettingsOpen(true) },

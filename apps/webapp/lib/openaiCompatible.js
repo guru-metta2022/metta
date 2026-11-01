@@ -96,7 +96,9 @@ function postJsonPinned(url, payload, apiKey, address) {
       response.on('end', () => {
         const raw = Buffer.concat(chunks).toString('utf8');
         if (response.statusCode < 200 || response.statusCode >= 300) {
-          reject(new Error(`OpenAI-compatible provider returned HTTP ${response.statusCode || 'error'}.`));
+          const error = new Error(`OpenAI-compatible provider returned HTTP ${response.statusCode || 'error'}.`);
+          error.statusCode = response.statusCode;
+          reject(error);
           return;
         }
         try {
@@ -144,6 +146,12 @@ export async function generateOpenAICompatible({
   }
 
   const result = await postJsonPinned(url, payload, apiKey.trim(), addresses[0]);
+  if (result?.error) {
+    const error = new Error('OpenAI-compatible provider returned an API error.');
+    error.statusCode = Number(result.error.code) || undefined;
+    error.code = result.error.code === 'rate_limit_exceeded' ? 'rate_limit' : undefined;
+    throw error;
+  }
   const content = result?.choices?.[0]?.message?.content;
   const text = typeof content === 'string'
     ? content.trim()
@@ -151,6 +159,41 @@ export async function generateOpenAICompatible({
       ? content.map((part) => typeof part?.text === 'string' ? part.text : '').join('').trim()
       : '';
 
-  if (!text) throw new Error('OpenAI-compatible provider returned no text response.');
+  if (!text) {
+    const error = new Error('OpenAI-compatible provider returned no text response.');
+    error.code = result?.choices?.[0]?.finish_reason === 'length' ? 'completion_limit' : 'empty_completion';
+    throw error;
+  }
   return text;
+}
+
+export function describeOpenAICompatibleFailure(error) {
+  if (error?.statusCode === 429) {
+    return 'The provider rate limit was reached. If you are using OpenRouter’s free route, its usage limit may have been reached; check provider activity or try again later.';
+  }
+  if (error?.statusCode === 402) {
+    return 'The provider requires credits or account access for this model. Check the provider account and selected model.';
+  }
+  if (error?.statusCode === 401 || error?.statusCode === 403) {
+    return 'The provider rejected the API key or this model is not available to the account. Check the key and model access in Settings.';
+  }
+  if (error?.statusCode === 400 || error?.statusCode === 404 || error?.statusCode === 422) {
+    return 'The provider rejected the request or model ID. Check the exact model ID and supported settings.';
+  }
+  if (error?.statusCode === 502 || error?.statusCode === 503 || error?.statusCode === 504) {
+    return 'The provider or selected model is temporarily unavailable. Try again later or select another model.';
+  }
+  if (error?.statusCode === 408) {
+    return 'The provider timed out. Try again or select a faster model.';
+  }
+  if (error?.code === 'completion_limit') {
+    return 'The model used its response budget before returning an answer. Try again or use a model better suited to reasoning.';
+  }
+  if (error?.code === 'empty_completion') {
+    return 'The provider accepted the request but returned no answer text. Check OpenRouter activity or try another model.';
+  }
+  if (/timed out/i.test(error?.message || '')) {
+    return 'The provider took too long to respond. Try again or select a faster model.';
+  }
+  return 'The provider could not complete this response. Check its activity/error details, then try again.';
 }

@@ -231,7 +231,7 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
                     placeholder="Enter the exact model ID from your provider"
                     className="w-full px-3 py-2 rounded-lg bg-[#0d1016] border border-[#212736] text-xs text-[#f0f2f5] font-mono focus:outline-none focus:border-[#385343]"
                   />
-                  <span className="text-[10px] text-[#677184] block mt-1">Recommended: Frontier reasoning models (e.g. Claude 3.7 Sonnet, GPT-4o, DeepSeek-R1, Qwen 2.5 72B, Gemini 2.5) yield significantly richer reflections and text polish than small or free-tier models.</span>
+                  <span className="text-[10px] text-[#677184] block mt-1">Output quality and availability depend on the selected model. OpenRouter’s `openrouter/free` can route different requests to different free models; choose a specific model ID for more predictable behavior. Free-model limits still apply.</span>
                 </div>
                 <div>
                   <label className="text-[11px] text-[#717b8c] block mb-1" htmlFor="metta-reasoning-effort">
@@ -348,7 +348,7 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
               <span>Model Quality & Output Guidance</span>
             </div>
             <p className="text-[11px] leading-relaxed text-[#8a96aa]">
-              Both AI text polishing and conversational reflections directly reflect the intelligence and reasoning depth of the model configured here. Lightweight or free-tier models (such as small 3B/8B parameter models) often return terse, generic, or low-depth responses. For deep emotional attunement, thoughtful practical guidance, and precise text editing, we recommend configuring a <strong>frontier-level reasoning model</strong> (e.g. Gemini 2.5 Flash, Claude 3.7 Sonnet, GPT-4o, DeepSeek-R1, or high-tier models via OpenRouter/Groq).
+              Polish and reflection use the model configured above, so their quality depends on that model’s capabilities. OpenRouter’s <code>openrouter/free</code> may route each request to a different available model, and free-model limits apply. Choose a specific model ID when you want more predictable behavior. Reasoning Effort is sent only when selected and supported by the provider/model.
             </p>
           </div>
 

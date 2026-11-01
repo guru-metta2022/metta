@@ -814,6 +814,7 @@ export default function SimulationLab({ onClose = null, onOpenSettings = null })
     let liveJev = null;
     let jevReflection = null;
     let reflectionGenerationStatus = null;
+    let reflectionGenerationError = null;
     try {
       const hostedVercel = import.meta.env.PROD;
       const byomTypesafeKey = localStorage.getItem('metta_byom_typesafe_key') || '';
@@ -859,6 +860,7 @@ export default function SimulationLab({ onClose = null, onOpenSettings = null })
           };
           jevReflection = result.human_console_response?.response_text || null;
           reflectionGenerationStatus = result.generation_status || null;
+          reflectionGenerationError = result.generation_error || null;
         } else {
           liveJev = result;
         }
@@ -919,7 +921,7 @@ export default function SimulationLab({ onClose = null, onOpenSettings = null })
     } else if (reflectionGenerationStatus === 'failed' || reflectionGenerationStatus === 'not_configured') {
       showToast({
         title: 'Reflection response limited',
-        message: 'The compassionate response could not be generated this time. Check the generative provider settings; the decision summary is still available below.',
+        message: `${reflectionGenerationError || (reflectionGenerationStatus === 'not_configured' ? 'Add a generative provider key in Settings to create the human-facing reflection.' : 'The provider could not complete the compassionate response.')} The decision summary is still available below.`,
         type: 'warning',
         duration: 10000,
         action: { label: '⚙️ Check Settings', onClick: () => onOpenSettings?.() },

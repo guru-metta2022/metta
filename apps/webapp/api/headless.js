@@ -1,4 +1,4 @@
-import { generateOpenAICompatible } from '../lib/openaiCompatible.js';
+import { describeOpenAICompatibleFailure, generateOpenAICompatible } from '../lib/openaiCompatible.js';
 import { evaluateWithJev } from '../lib/typesafeJev.js';
 
 // In-memory sliding-window rate limiter for shared community tier
@@ -265,6 +265,7 @@ export default async function handler(req, res) {
       const evaluationMethod = jevResult?.evaluation_method || 'jev_unavailable';
       const verdict = jevResult?.decision || 'CAUTION';
       let humanResponseStatus = jevResult ? 'not_configured' : 'blocked_decision_review';
+      let humanResponseError = null;
 
       // Summary synthesis
       let summaryText = !jevResult
@@ -281,12 +282,13 @@ export default async function handler(req, res) {
           const text = await generateOpenAICompatible({ baseUrl: openAIConfig.base_url, apiKey: openAIConfig.api_key, model: openAIConfig.model, reasoningEffort: openAIConfig.reasoning_effort || 'auto', messages: [
             { role: 'system', content: 'You are Metta, a deeply compassionate, emotionally attuned guide inspired by the Buddha’s wisdom, loving-kindness, and care for all life. Speak warmly and naturally to the person. Use the private structured assessment only to shape your response; never name Jev, TypeSafe, a model, an audit, or internal verdict labels. Address the person’s actual situation, not the assessment process. If a concrete risk exists, explain its human impact gently and clearly and suggest a safer path. If the assessment is uncertain, say more context or human judgment is needed. Do not claim to literally be the Buddha or to be all-knowing, and do not invent scripture. Give a relevant, specific response and one useful next step.' },
             { role: 'user', content: `Proposal: ${query}\nPrivate assessment: decision=${verdict}; status=${evaluationStatus}; reason=${recommendation}; concerns=${violations.map((item) => `${item.precept}: ${item.explanation}`).join('; ') || 'none identified'}; observation=${knot}; possible need=${need}\nPerspective: ${reframe}\nAction: ${action}` },
-          ], maxTokens: 420 });
+          ], maxTokens: 1400 });
           summaryText = text;
           humanResponseStatus = 'generated';
         } catch (error) {
           console.warn('OpenAI-compatible headless response failed:', error.message);
           humanResponseStatus = 'failed';
+          humanResponseError = describeOpenAICompatibleFailure(error);
         }
       } else if (jevResult && geminiKey && body.include_human_response) {
         try {
@@ -352,6 +354,7 @@ export default async function handler(req, res) {
         query,
         decision,
         generation_status: humanResponseStatus,
+        generation_error: humanResponseError,
         ...(body.include_human_response ? { human_console_response: {
           response_text: summaryText,
           reflection: {

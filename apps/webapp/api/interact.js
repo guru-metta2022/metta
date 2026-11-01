@@ -1,4 +1,4 @@
-import { generateOpenAICompatible } from '../lib/openaiCompatible.js';
+import { describeOpenAICompatibleFailure, generateOpenAICompatible } from '../lib/openaiCompatible.js';
 import { evaluateWithJev } from '../lib/typesafeJev.js';
 
 /**
@@ -403,16 +403,18 @@ export default async function handler(req, res) {
           : 'I’m listening. Tell me a little more about what is weighing on you, or what kind of help would feel useful right now.';
 
     let generationStatus = jevResult ? 'not_configured' : 'blocked_decision_review';
+    let generationError = null;
     if (!jevResult) {
       responseText = compassionateFallback;
     } else if (openAIConfig) {
       try {
         const systemPrompt = `You are Metta, a deeply compassionate and emotionally attuned guide whose voice is inspired by the Buddha's wisdom, loving-kindness, and care for all life. Speak warmly and naturally to the person; address what they actually said before offering advice. Use the private structured assessment only to guide your response. Never mention Jev, TypeSafe, a model, a system, an audit, a verdict label, or internal safety checks. For an ordinary or wholesome question, answer the real question and do not recite a safety result or add a generic disclaimer. If the assessment identifies a concrete risk, name the human impact gently and clearly, then help the person find a safer path. If it is uncertain, say plainly that more context or human judgment is needed. Do not claim to literally be the Buddha or to be all-knowing. Do not invent scripture or quotations. Offer a useful, specific next step.`;
-        responseText = await generateOpenAICompatible({ baseUrl: openAIConfig.base_url, apiKey: openAIConfig.api_key, model: openAIConfig.model, reasoningEffort: openAIConfig.reasoning_effort || 'auto', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: `What the person shared:\n${text}\n\nPrivate guidance for your response (do not repeat or identify this process):\n${assessmentContext}` }], maxTokens: 850 });
+        responseText = await generateOpenAICompatible({ baseUrl: openAIConfig.base_url, apiKey: openAIConfig.api_key, model: openAIConfig.model, reasoningEffort: openAIConfig.reasoning_effort || 'auto', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: `What the person shared:\n${text}\n\nPrivate guidance for your response (do not repeat or identify this process):\n${assessmentContext}` }], maxTokens: 2048 });
         generationStatus = 'generated';
       } catch (error) {
         console.warn('OpenAI-compatible response generation failed:', error.message);
         generationStatus = 'failed';
+        generationError = describeOpenAICompatibleFailure(error);
         responseText = compassionateFallback;
       }
     } else if (geminiKey) {
@@ -520,6 +522,7 @@ export default async function handler(req, res) {
       provider: generationStatus === 'generated' ? (openAIConfig ? "openai-compatible" : "gemini") : "metta-fallback",
       model: generationStatus === 'generated' ? (openAIConfig?.model || "gemini-2.5-flash") : "none",
       generation_status: generationStatus,
+      generation_error: generationError,
       mode,
       user_graph_updated: false,
       is_byom: isUserByom,
