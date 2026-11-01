@@ -1,6 +1,5 @@
 import React from 'react';
 import TriadFrameworkCard from './TriadFrameworkCard';
-import { Compass, Sparkles, ShieldCheck } from 'lucide-react';
 
 /**
  * Parses basic markdown bold (**text**) and markdown links ([label](url))
@@ -77,8 +76,6 @@ export default function MessageItem({ message }) {
     );
   }
 
-  const isSilence = message.evaluation?.requires_silence;
-
   return (
     <div className="flex justify-start my-5 px-2">
       <div className="max-w-[96%] sm:max-w-[88%] w-full">
@@ -88,16 +85,6 @@ export default function MessageItem({ message }) {
             🌿
           </div>
           <span className="font-semibold text-[#c8ceda] tracking-wide">Metta</span>
-          <span className="text-[11px] text-[#555d6b]">•</span>
-          <span className="text-[11px] text-[#697282]">
-            {isSilence ? 'Noble Silence / Redirection' : 'Metta reflection'}
-          </span>
-          {message.system_one_used && (
-            <span className="text-[10px] text-[#7ec69d] bg-[#14261d] px-1.5 py-0.5 rounded border border-[#274533] font-mono flex items-center gap-1">
-              <span>⚡</span>
-              <span>System 1 (Jev)</span>
-            </span>
-          )}
           {message.duration && (
             <span className="text-[10px] text-[#4f5765] ml-auto font-mono">
               {message.duration.toFixed(2)}s
@@ -107,28 +94,15 @@ export default function MessageItem({ message }) {
 
         {/* Message Container */}
         <div
-          className={`rounded-2xl rounded-tl-sm p-4 sm:p-5.5 leading-relaxed transition-all ${
-            isSilence
-              ? 'bg-gradient-to-b from-[#141822] to-[#0f121a] border border-[#2d374a] shadow-md'
-              : 'bg-[#12151c]/95 border border-[#1e232e] shadow-xs'
-          }`}
+          className="rounded-2xl rounded-tl-sm p-4 sm:p-5.5 leading-relaxed transition-all bg-[#12151c]/95 border border-[#1e232e] shadow-xs"
         >
-          {isSilence && (
-            <div className="mb-3.5 pb-2.5 border-b border-[#252c3c] flex items-center gap-2 text-xs text-[#8ca3c7]">
-              <Compass className="w-3.5 h-3.5 text-[#6c8eb5]" />
-              <span className="font-medium">
-                Noble Silence: Setting aside speculative cosmological vanity to focus on immediate clarity and well-being.
-              </span>
-            </div>
-          )}
-
           {/* Primary Compassionate Chat Response - Full, Unclipped, Living Voice */}
           <div className="text-[14px] sm:text-[15px] text-[#dce1ea] leading-relaxed space-y-3.5 font-sans">
             {renderFormattedParagraphs(message.text)}
           </div>
 
           {/* Structured Reflection -> Decision -> Resolution Framework Card (Complementary Badge) */}
-          {!isSilence && (message.observation || message.evaluation || message.graph_match) && (
+          {(message.observation || message.evaluation || message.graph_match) && (
             <TriadFrameworkCard
               observation={message.observation}
               evaluation={message.evaluation}

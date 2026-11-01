@@ -819,6 +819,7 @@ export default function SimulationLab({ onClose = null, onOpenSettings = null })
 
     let liveJev = null;
     let jevReflection = null;
+    let reflectionGenerationStatus = null;
     try {
       const hostedVercel = import.meta.env.PROD;
       const byomTypesafeKey = localStorage.getItem('metta_byom_typesafe_key') || '';
@@ -863,6 +864,7 @@ export default function SimulationLab({ onClose = null, onOpenSettings = null })
             invariants_protected: decision.invariants_protected || [],
           };
           jevReflection = result.human_console_response?.response_text || null;
+          reflectionGenerationStatus = result.generation_status || null;
         } else {
           liveJev = result;
         }
@@ -914,11 +916,19 @@ export default function SimulationLab({ onClose = null, onOpenSettings = null })
 
     if (!finalStep2.systemOneUsed) {
       showToast({
-        title: 'Jev review unavailable',
-        message: 'Add or check your TypeSafe Jev key in Settings. Metta is keeping this result at CAUTION and recommends human review.',
+        title: 'Safety review unavailable',
+        message: 'The safety review could not finish. Check the decision-review key in Settings. This result stays at CAUTION; pause for human review.',
         type: 'warning',
         duration: 10000,
         action: { label: '⚙️ Open Settings', onClick: () => onOpenSettings?.() },
+      });
+    } else if (reflectionGenerationStatus === 'failed' || reflectionGenerationStatus === 'not_configured') {
+      showToast({
+        title: 'Reflection response limited',
+        message: 'The compassionate response could not be generated this time. Check the generative provider settings; the decision summary is still available below.',
+        type: 'warning',
+        duration: 10000,
+        action: { label: '⚙️ Check Settings', onClick: () => onOpenSettings?.() },
       });
     }
 
@@ -1516,7 +1526,7 @@ export default function SimulationLab({ onClose = null, onOpenSettings = null })
                   </span>
                 </div>
                 <div className={`text-[10px] font-mono ${simulationResult.step2.systemOneUsed ? 'text-[#7ec69d]' : 'text-amber-300'}`}>
-                  {simulationResult.step2.systemOneUsed ? 'TypeSafe Jev review completed' : 'TypeSafe Jev review unavailable — human review required'}
+                  {simulationResult.step2.systemOneUsed ? 'Safety review completed' : 'Safety review unavailable — pause for human review'}
                 </div>
                 <p className="text-[#c4cddb] text-[11px] leading-relaxed">
                   {simulationResult.step2.reason}

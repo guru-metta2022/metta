@@ -21,14 +21,13 @@ export default function TriadFrameworkCard({ observation, evaluation, graphMatch
   const checkLabel = !evaluation
     ? 'Not evaluated'
     : uncertain
-      ? 'CAUTION: review required'
+      ? 'Pause — needs more context'
       : passed
-        ? `${evaluation.decision === 'YES' ? 'Jev: YES' : 'No concern detected'}`
-        : `${evaluation.decision === 'NO' ? 'Jev: NO' : 'Concern flagged'}`;
+        ? 'No immediate concern detected'
+        : 'A concern needs attention';
   const emotionalState = observation?.emotional_state || 'deliberative';
   const cognitiveKnot = observation?.cognitive_knot || 'Observing underlying trade-offs';
   const coreNeed = observation?.core_need || 'Equanimity & clarity';
-  const principle = graphMatch?.path?.principle || 'Wholesome Discernment';
   const reframe = graphMatch?.path?.reframe || 'Shift from reactive pressure to clear awareness.';
   const action = graphMatch?.path?.immediate_action || 'Take one conscious, grounded step.';
   const suttaRef = graphMatch?.path?.sutta_ref || 'MN 61';
@@ -36,35 +35,11 @@ export default function TriadFrameworkCard({ observation, evaluation, graphMatch
 
   return (
     <div className="mt-3.5 mb-1.5 rounded-xl border border-[#212735] bg-[#0d1017]/95 overflow-hidden text-xs shadow-xs transition-all">
-      {/* Header bar / Quick Glance Summary */}
+      {/* Keep the conversation human-first; framework details stay collapsed until requested. */}
       <div className="px-3.5 py-2.5 flex items-center justify-between border-b border-[#181d28] bg-[#11151f]/60">
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Triad status pills */}
-          <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#16201b] text-[#7ec69d] border border-[#233a2d] text-[11px] font-medium font-mono">
-            <span>🌱</span>
-            <span>Reflect:</span>
-            <span className="text-[#a5e0be] capitalize">{emotionalState}</span>
-          </span>
-
-          <span
-            className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium font-mono border ${
-              passed
-                ? 'bg-[#14231b] text-[#86e2ad] border-[#254533]'
-                : uncertain || !evaluation
-                  ? 'bg-[#292315] text-[#fcd58a] border-[#5a4827]'
-                  : 'bg-[#271518] text-[#fca5a5] border-[#52252c]'
-            }`}
-          >
-            <ShieldCheck className="w-3 h-3 shrink-0" />
-            <span>Decide:</span>
-            <span>{checkLabel}</span>
-          </span>
-
-          <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#131b26] text-[#8ea4cc] border border-[#23334c] text-[11px] font-medium font-mono hidden sm:inline-flex">
-            <span>🕊️</span>
-            <span>Resolve:</span>
-            <span className="text-[#b4c7e7] truncate max-w-[120px]">{principle}</span>
-          </span>
+        <div className="flex items-center gap-2 text-[11px] text-[#8b96a9]">
+          <span>🌿</span>
+          <span>Reflection details</span>
         </div>
 
         <button
@@ -72,7 +47,7 @@ export default function TriadFrameworkCard({ observation, evaluation, graphMatch
           onClick={() => setIsOpen(!isOpen)}
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] text-[#8b96a9] hover:text-[#f0f2f5] hover:bg-[#181d29] transition ml-auto"
         >
-          <span>{isOpen ? 'Compact' : 'Triad Breakdown'}</span>
+          <span>{isOpen ? 'Hide details' : 'View details'}</span>
           {isOpen ? <ChevronUp className="w-3 h-3 text-[#7ec69d]" /> : <ChevronDown className="w-3 h-3" />}
         </button>
       </div>
@@ -175,12 +150,12 @@ export default function TriadFrameworkCard({ observation, evaluation, graphMatch
                   <div className="flex items-center gap-1.5 mb-1.5">
                     <span
                       className={`text-xs font-bold px-2 py-0.5 rounded ${
-                        passed ? 'bg-[#15291e] text-[#86e2ad]' : 'bg-[#31161a] text-[#fca5a5]'
+                        passed ? 'bg-[#15291e] text-[#86e2ad]' : uncertain ? 'bg-[#292315] text-[#fcd58a]' : 'bg-[#31161a] text-[#fca5a5]'
                       }`}
                     >
-                      {passed ? 'YES (Passed this check)' : 'NO (Concern detected)'}
+                      {checkLabel}
                     </span>
-                    <span className="text-[10px] text-[#717b8c] font-mono">Not an action authorization</span>
+                    <span className="text-[10px] text-[#717b8c]">Guidance for reflection, not permission to act</span>
                   </div>
 
                   <CollapsibleBubble
@@ -202,7 +177,7 @@ export default function TriadFrameworkCard({ observation, evaluation, graphMatch
                 </div>
 
                 <div className="mt-2.5 pt-2 border-t border-[#1a202c] text-[10px] text-[#6d7687]">
-                  <span>Protected Invariant: Sanctity of All Life</span>
+                  <span>Grounded in care for all life</span>
                 </div>
               </div>
             )}

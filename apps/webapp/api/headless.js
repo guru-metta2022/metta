@@ -259,41 +259,44 @@ export default async function handler(req, res) {
       } else {
         passed = false;
         violations = [];
-        recommendation = 'The Jev review did not complete. Pause and request human review.';
+        recommendation = 'The safety review could not be completed. Pause and request human review.';
       }
       const evaluationStatus = jevResult?.evaluation_status || 'uncertain';
       const evaluationMethod = jevResult?.evaluation_method || 'jev_unavailable';
       const verdict = jevResult?.decision || 'CAUTION';
+      let humanResponseStatus = jevResult ? 'not_configured' : 'blocked_decision_review';
 
       // Summary synthesis
       let summaryText = !jevResult
-        ? 'I want to give this proposal a careful review, but the Jev decision check did not complete. Please add or check your TypeSafe Jev key in Settings. Until the review is available, pause and request human review.'
-        : passed
-        ? `I see the wholesome intention in your path. ${reframe} ${action}`
-        : `I must counsel caution here. ${recommendation} ${reframe}`;
+        ? 'I want to give this proposal careful attention, but I could not complete the safety review just now. Please pause before taking action and ask a person familiar with the situation to review it.'
+        : evaluationStatus === 'uncertain'
+          ? 'I hear how much this matters. I do not have enough clarity to recommend moving ahead. Let’s pause and bring in someone who understands the situation before taking a consequential step.'
+          : violations.length
+            ? 'I can hear what you are trying to solve. The approach described could put someone’s safety or boundaries at risk. Let’s look for another way to meet the underlying need without causing harm.'
+          : `I hear the care behind this proposal. ${reframe} What feels like the most important part to consider before taking the next step?`;
 
       // Deep reasoning enhancement with Gemini Flash if key is available
       if (jevResult && body.include_human_response && openAIConfig) {
         try {
           const text = await generateOpenAICompatible({ baseUrl: openAIConfig.base_url, apiKey: openAIConfig.api_key, model: openAIConfig.model, reasoningEffort: openAIConfig.reasoning_effort || 'auto', messages: [
-            { role: 'system', content: 'You are Metta, a compassionate and practical reflection assistant. Jev has already reviewed the proposal. Treat its verdict and findings as authoritative for this response; do not contradict or overstate them. When the result is CAUTION, advise pausing and seeking human review. Do not claim a YES guarantees safety or that Metta controls execution. Do not invent canonical quotations. Offer a gentle explanation and one concrete next step.' },
-            { role: 'user', content: `Proposal: ${query}\nJev verdict: ${verdict}\nEvaluation status: ${evaluationStatus}\nReason: ${recommendation}\nViolations: ${violations.map((item) => `${item.precept}: ${item.explanation}`).join('; ') || 'None identified'}\nObservation: ${knot}; need: ${need}\nPerspective: ${reframe}\nAction: ${action}` },
+            { role: 'system', content: 'You are Metta, a deeply compassionate, emotionally attuned guide inspired by the Buddha’s wisdom, loving-kindness, and care for all life. Speak warmly and naturally to the person. Use the private structured assessment only to shape your response; never name Jev, TypeSafe, a model, an audit, or internal verdict labels. Address the person’s actual situation, not the assessment process. If a concrete risk exists, explain its human impact gently and clearly and suggest a safer path. If the assessment is uncertain, say more context or human judgment is needed. Do not claim to literally be the Buddha or to be all-knowing, and do not invent scripture. Give a relevant, specific response and one useful next step.' },
+            { role: 'user', content: `Proposal: ${query}\nPrivate assessment: decision=${verdict}; status=${evaluationStatus}; reason=${recommendation}; concerns=${violations.map((item) => `${item.precept}: ${item.explanation}`).join('; ') || 'none identified'}; observation=${knot}; possible need=${need}\nPerspective: ${reframe}\nAction: ${action}` },
           ], maxTokens: 420 });
           summaryText = text;
+          humanResponseStatus = 'generated';
         } catch (error) {
           console.warn('OpenAI-compatible headless response failed:', error.message);
+          humanResponseStatus = 'failed';
         }
       } else if (jevResult && geminiKey && body.include_human_response) {
         try {
           const gemPrompt =
-            `You are Metta, a Buddhist-inspired reflection assistant. Be compassionate and practical; do not claim to be the Buddha or a historical teacher, and do not invent canonical quotations.\n` +
+            `You are Metta, a deeply compassionate and emotionally attuned guide whose voice is inspired by the Buddha’s wisdom, loving-kindness, and care for all life. Use the private structured assessment to guide your answer, but never mention Jev, TypeSafe, a model, an audit, or internal verdict labels. Speak naturally to the person and address their actual situation. Explain a concrete human risk gently and offer a safer path; if uncertain, say that more context or human judgment is needed. Do not claim to literally be the Buddha or to be all-knowing, and do not invent scripture or quotations.\n` +
             `Dilemma/Proposal: "${query}"\n` +
-            `Verdict: ${verdict}\n` +
-            `Jev evaluation: ${recommendation}\n` +
-            `Precepts Evaluation: ${evaluationStatus === 'uncertain' ? 'Unable to settle; human review required' : violations.map((v) => v.precept).join(', ') || 'No concern identified'}\n` +
+            `Private assessment: decision=${verdict}; status=${evaluationStatus}; reason=${recommendation}; concerns=${violations.map((v) => v.explanation).join('; ') || 'none identified'}\n` +
             `Observation: ${knot} (Need: ${need})\n` +
             `Reframe: ${reframe}\n` +
-            `Write two or three concise paragraphs for the person who proposed this action. Start with empathy, explain Jev's verdict and findings in everyday language, connect them to the person's situation, and offer a practical next step. Distinguish your reflection from traditional teachings and never claim a YES guarantees safety.`;
+            `Write two or three concise paragraphs for the person who proposed this action. Start with empathy, connect the safety guidance to their situation in everyday language, and offer a practical next step. Do not mention internal assessments or recite a verdict label.`;
 
           const gRes = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
@@ -312,10 +315,17 @@ export default async function handler(req, res) {
           if (gRes.ok) {
             const gData = await gRes.json();
             const cand = gData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-            if (cand) summaryText = cand;
+            if (cand) {
+              summaryText = cand;
+              humanResponseStatus = 'generated';
+            } else {
+              humanResponseStatus = 'failed';
+            }
+          } else {
+            humanResponseStatus = 'failed';
           }
         } catch {
-          // Fallback to deterministic summaryText
+          humanResponseStatus = 'failed';
         }
       }
 
@@ -325,7 +335,7 @@ export default async function handler(req, res) {
         evaluation_status: evaluationStatus,
         evaluation_method: evaluationMethod,
         system_one_used: Boolean(jevResult),
-        reason: jevResult?.reason || jevError,
+        reason: jevResult?.reason || 'The safety review could not be completed. Pause and request human review.',
         violations,
         observation: jevResult?.observation || null,
         invariants_protected: jevResult && verdict === 'YES'
@@ -341,6 +351,7 @@ export default async function handler(req, res) {
         status: 'success',
         query,
         decision,
+        generation_status: humanResponseStatus,
         ...(body.include_human_response ? { human_console_response: {
           response_text: summaryText,
           reflection: {

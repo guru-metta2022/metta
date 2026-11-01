@@ -698,11 +698,20 @@ export default function App() {
       const data = await res.json();
       if (!data.system_one_used && data.evaluation?.evaluation_status === 'uncertain') {
         showToast({
-          title: 'Jev review did not run',
-          message: data.evaluation.uncertainty_reason || 'Add or check the TypeSafe Jev key in Settings. The response remains a pause for human review.',
+          title: 'Decision review unavailable',
+          message: 'The review could not finish. Add or check your decision-review key in Settings; pause before taking consequential action.',
           type: 'warning',
           duration: 10000,
           action: { label: '⚙️ Open Settings', onClick: () => setSettingsOpen(true) },
+        });
+      }
+      if (data.generation_status === 'failed' || data.generation_status === 'not_configured') {
+        showToast({
+          title: 'Reflection response limited',
+          message: 'The compassionate response could not be generated this time. Check the generative provider settings; this brief fallback is editable, but may not fully answer your question.',
+          type: 'warning',
+          duration: 10000,
+          action: { label: '⚙️ Check Settings', onClick: () => setSettingsOpen(true) },
         });
       }
       const botMsg = {

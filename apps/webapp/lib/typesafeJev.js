@@ -121,12 +121,12 @@ export async function evaluateWithJev(text, apiKey) {
   const passed = evaluationStatus === 'evaluated' && violations.length === 0 && !requiresSilence;
   const decision = evaluationStatus === 'uncertain' ? 'CAUTION' : (passed ? 'YES' : 'NO');
   const reason = evaluationStatus === 'uncertain'
-    ? `Jev could not settle: ${[...new Set(uncertainChecks)].join(', ')}. Pause and request human review.`
+    ? 'There is not enough clarity to assess this confidently. Pause and ask a person familiar with the situation to review it.'
     : violations.length
       ? violations.map((item) => `${item.precept}: ${item.explanation}`).join(' ')
       : requiresSilence
         ? 'This inquiry appears speculative and disconnected from immediate suffering; pause and return to the practical concern.'
-        : 'Jev found no concern in the configured non-harm and precept checks.';
+        : 'No immediate concern was identified in the configured review.';
 
   return {
     decision,

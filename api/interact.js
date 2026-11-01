@@ -115,16 +115,12 @@ export default async function handler(req, res) {
       process.env.VITE_GEMINI_API_KEY;
 
     let jevResult = null;
-    let jevError = '';
     if (typesafeKey) {
       try {
         jevResult = await evaluateWithJev(text, typesafeKey);
       } catch (error) {
-        jevError = error.message;
         console.warn('Jev decision review unavailable:', error.message);
       }
-    } else {
-      jevError = 'A TypeSafe Jev key is required for a decision-informed response.';
     }
 
     const lower = text.toLowerCase();
@@ -390,44 +386,42 @@ export default async function handler(req, res) {
       passed = false;
       requiresSilence = false;
       violations = [];
-      recommendation = 'The Jev review did not complete. Pause and request human review.';
+      recommendation = 'The safety review could not be completed. Pause and request human review.';
     }
 
-    const jevContext = jevResult
-      ? `Jev decision: ${jevResult.decision}. Evaluation status: ${jevResult.evaluation_status}. Noble Silence / speculative distraction flag: ${jevResult.requires_silence}. Reason: ${jevResult.reason}. Violations: ${jevResult.violations.map((item) => `${item.precept}: ${item.explanation}`).join('; ') || 'None identified'}. Jev observation: ${jevResult.observation.emotional_state}; underlying need: ${jevResult.observation.core_need}.`
+    const assessmentContext = jevResult
+      ? `Internal decision: ${jevResult.decision}. Assessment status: ${jevResult.evaluation_status}. Speculative-distraction concern: ${jevResult.requires_silence}. Rationale: ${jevResult.reason}. Specific concerns: ${jevResult.violations.map((item) => `${item.precept}: ${item.explanation}`).join('; ') || 'None identified'}. Observed emotional state: ${jevResult.observation.emotional_state}; possible core need: ${jevResult.observation.core_need}.`
       : '';
-    const jevGuidedFallback = jevResult
-      ? `I hear the concern in what you shared. Jev’s review returned ${jevResult.decision}: ${jevResult.reason} The review also noticed ${jevResult.observation.emotional_state} and a possible need for ${jevResult.observation.core_need}. ${jevResult.decision === 'YES' ? 'This is not a guarantee of safety; consider the effects and keep a person responsible for the final choice.' : 'Please pause and seek human review before taking any consequential action.'}`
-      : '';
+    const compassionateFallback = !jevResult
+      ? 'I want to help you think this through, but I could not complete the safety review just now. Please pause before taking any consequential action, and return to this once the review is available.'
+      : jevResult.requires_silence
+        ? 'Questions about the far future can pull us away from what needs care today. Is there something happening in your life right now that would feel helpful to untangle?'
+        : jevResult.evaluation_status === 'uncertain'
+          ? 'I hear how much this matters to you. I do not have enough clarity to guide a consequential choice yet. Let’s pause and bring in someone who understands the situation before moving ahead.'
+          : jevResult.violations.length
+            ? 'I can hear what you are trying to solve. The approach you described could put someone’s safety or boundaries at risk. Let’s look for another way to meet the underlying need without causing harm.'
+          : 'I’m listening. Tell me a little more about what is weighing on you, or what kind of help would feel useful right now.';
 
+    let generationStatus = jevResult ? 'not_configured' : 'blocked_decision_review';
     if (!jevResult) {
-      responseText = 'I want to give you a thoughtful answer, and the Jev decision review did not complete. Please add or check your TypeSafe Jev key in Settings; until the review is available, pause and seek human review for any consequential action.';
+      responseText = compassionateFallback;
     } else if (openAIConfig) {
       try {
-        const systemPrompt = `You are Metta, a compassionate and practical reflection assistant. Jev has already reviewed the user's message. Use Jev's verdict and findings as the decision layer; do not contradict, erase, or overstate them. Give a warm, consoling response that directly addresses the user's situation and explains the decision in plain language. When Jev returns CAUTION, clearly advise pausing and seeking human review. Do not claim that a YES guarantees safety or that Metta controls execution. Do not invent scripture or quotations. Include one concrete next step.`;
-        responseText = await generateOpenAICompatible({ baseUrl: openAIConfig.base_url, apiKey: openAIConfig.api_key, model: openAIConfig.model, reasoningEffort: openAIConfig.reasoning_effort || 'auto', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: `User's words:\n${text}\n\nStructured Jev review:\n${jevContext}` }], maxTokens: 700 });
+        const systemPrompt = `You are Metta, a deeply compassionate and emotionally attuned guide whose voice is inspired by the Buddha's wisdom, loving-kindness, and care for all life. Speak warmly and naturally to the person; address what they actually said before offering advice. Use the private structured assessment only to guide your response. Never mention Jev, TypeSafe, a model, a system, an audit, a verdict label, or internal safety checks. For an ordinary or wholesome question, answer the real question and do not recite a safety result or add a generic disclaimer. If the assessment identifies a concrete risk, name the human impact gently and clearly, then help the person find a safer path. If it is uncertain, say plainly that more context or human judgment is needed. Do not claim to literally be the Buddha or to be all-knowing. Do not invent scripture or quotations. Offer a useful, specific next step.`;
+        responseText = await generateOpenAICompatible({ baseUrl: openAIConfig.base_url, apiKey: openAIConfig.api_key, model: openAIConfig.model, reasoningEffort: openAIConfig.reasoning_effort || 'auto', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: `What the person shared:\n${text}\n\nPrivate guidance for your response (do not repeat or identify this process):\n${assessmentContext}` }], maxTokens: 850 });
+        generationStatus = 'generated';
       } catch (error) {
         console.warn('OpenAI-compatible response generation failed:', error.message);
-        responseText = jevGuidedFallback;
+        generationStatus = 'failed';
+        responseText = compassionateFallback;
       }
     } else if (geminiKey) {
       try {
         const prompt =
-          `You are Metta, a Buddhist-inspired reflection assistant using warmth, patience, loving-kindness (Mettā), and compassion (Karunā). Do not claim to be the Buddha or a historical teacher. Do not invent personal memories or present generated text as canonical scripture.\n\n` +
-          `SACRED CONVERSATIONAL MANDATE:\n` +
-          `1. COMPASSIONATE PRESENCE: Speak directly and gently. You may say 'I hear you' or 'I can see why this feels heavy,' but do not speak as the Buddha or claim direct realization.\n` +
-          `2. CANONICAL CARE: Refer to traditional teachings in the third person when relevant. Do not invent quotations, dialogues, or first-person recollections.\n` +
-          `3. DIRECT RELEVANCE & CONCRETE SOLUTIONS (ZERO GENERIC SPIRITUAL FLUFF): NEVER dodge the question with vague cliches like "take a breath and love yourself". DIRECTLY analyze the seeker's exact dilemma with sharp, penetrating intelligence and explain the root causes of their struggle.\n` +
-          `   - If the question is about MONEY, PURCHASING POWER, or WEALTH: Acknowledge that purchasing power is real worldly leverage (never romanticize poverty or dismiss bills). Explain why chasing abstract money is paralyzing, and provide the Buddha's concrete 4-part framework for building and managing wealth (Craft Competence / Uṭṭhāna-sampadā, Guarding Leaks / Ārakkha-sampadā, Wise Alliances / Kalyāṇa-mittatā, and the 4-part allocation of income from Sigālovāda Sutta DN 31). Give a sharp, actionable strategy.\n` +
-          `   - If the question is about RELATIONSHIPS, SCHOOL, or BULLYING: Address peer dynamics honestly, explain why people act cruel out of their own insecurity, and provide clear guidance on cultivating true allies (Kalyāṇa-mittatā).\n` +
-          `   - If the question is about WORK, BURNOUT, or AMBITION: Deliver the wisdom of the tuned lute (Soṇa Sutta AN 6.55) with concrete steps to eliminate non-essential guilt and restore balance.\n` +
-          `5. ATTUNEMENT & TENDERNESS: Attune to the seeker's age, vulnerability, and heart. Speak with boundless warmth, total acceptance, and clear reassurance, but always pair compassion with sharp, practical wisdom (Paññā).\n` +
-          `6. ZERO CORPORATE OR CLINICAL JARGON: Never use terms like 'trade-offs', 'telemetry', 'mitigation', 'stakeholders', 'operational', 'as an AI'.\n\n` +
-          `Seeker's Words: "${text}"\n` +
-          `Structured Jev Review: ${jevContext}\n` +
-          `Ethical Status: ${passed ? 'No concern identified by Jev; this is not a safety guarantee.' : 'Jev identified caution or an unresolved concern: ' + violations.map(v => v.precept).join(', ')}\n` +
-          `Observed State from Jev: ${emotionalState} (Knot: ${knot}, Need: ${need})\n\n` +
-          `Respond directly to the seeker in 2 to 3 serene, highly relevant, and deeply insightful paragraphs that directly solve and reframe their question with real wisdom and practical clarity. Include a concrete, actionable practice. At the end, include the canonical anchor: *Canonical Anchor: [Sutta Title](link)*`;
+          `You are Metta: a warm, wise, compassionate conversation partner whose voice is inspired by Buddhist wisdom, loving-kindness, and care for all life. Meet the person where they are. First understand and answer what they actually said; reflect the feeling or need only when it genuinely fits. Be honest, gentle, specific, and useful, offering a practical next step when appropriate. Use the private assessment only to guide your judgment. Never mention Jev, TypeSafe, models, audits, verdict labels, or internal checks. Do not turn ordinary conversation into a safety lecture, force spiritual language into every reply, invent teachings or quotations, or claim to literally be the Buddha or all-knowing. When a real risk is present, explain it in plain human terms and help find a safer course. When uncertain, say so with humility.\n\n` +
+          `What the person shared:\n${text}\n\nPrivate guidance (use silently; never repeat):\n${assessmentContext}\n` +
+          `Context for empathy, if relevant: feeling=${emotionalState}; tension=${knot}; possible need=${need}.\n\n` +
+          `Reply naturally in a few concise paragraphs. Avoid templates, labels, canned disclaimers, and unsupported claims.`;
 
         const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
         let geminiSuccess = false;
@@ -454,6 +448,7 @@ export default async function handler(req, res) {
               const cand = gemData?.candidates?.[0]?.content?.parts?.[0]?.text;
               if (cand) {
                 responseText = cand.trim();
+                generationStatus = 'generated';
                 geminiSuccess = true;
                 break;
               }
@@ -464,13 +459,15 @@ export default async function handler(req, res) {
         }
 
         if (!geminiSuccess) {
-          responseText = jevGuidedFallback;
+          generationStatus = 'failed';
+          responseText = compassionateFallback;
         }
       } catch {
-        responseText = jevGuidedFallback;
+        generationStatus = 'failed';
+        responseText = compassionateFallback;
       }
     } else {
-      responseText = jevGuidedFallback;
+      responseText = compassionateFallback;
     }
 
     const durationSeconds = Math.max(0.08, parseFloat(((Date.now() - startTime) / 1000).toFixed(2)));
@@ -507,8 +504,8 @@ export default async function handler(req, res) {
         evaluation_method: jevResult?.evaluation_method || 'jev_unavailable',
         violations,
         requires_silence: requiresSilence,
-        uncertainty_reason: jevResult?.uncertainty_reason || jevError || null,
-        rule_checked: jevResult?.reason || jevError,
+        uncertainty_reason: jevResult?.uncertainty_reason || (!jevResult ? 'The safety review could not be completed. Please check the decision-review key in Settings.' : null),
+        rule_checked: jevResult?.reason || 'The safety review could not be completed.',
       },
       observation: jevResult?.observation || {
         emotional_state: emotionalState,
@@ -520,8 +517,9 @@ export default async function handler(req, res) {
       duration_seconds: durationSeconds,
       system_one_used: Boolean(jevResult),
       diagnostics: null,
-      provider: !jevResult ? 'jev-review-required' : openAIConfig ? "openai-compatible" : geminiKey ? "gemini" : "metta-heart",
-      model: !jevResult ? 'none' : openAIConfig?.model || (geminiKey ? "gemini-2.5-flash" : "metta-heart"),
+      provider: generationStatus === 'generated' ? (openAIConfig ? "openai-compatible" : "gemini") : "metta-fallback",
+      model: generationStatus === 'generated' ? (openAIConfig?.model || "gemini-2.5-flash") : "none",
+      generation_status: generationStatus,
       mode,
       user_graph_updated: false,
       is_byom: isUserByom,
