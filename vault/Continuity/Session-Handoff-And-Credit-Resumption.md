@@ -65,8 +65,8 @@ When beginning a new session or switching model credits:
 ---
 
 ## Latest local/unpushed work (2026-11-01)
-- Hosted provider support is implemented across chat, headless human-facing synthesis, and both polish surfaces. Hosted UI does not expose a local LM Studio choice. TypeSafe Jev is still separate and self-hosted.
-- `npm run build`, route/helper syntax checks, `git diff --check`, and duplicate route comparison passed. These changes have not been pushed or deployed.
+- Hosted Settings supports Gemini or a public HTTPS OpenAI-compatible chat-completions provider plus a separate TypeSafe Jev key. Main chat and hosted headless/Simulation Lab routes call Jev first; the selected generative provider composes a human-facing response from the verdict and observations. Missing/unavailable Jev fails closed to CAUTION without a model completion. Hosted UI does not offer local LM Studio.
+- `npm run build`, route/helper syntax checks, `git diff --check`, and duplicate route comparison passed. These changes have not been pushed or deployed. The untracked Jev helper is `apps/webapp/lib/typesafeJev.js`.
 - Before pushing, inspect `git status`, all diffs, and remote `main`; preserve all local changes and do not force push.
 
 ## Related Documents
@@ -77,3 +77,5 @@ When beginning a new session or switching model credits:
 - [[Personal-Memory-Graph-Supabase]]
 - [[ADR-006-Dual-Identity-And-Personal-Memory-Graph]]
 - [[ADR-010-Multi-Source-Canonical-Consensus-Shield]]
+
+- Simulation Lab uses hosted `/api/headless` for Vercel production because `/api/guardrail` has no Vercel function; it displays whether Jev ran and uses the Jev-informed reflection. User Jev keys are browser-held and sent to the API only for review; `TYPESAFE_API_KEY` is a server-side fallback. No live Jev call was made.

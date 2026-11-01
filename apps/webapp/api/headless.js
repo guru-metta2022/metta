@@ -1,4 +1,5 @@
 import { generateOpenAICompatible } from '../lib/openaiCompatible.js';
+import { evaluateWithJev } from '../lib/typesafeJev.js';
 
 // In-memory sliding-window rate limiter for shared community tier
 const rateLimitMap = new Map();
@@ -43,7 +44,7 @@ export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Gemini-Api-Key');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Gemini-Api-Key, X-TypeSafe-Api-Key');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -102,6 +103,7 @@ export default async function handler(req, res) {
       const headers = req.headers || {};
       const userGeminiKey = (headers['x-gemini-api-key'] || body.byom_gemini_key || '').trim();
       const openAIConfig = body.byom_openai_config || null;
+      const typesafeKey = (headers['x-typesafe-api-key'] || body.byom_typesafe_key || process.env.TYPESAFE_API_KEY || '').trim();
       const isUserByom = Boolean((userGeminiKey || openAIConfig?.api_key) && body.include_human_response);
 
       const limitStatus = checkRateLimit(req, isUserByom);
@@ -122,6 +124,19 @@ export default async function handler(req, res) {
         userGeminiKey ||
         process.env.GEMINI_API_KEY ||
         process.env.VITE_GEMINI_API_KEY;
+
+      let jevResult = null;
+      let jevError = '';
+      if (typesafeKey) {
+        try {
+          jevResult = await evaluateWithJev(`${context ? `Context: ${context}\n` : ''}Proposal: ${query}`, typesafeKey);
+        } catch (error) {
+          jevError = error.message;
+          console.warn('Headless Jev review unavailable:', error.message);
+        }
+      } else {
+        jevError = 'A TypeSafe Jev key is required for a decision review.';
+      }
 
       const lower = (query + ' ' + context).toLowerCase();
 
@@ -234,42 +249,51 @@ export default async function handler(req, res) {
         suttaUrl = 'https://suttacentral.net/sn1.1';
       }
 
-      const evaluationStatus = violations.length > 0 ? 'evaluated' : 'uncertain';
-      const evaluationMethod = 'limited_keyword_rules';
-      if (evaluationStatus === 'uncertain') {
+      if (jevResult) {
+        passed = jevResult.passed;
+        violations = jevResult.violations;
+        recommendation = jevResult.reason;
+        knot = jevResult.observation.cognitive_knot;
+        need = jevResult.observation.core_need;
+        emotionalState = jevResult.observation.emotional_state;
+      } else {
         passed = false;
-        recommendation = 'Metta could not determine whether this proposal is safe. Pause the action and request human review.';
+        violations = [];
+        recommendation = 'The Jev review did not complete. Pause and request human review.';
       }
-      const verdict = violations.length > 0 ? 'NO' : 'CAUTION';
+      const evaluationStatus = jevResult?.evaluation_status || 'uncertain';
+      const evaluationMethod = jevResult?.evaluation_method || 'jev_unavailable';
+      const verdict = jevResult?.decision || 'CAUTION';
 
       // Summary synthesis
-      let summaryText = passed
+      let summaryText = !jevResult
+        ? 'I want to give this proposal a careful review, but the Jev decision check did not complete. Please add or check your TypeSafe Jev key in Settings. Until the review is available, pause and request human review.'
+        : passed
         ? `I see the wholesome intention in your path. ${reframe} ${action}`
         : `I must counsel caution here. ${recommendation} ${reframe}`;
 
       // Deep reasoning enhancement with Gemini Flash if key is available
-      if (body.include_human_response && openAIConfig) {
+      if (jevResult && body.include_human_response && openAIConfig) {
         try {
-          const text = await generateOpenAICompatible({ baseUrl: openAIConfig.base_url, apiKey: openAIConfig.api_key, model: openAIConfig.model, reasoningEffort: openAIConfig.reasoning_effort || 'auto', messages: [{ role: 'user', content: `You are Metta, a compassionate, practical reflection assistant. Do not claim to be the Buddha or invent canonical quotations.
-Proposal: ${query}
-Safety outcome: ${verdict}
-Observation: ${knot}; need: ${need}
-Reframe: ${reframe}
-Write two direct, kind sentences for a person reading this reflection.` }], maxTokens: 160 });
+          const text = await generateOpenAICompatible({ baseUrl: openAIConfig.base_url, apiKey: openAIConfig.api_key, model: openAIConfig.model, reasoningEffort: openAIConfig.reasoning_effort || 'auto', messages: [
+            { role: 'system', content: 'You are Metta, a compassionate and practical reflection assistant. Jev has already reviewed the proposal. Treat its verdict and findings as authoritative for this response; do not contradict or overstate them. When the result is CAUTION, advise pausing and seeking human review. Do not claim a YES guarantees safety or that Metta controls execution. Do not invent canonical quotations. Offer a gentle explanation and one concrete next step.' },
+            { role: 'user', content: `Proposal: ${query}\nJev verdict: ${verdict}\nEvaluation status: ${evaluationStatus}\nReason: ${recommendation}\nViolations: ${violations.map((item) => `${item.precept}: ${item.explanation}`).join('; ') || 'None identified'}\nObservation: ${knot}; need: ${need}\nPerspective: ${reframe}\nAction: ${action}` },
+          ], maxTokens: 420 });
           summaryText = text;
         } catch (error) {
           console.warn('OpenAI-compatible headless response failed:', error.message);
         }
-      } else if (geminiKey && body.include_human_response) {
+      } else if (jevResult && geminiKey && body.include_human_response) {
         try {
           const gemPrompt =
             `You are Metta, a Buddhist-inspired reflection assistant. Be compassionate and practical; do not claim to be the Buddha or a historical teacher, and do not invent canonical quotations.\n` +
             `Dilemma/Proposal: "${query}"\n` +
             `Verdict: ${verdict}\n` +
-            `Precepts Evaluation: ${evaluationStatus === 'uncertain' ? 'Unable to evaluate with the limited hosted rules' : violations.map((v) => v.precept).join(', ')}\n` +
+            `Jev evaluation: ${recommendation}\n` +
+            `Precepts Evaluation: ${evaluationStatus === 'uncertain' ? 'Unable to settle; human review required' : violations.map((v) => v.precept).join(', ') || 'No concern identified'}\n` +
             `Observation: ${knot} (Need: ${need})\n` +
             `Reframe: ${reframe}\n` +
-            `Write two serene, direct sentences for a person who may read this response. Speak in Metta's own voice; distinguish your reflection from traditional teachings. Return ONLY the two sentences.`;
+            `Write two or three concise paragraphs for the person who proposed this action. Start with empathy, explain Jev's verdict and findings in everyday language, connect them to the person's situation, and offer a practical next step. Distinguish your reflection from traditional teachings and never claim a YES guarantees safety.`;
 
           const gRes = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
@@ -281,7 +305,7 @@ Write two direct, kind sentences for a person reading this reflection.` }], maxT
               },
               body: JSON.stringify({
                 contents: [{ role: 'user', parts: [{ text: gemPrompt }] }],
-                generationConfig: { temperature: 0.2, maxOutputTokens: 120 },
+                generationConfig: { temperature: 0.2, maxOutputTokens: 420 },
               }),
             }
           );
@@ -297,12 +321,18 @@ Write two direct, kind sentences for a person reading this reflection.` }], maxT
 
       const decision = {
         verdict,
-        allow: false,
+        allow: Boolean(jevResult && verdict === 'YES' && evaluationStatus === 'evaluated'),
         evaluation_status: evaluationStatus,
         evaluation_method: evaluationMethod,
+        system_one_used: Boolean(jevResult),
+        reason: jevResult?.reason || jevError,
+        violations,
+        observation: jevResult?.observation || null,
+        invariants_protected: jevResult && verdict === 'YES'
+          ? ['Non-harm', 'Consent and authorization', 'Non-exploitation', 'Truthful and careful action']
+          : [],
         ...(body.verbose ? {
           reason: recommendation,
-          violations,
           requires_human_review: evaluationStatus === 'uncertain',
         } : {}),
       };
@@ -334,7 +364,7 @@ Write two direct, kind sentences for a person reading this reflection.` }], maxT
           `**Query:** ${query}\n\n` +
           `## Decision\n` +
           `- **Verdict:** ${verdict}\n` +
-          `- **May proceed:** false\n` +
+          `- **May proceed:** ${decision.allow}\n` +
           `- **Evaluation status:** ${evaluationStatus}\n` +
           (body.verbose ? `- **Reason:** ${recommendation}\n` : '') +
           (body.include_human_response ? `\n## Human-facing response\n\n${summaryText}\n` : '')

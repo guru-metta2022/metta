@@ -39,8 +39,8 @@ The fastest way to explore Metta without installing anything locally is the prod
   * **Guest Users:** Retains up to **5 recent sessions** in local browser storage.
   * **Authenticated Users:** Retains up to **100 sessions** in browser storage, keyed to the signed-in profile.
   * Guest chat history is kept in browser storage. Submitted text is sent to the selected Metta endpoint for processing; when a hosted model is used, the relevant text is also sent to that model provider. Guest Mode means no account is required and Metta does not persist guest chat history as an account record; it does not mean that requests stay on the device.
-* ⚙️ **Bring your own model** — the hosted Vercel app supports Google Gemini and public HTTPS APIs that implement OpenAI-compatible Chat Completions. Configure the endpoint, provider API key, exact model ID, and optional `reasoning_effort` in Settings. The provider must support the selected model and reasoning field. TypeSafe Jev remains a separate structured decision model for the self-hosted Python gateway and MCP server; hosted Vercel routes do not run Jev.
-* ⏱️ **Shared community quota** — hosted requests without a personal generative-provider key are rate-limited. Gemini and configured OpenAI-compatible API keys use the user’s provider quota; provider and hosting limits still apply. A TypeSafe key does not bypass hosted Vercel limits.
+* ⚙️ **Bring your own model** — the hosted Vercel app supports Google Gemini and public HTTPS APIs that implement OpenAI-compatible Chat Completions. Configure the endpoint, provider API key, exact model ID, and optional `reasoning_effort` in Settings. The provider must support the selected model and reasoning field. TypeSafe Jev is configured separately and runs before hosted main-chat and headless decision responses. The selected Gemini or OpenAI-compatible model then writes the human-facing reflection from Jev’s result. If Jev is missing or unavailable, hosted decision responses return CAUTION and do not generate an approval-like reply.
+* ⏱️ **Shared community quota** — hosted requests without a personal generative-provider key are rate-limited. Gemini and configured OpenAI-compatible API keys use the user’s provider quota; provider and hosting limits still apply. A TypeSafe key alone does not bypass the hosted generative-response quota.
 
 ---
 
@@ -475,9 +475,9 @@ metta/
 
 Metta combines two complementary cognitive layers:
 
-1. **Structured evaluation (TypeSafe Jev, when configured in the Python gateway)**
-   - Returns typed judgments for application code to combine with explicit thresholds.
-   - Ambiguous or unavailable evaluations return `CAUTION`; do not infer safety from missing results.
+1. **Structured evaluation (TypeSafe Jev)**
+   - The hosted main chat and agent headless routes call Jev before generating their response; the Python gateway and MCP server also support Jev.
+   - Returns typed judgments that Metta combines with explicit thresholds. If the key is missing, the call fails, or the result is uncertain, hosted decision routes return `CAUTION` and do not treat missing results as safety.
    - Latency depends on the selected service, model, and network; this repository does not promise a fixed decision time.
 2. **Generative reflection (configured provider)**
    - Supports the human-facing conversational response and optional agent-facing explanation.

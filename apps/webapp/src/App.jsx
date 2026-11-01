@@ -639,12 +639,9 @@ export default function App() {
       const byomGeminiKey = localStorage.getItem('metta_byom_gemini_key') || '';
       const byomOpenAIConfig = localStorage.getItem('metta_byom_provider') === 'openai_compatible' ? { base_url: localStorage.getItem('metta_byom_openai_base_url') || '', api_key: localStorage.getItem('metta_byom_openai_key') || '', model: localStorage.getItem('metta_byom_openai_model') || '', reasoning_effort: localStorage.getItem('metta_byom_reasoning_effort') || 'auto' } : null;
       const byomTypesafeKey = localStorage.getItem('metta_byom_typesafe_key') || '';
-      const usesVercelServerless = window.location.hostname.endsWith('.vercel.app');
-      const typesafeKeyForEndpoint = usesVercelServerless ? '' : byomTypesafeKey;
 
       const headers = { 'Content-Type': 'application/json' };
       if (byomGeminiKey) headers['X-Gemini-Api-Key'] = byomGeminiKey;
-      if (typesafeKeyForEndpoint) headers['X-TypeSafe-Api-Key'] = typesafeKeyForEndpoint;
 
       const res = await fetch('/api/interact', {
         method: 'POST',
@@ -657,13 +654,13 @@ export default function App() {
           email: identityMode === 'authenticated' ? userProfile?.email : null,
           byom_gemini_key: byomGeminiKey || null,
           byom_openai_config: byomOpenAIConfig,
-          byom_typesafe_key: typesafeKeyForEndpoint || null,
+          byom_typesafe_key: byomTypesafeKey || null,
         }),
       });
 
       if (!res.ok) {
         if (res.status === 429) {
-          const hostedVercel = window.location.hostname.endsWith('.vercel.app');
+          const hostedVercel = import.meta.env.PROD;
           const byoHint = hostedVercel ? 'Gemini key or OpenAI-compatible API key and model' : 'Google Gemini or TypeSafe Jev API key';
 
           showToast({
@@ -699,6 +696,15 @@ export default function App() {
       }
 
       const data = await res.json();
+      if (!data.system_one_used && data.evaluation?.evaluation_status === 'uncertain') {
+        showToast({
+          title: 'Jev review did not run',
+          message: data.evaluation.uncertainty_reason || 'Add or check the TypeSafe Jev key in Settings. The response remains a pause for human review.',
+          type: 'warning',
+          duration: 10000,
+          action: { label: '⚙️ Open Settings', onClick: () => setSettingsOpen(true) },
+        });
+      }
       const botMsg = {
         role: 'assistant',
         text: data.response_text,

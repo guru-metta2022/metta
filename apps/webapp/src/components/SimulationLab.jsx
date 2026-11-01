@@ -818,18 +818,54 @@ export default function SimulationLab({ onClose = null, onOpenSettings = null })
     setCurrentStep(2);
 
     let liveJev = null;
+    let jevReflection = null;
     try {
-      const res = await fetch('/api/guardrail', {
+      const hostedVercel = import.meta.env.PROD;
+      const byomTypesafeKey = localStorage.getItem('metta_byom_typesafe_key') || '';
+      const byomGeminiKey = localStorage.getItem('metta_byom_gemini_key') || '';
+      const byomOpenAIConfig = localStorage.getItem('metta_byom_provider') === 'openai_compatible' ? {
+        base_url: localStorage.getItem('metta_byom_openai_base_url') || '',
+        api_key: localStorage.getItem('metta_byom_openai_key') || '',
+        model: localStorage.getItem('metta_byom_openai_model') || '',
+        reasoning_effort: localStorage.getItem('metta_byom_reasoning_effort') || 'auto',
+      } : null;
+      const res = await fetch(hostedVercel ? '/api/headless' : '/api/guardrail', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify(hostedVercel ? {
+          query: targetProposal,
+          context: targetContext,
+          verbose: true,
+          include_human_response: true,
+          byom_typesafe_key: byomTypesafeKey || null,
+          byom_gemini_key: byomGeminiKey || null,
+          byom_openai_config: byomOpenAIConfig,
+        } : {
           proposal: targetProposal,
           context: targetContext,
           verbose,
+          byom_typesafe_key: byomTypesafeKey || null,
+          byom_gemini_key: byomGeminiKey || null,
         }),
       });
       if (res.ok) {
-        liveJev = await res.json();
+        const result = await res.json();
+        if (hostedVercel) {
+          const decision = result.decision || {};
+          liveJev = {
+            ...decision,
+            decision: decision.verdict,
+            verdict: decision.verdict,
+            evaluation_status: decision.evaluation_status,
+            system_one_used: decision.system_one_used,
+            reason: decision.reason,
+            violations: (decision.violations || []).map((item) => typeof item === 'string' ? item : `${item.precept || 'Jev concern'}: ${item.explanation || item.recommendation || ''}`),
+            invariants_protected: decision.invariants_protected || [],
+          };
+          jevReflection = result.human_console_response?.response_text || null;
+        } else {
+          liveJev = result;
+        }
       }
     } catch {
       // Backend not running (e.g. static preview) - fallback to client simulation
@@ -861,7 +897,9 @@ export default function SimulationLab({ onClose = null, onOpenSettings = null })
           invariant: liveJev.invariants_protected?.[0] || 'Core Decision Safety Invariant',
           reason: liveJev.reason || 'Evaluated against non-harm invariants.',
           violations: liveJev.violations || [],
-          invariantsProtected: liveJev.invariants_protected || ['Respect for All Life', 'Cognitive Lucidity'],
+          invariantsProtected: liveJev.invariants_protected || [],
+          systemOneUsed: Boolean(liveJev.system_one_used),
+          evaluationMethod: liveJev.evaluation_method || 'unknown',
         }
       : {
           decision: 'CAUTION',
@@ -870,7 +908,19 @@ export default function SimulationLab({ onClose = null, onOpenSettings = null })
           reason: 'No decision service response was available. Pause and request human review.',
           violations: [],
           invariantsProtected: [],
+          systemOneUsed: false,
+          evaluationMethod: 'unavailable',
         };
+
+    if (!finalStep2.systemOneUsed) {
+      showToast({
+        title: 'Jev review unavailable',
+        message: 'Add or check your TypeSafe Jev key in Settings. Metta is keeping this result at CAUTION and recommends human review.',
+        type: 'warning',
+        duration: 10000,
+        action: { label: '⚙️ Open Settings', onClick: () => onOpenSettings?.() },
+      });
+    }
 
     const rawDecisionClean = rawModelInfo.decision.toUpperCase();
     const finalDecisionClean = finalStep2.decision.toUpperCase();
@@ -930,9 +980,12 @@ export default function SimulationLab({ onClose = null, onOpenSettings = null })
         summary: `Triage of proposed action: "${targetProposal.slice(0, 100)}..."`,
       },
       step2: finalStep2,
-      step3: matched?.step3 || {
+      step3: matched?.step3 ? {
+        ...matched.step3,
+        perspective: jevReflection || matched.step3.perspective,
+      } : {
         title: 'Metta Mind: Higher Wisdom & Compassionate Reflection',
-        perspective:
+        perspective: jevReflection ||
           'When we examine this dilemma through the lens of wisdom, we observe that every action ripples across an interconnected web of beings.\n\nTrue progress arises not from rapid, unreflective exertion of will, but from patient discernment. Higher understanding does not retaliate or condemn; it forgives human frailty while gently holding the boundaries of safety. Before acting in the world, pause and ensure that what you construct reduces suffering rather than shifting it elsewhere.',
       },
       step4: {
@@ -1461,6 +1514,9 @@ export default function SimulationLab({ onClose = null, onOpenSettings = null })
                   <span className={`px-2 py-0.5 rounded font-bold ${simulationResult.step2.allow ? 'text-emerald-400 bg-emerald-950/40' : 'text-rose-400 bg-rose-950/40'}`}>
                     RESULT: {simulationResult.step2.decision}
                   </span>
+                </div>
+                <div className={`text-[10px] font-mono ${simulationResult.step2.systemOneUsed ? 'text-[#7ec69d]' : 'text-amber-300'}`}>
+                  {simulationResult.step2.systemOneUsed ? 'TypeSafe Jev review completed' : 'TypeSafe Jev review unavailable — human review required'}
                 </div>
                 <p className="text-[#c4cddb] text-[11px] leading-relaxed">
                   {simulationResult.step2.reason}

@@ -16,7 +16,7 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const { showToast, showAlert } = useAppDialog();
-  const hostedVercel = window.location.hostname.endsWith('.vercel.app');
+  const hostedVercel = import.meta.env.PROD;
 
   useEffect(() => {
     if (isOpen) {
@@ -267,26 +267,33 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
               </div>
             )}
 
-            {!hostedVercel && (
-              <div>
-                <label className="text-[11px] text-[#717b8c] block mb-1" htmlFor="metta-typesafe-key">
-                  TypeSafe Jev API Key (structured decisions)
+            <div className="pt-3 border-t border-[#202735] space-y-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-[11px] text-[#c7d1df] block" htmlFor="metta-typesafe-key">
+                  TypeSafe Jev API Key — structured decision review
                 </label>
-                <input
-                  id="metta-typesafe-key"
-                  type={showKeys ? 'text' : 'password'}
-                  value={byomTypesafeKey}
-                  onChange={(e) => setByomTypesafeKey(e.target.value)}
-                  placeholder="apikey_..."
-                  className="w-full px-3 py-2 rounded-lg bg-[#0d1016] border border-[#212736] text-xs text-[#f0f2f5] font-mono focus:outline-none focus:border-[#385343]"
-                />
+                <span className={`text-[9px] uppercase font-mono ${byomTypesafeKey.trim() ? 'text-[#7ec69d]' : 'text-[#8993a4]'}`}>
+                  {byomTypesafeKey.trim() ? 'Personal key saved' : 'No personal key'}
+                </span>
               </div>
-            )}
+              <input
+                id="metta-typesafe-key"
+                type={showKeys ? 'text' : 'password'}
+                value={byomTypesafeKey}
+                onChange={(e) => setByomTypesafeKey(e.target.value)}
+                placeholder="Your TypeSafe API key"
+                autoComplete="off"
+                className="w-full px-3 py-2 rounded-lg bg-[#0d1016] border border-[#212736] text-xs text-[#f0f2f5] font-mono focus:outline-none focus:border-[#385343]"
+              />
+              <span className="text-[10px] text-[#758094] block">
+                Jev reviews the text first. The selected Gemini or OpenAI-compatible model then writes the human-facing response using Jev’s verdict. A generative key cannot replace Jev; without a personal or hosted Jev key, decision responses pause at CAUTION. Your key stays in this browser and is sent through Metta’s API only when a review runs.
+              </span>
+            </div>
 
             <p className="text-[10px] text-[#616a7a] flex items-center gap-1 pt-1">
               <ShieldCheck className="w-3.5 h-3.5 text-[#5e9e7b] shrink-0" />
               {hostedVercel
-                ? 'Settings and keys stay in this browser. When used, the key passes through Metta’s API to your selected provider; Metta does not save it server-side. Your provider’s billing and data policies apply.'
+                ? 'Settings and keys stay in this browser. Generative and Jev keys pass through Metta’s API to their respective providers when used; Metta does not save them server-side. Provider data and billing policies apply.'
                 : 'Keys are stored in this browser and sent to the configured gateway when used. TypeSafe Jev is a separate structured decision model.'}
             </p>
           </div>

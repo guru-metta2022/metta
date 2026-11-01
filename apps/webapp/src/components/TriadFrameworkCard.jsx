@@ -23,8 +23,8 @@ export default function TriadFrameworkCard({ observation, evaluation, graphMatch
     : uncertain
       ? 'CAUTION: review required'
       : passed
-        ? 'No concern detected'
-        : 'Concern flagged';
+        ? `${evaluation.decision === 'YES' ? 'Jev: YES' : 'No concern detected'}`
+        : `${evaluation.decision === 'NO' ? 'Jev: NO' : 'Concern flagged'}`;
   const emotionalState = observation?.emotional_state || 'deliberative';
   const cognitiveKnot = observation?.cognitive_knot || 'Observing underlying trade-offs';
   const coreNeed = observation?.core_need || 'Equanimity & clarity';

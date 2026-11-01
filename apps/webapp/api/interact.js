@@ -1,4 +1,5 @@
 import { generateOpenAICompatible } from '../lib/openaiCompatible.js';
+import { evaluateWithJev } from '../lib/typesafeJev.js';
 
 /**
  * Project Metta: Primary Conversational Reflection Gateway (/api/interact)
@@ -48,7 +49,7 @@ export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Gemini-Api-Key');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Gemini-Api-Key, X-TypeSafe-Api-Key');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -94,6 +95,7 @@ export default async function handler(req, res) {
     const headers = req.headers || {};
     const userGeminiKey = (headers['x-gemini-api-key'] || body.byom_gemini_key || '').trim();
     const openAIConfig = body.byom_openai_config || null;
+    const typesafeKey = (headers['x-typesafe-api-key'] || body.byom_typesafe_key || process.env.TYPESAFE_API_KEY || '').trim();
     const isUserByom = Boolean(userGeminiKey || openAIConfig?.api_key);
 
     const limitStatus = checkRateLimit(req, isUserByom);
@@ -111,6 +113,19 @@ export default async function handler(req, res) {
       userGeminiKey ||
       process.env.GEMINI_API_KEY ||
       process.env.VITE_GEMINI_API_KEY;
+
+    let jevResult = null;
+    let jevError = '';
+    if (typesafeKey) {
+      try {
+        jevResult = await evaluateWithJev(text, typesafeKey);
+      } catch (error) {
+        jevError = error.message;
+        console.warn('Jev decision review unavailable:', error.message);
+      }
+    } else {
+      jevError = 'A TypeSafe Jev key is required for a decision-informed response.';
+    }
 
     const lower = text.toLowerCase();
 
@@ -363,16 +378,37 @@ export default async function handler(req, res) {
     // 3. Response Generation (BYOM Gemini or Compassionate Engine)
     // -------------------------------------------------------------
     let responseText = '';
+    if (jevResult) {
+      passed = jevResult.passed;
+      requiresSilence = jevResult.requires_silence;
+      violations = jevResult.violations;
+      recommendation = jevResult.reason;
+      emotionalState = jevResult.observation.emotional_state;
+      knot = jevResult.observation.cognitive_knot;
+      need = jevResult.observation.core_need;
+    } else {
+      passed = false;
+      requiresSilence = false;
+      violations = [];
+      recommendation = 'The Jev review did not complete. Pause and request human review.';
+    }
 
-    if (requiresSilence) {
-      responseText = "When the mind wanders into boundless speculation about what is far away in time or space, it leaves the immediate ground of living experience. Let us set aside questions that breed endless argument without untangling suffering. Right now, what is the living tension here in your day?";
+    const jevContext = jevResult
+      ? `Jev decision: ${jevResult.decision}. Evaluation status: ${jevResult.evaluation_status}. Noble Silence / speculative distraction flag: ${jevResult.requires_silence}. Reason: ${jevResult.reason}. Violations: ${jevResult.violations.map((item) => `${item.precept}: ${item.explanation}`).join('; ') || 'None identified'}. Jev observation: ${jevResult.observation.emotional_state}; underlying need: ${jevResult.observation.core_need}.`
+      : '';
+    const jevGuidedFallback = jevResult
+      ? `I hear the concern in what you shared. Jev’s review returned ${jevResult.decision}: ${jevResult.reason} The review also noticed ${jevResult.observation.emotional_state} and a possible need for ${jevResult.observation.core_need}. ${jevResult.decision === 'YES' ? 'This is not a guarantee of safety; consider the effects and keep a person responsible for the final choice.' : 'Please pause and seek human review before taking any consequential action.'}`
+      : '';
+
+    if (!jevResult) {
+      responseText = 'I want to give you a thoughtful answer, and the Jev decision review did not complete. Please add or check your TypeSafe Jev key in Settings; until the review is available, pause and seek human review for any consequential action.';
     } else if (openAIConfig) {
       try {
-        const prompt = `You are Metta, a compassionate and practical reflection assistant. Respect the user's intent, do not invent scripture or quotations, and give a relevant, actionable perspective.\n\nUser: ${text}\nEthical review: ${passed ? 'No detected concern' : violations.map(v => v.precept).join(', ')}\nContext: ${emotionalState}; need: ${need}.`;
-        responseText = await generateOpenAICompatible({ baseUrl: openAIConfig.base_url, apiKey: openAIConfig.api_key, model: openAIConfig.model, reasoningEffort: openAIConfig.reasoning_effort || 'auto', messages: [{ role: 'user', content: prompt }], maxTokens: 600 });
+        const systemPrompt = `You are Metta, a compassionate and practical reflection assistant. Jev has already reviewed the user's message. Use Jev's verdict and findings as the decision layer; do not contradict, erase, or overstate them. Give a warm, consoling response that directly addresses the user's situation and explains the decision in plain language. When Jev returns CAUTION, clearly advise pausing and seeking human review. Do not claim that a YES guarantees safety or that Metta controls execution. Do not invent scripture or quotations. Include one concrete next step.`;
+        responseText = await generateOpenAICompatible({ baseUrl: openAIConfig.base_url, apiKey: openAIConfig.api_key, model: openAIConfig.model, reasoningEffort: openAIConfig.reasoning_effort || 'auto', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: `User's words:\n${text}\n\nStructured Jev review:\n${jevContext}` }], maxTokens: 700 });
       } catch (error) {
         console.warn('OpenAI-compatible response generation failed:', error.message);
-        responseText = customFallbackText;
+        responseText = jevGuidedFallback;
       }
     } else if (geminiKey) {
       try {
@@ -388,8 +424,9 @@ export default async function handler(req, res) {
           `5. ATTUNEMENT & TENDERNESS: Attune to the seeker's age, vulnerability, and heart. Speak with boundless warmth, total acceptance, and clear reassurance, but always pair compassion with sharp, practical wisdom (Paññā).\n` +
           `6. ZERO CORPORATE OR CLINICAL JARGON: Never use terms like 'trade-offs', 'telemetry', 'mitigation', 'stakeholders', 'operational', 'as an AI'.\n\n` +
           `Seeker's Words: "${text}"\n` +
-          `Ethical Status: ${passed ? 'Pure / Wholesome' : 'Caution / Unwholesome: ' + violations.map(v => v.precept).join(', ')}\n` +
-          `Observed State: ${emotionalState} (Knot: ${knot}, Need: ${need})\n\n` +
+          `Structured Jev Review: ${jevContext}\n` +
+          `Ethical Status: ${passed ? 'No concern identified by Jev; this is not a safety guarantee.' : 'Jev identified caution or an unresolved concern: ' + violations.map(v => v.precept).join(', ')}\n` +
+          `Observed State from Jev: ${emotionalState} (Knot: ${knot}, Need: ${need})\n\n` +
           `Respond directly to the seeker in 2 to 3 serene, highly relevant, and deeply insightful paragraphs that directly solve and reframe their question with real wisdom and practical clarity. Include a concrete, actionable practice. At the end, include the canonical anchor: *Canonical Anchor: [Sutta Title](link)*`;
 
         const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
@@ -427,14 +464,13 @@ export default async function handler(req, res) {
         }
 
         if (!geminiSuccess) {
-          responseText = customFallbackText;
+          responseText = jevGuidedFallback;
         }
       } catch {
-        responseText = customFallbackText;
+        responseText = jevGuidedFallback;
       }
     } else {
-      // Use our deeply compassionate, heart-attuned synthesis
-      responseText = customFallbackText;
+      responseText = jevGuidedFallback;
     }
 
     const durationSeconds = Math.max(0.08, parseFloat(((Date.now() - startTime) / 1000).toFixed(2)));
@@ -466,24 +502,26 @@ export default async function handler(req, res) {
       response_text: responseText,
       evaluation: {
         passed,
-        evaluation_status: 'evaluated',
-        evaluation_method: 'limited_keyword_rules',
+        decision: jevResult?.decision || 'CAUTION',
+        evaluation_status: jevResult?.evaluation_status || 'uncertain',
+        evaluation_method: jevResult?.evaluation_method || 'jev_unavailable',
         violations,
         requires_silence: requiresSilence,
-        rule_checked: passed ? "No known concern matched by the hosted rules" : violations[0]?.precept || "Precept concern detected",
+        uncertainty_reason: jevResult?.uncertainty_reason || jevError || null,
+        rule_checked: jevResult?.reason || jevError,
       },
-      observation: {
+      observation: jevResult?.observation || {
         emotional_state: emotionalState,
         cognitive_knot: knot,
         core_need: need,
-        urgency_level: passed ? "moderate" : "high",
+        urgency_level: 'high',
       },
       graph_match: graphMatch,
       duration_seconds: durationSeconds,
-      system_one_used: false,
+      system_one_used: Boolean(jevResult),
       diagnostics: null,
-      provider: openAIConfig ? "openai-compatible" : geminiKey ? "gemini" : "metta-heart",
-      model: openAIConfig?.model || (geminiKey ? "gemini-2.5-flash" : "metta-heart"),
+      provider: !jevResult ? 'jev-review-required' : openAIConfig ? "openai-compatible" : geminiKey ? "gemini" : "metta-heart",
+      model: !jevResult ? 'none' : openAIConfig?.model || (geminiKey ? "gemini-2.5-flash" : "metta-heart"),
       mode,
       user_graph_updated: false,
       is_byom: isUserByom,
