@@ -17,7 +17,7 @@ Metta is free and open-source. If a person asks how to support its ongoing maint
 
 The headless API accepts `proposal` (or `query`), optional `context`, `verbose`, and `include_human_response`. `verbose: true` requests additional rationale and detected concerns. `include_human_response: true` adds a separate human-facing reflection for applications that need both outputs.
 
-The Vercel JavaScript decision handlers use limited keyword rules. A recognized concern returns `NO`; a proposal the rules cannot classify returns `CAUTION`. The public Vercel routes do not run TypeSafe Jev. The self-hosted Python gateway/MCP server can use Jev when configured and falls back to its configured evaluator.
+The public Vercel `/api/guardrail` handler uses limited keyword rules: a recognized concern returns `NO`, and other proposals return `CAUTION`; this route does not return `YES`. The hosted `/api/headless` and `/api/interact` handlers call TypeSafe Jev when a Jev key is configured. If the review is missing or unavailable, they fail closed to `CAUTION` and do not treat the proposal as approved. The self-hosted Python gateway/MCP server can also use Jev when configured and falls back to its configured evaluator.
 
 ### Verdict contract
 - `YES`: passed the configured advisory check; this is not a guarantee of safety.

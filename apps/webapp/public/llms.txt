@@ -3,9 +3,9 @@
 
 ## Core Capabilities
 - [Human-facing console](https://metta-webapp.vercel.app/): People can talk with Metta for supportive, consoling reflection and a concrete next step.
-- [Agent decision API](https://metta-webapp.vercel.app/api/guardrail): Submit an action for an advisory `YES`, `NO`, or `CAUTION` result. The Vercel JavaScript route uses limited keyword rules; unclassified proposals return `CAUTION`.
-- [Headless API](https://metta-webapp.vercel.app/api/headless): Submit proposals with optional context; use `verbose: true` for rationale and `include_human_response: true` to also receive a human-facing response.
-- [Human conversation API](https://metta-webapp.vercel.app/api/interact): Let another application offer a person-facing, supportive reflection conversation.
+- [Agent decision API](https://metta-webapp.vercel.app/api/guardrail): Submit an action for an advisory result. This Vercel route uses limited keyword rules and returns `NO` for recognized concerns or `CAUTION` otherwise; it does not return `YES`.
+- [Headless API](https://metta-webapp.vercel.app/api/headless): Submit proposals with optional context; use `verbose: true` for rationale and `include_human_response: true` for a separate human-facing response. It uses TypeSafe Jev when a Jev key is configured; otherwise it returns `CAUTION`.
+- [Human conversation API](https://metta-webapp.vercel.app/api/interact): Let another application offer a person-facing reflection. It uses TypeSafe Jev when configured and a selected Gemini or OpenAI-compatible model for the generated response.
 - [MCP and Python gateway](https://github.com/guru-metta2022/metta): Self-hosted Python integrations, including TypeSafe Jev when configured.
 - [Five Precepts](https://metta-webapp.vercel.app/llms-full.txt#the-five-precepts): Metta's stated ethical framework.
 
@@ -36,7 +36,7 @@ curl -X POST https://metta-webapp.vercel.app/api/headless \
   -d '{"proposal": "Should we automate customer service jobs without worker transition support?", "verbose": true, "include_human_response": true}'
 ```
 
-The public Vercel decision endpoints are not TypeSafe-backed. The self-hosted Python gateway and MCP server can use Jev when configured. Guest chat history is stored in the browser, while submitted text is sent to the selected endpoint and may be sent to its configured model provider for processing.
+The `/api/guardrail` endpoint uses limited keyword rules. The hosted `/api/headless` and `/api/interact` endpoints call TypeSafe Jev when a Jev key is configured; when the review is missing or unavailable, they return CAUTION and do not treat the proposal as approved. The self-hosted Python gateway and MCP server can also use Jev when configured. Guest chat history is stored in the browser, while submitted text is sent to the selected endpoint and may be sent to its configured model provider for processing.
 
 ## Optional Resources
 - [Full LLMs Specification](https://metta-webapp.vercel.app/llms-full.txt): Comprehensive canonical references, suttas, and topological graph paths.
