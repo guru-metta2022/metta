@@ -1,3 +1,5 @@
+import { generateOpenAICompatible } from '../../apps/webapp/lib/openaiCompatible.js';
+
 export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -18,6 +20,25 @@ export default async function handler(req, res) {
 
     if (!raw) {
       return res.status(200).json({ original: '', polished: '' });
+    }
+
+    const openAIConfig = body.byom_openai_config || null;
+    if (openAIConfig) {
+      try {
+        const systemPrompt = "You are an expert copy editor. Rewrite the user's text into clear, grammatical, natural language. Improve sentence structure, word choice, flow, and punctuation while preserving intent, tone, names, technical terms, and details. Remove speech disfluencies. Do not add claims or answer the text. Return only the revised text.";
+        const polished = await generateOpenAICompatible({
+          baseUrl: openAIConfig.base_url,
+          apiKey: openAIConfig.api_key,
+          model: openAIConfig.model,
+          reasoningEffort: openAIConfig.reasoning_effort || 'auto',
+          messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: raw }],
+          maxTokens: 512,
+        });
+        return res.status(200).json({ original: raw, polished, provider: 'openai-compatible', model: openAIConfig.model });
+      } catch (error) {
+        console.warn('OpenAI-compatible polish request failed:', error.message);
+        return res.status(200).json({ original: raw, polished: raw, provider: 'provider-error', error: 'The selected provider could not polish this text. Check its URL, key, model, and reasoning setting.' });
+      }
     }
 
     const geminiKey =

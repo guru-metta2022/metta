@@ -1,3 +1,5 @@
+import { generateOpenAICompatible } from '../apps/webapp/lib/openaiCompatible.js';
+
 // In-memory sliding-window rate limiter for shared community tier
 const rateLimitMap = new Map();
 const WINDOW_MS = 60 * 1000;
@@ -99,11 +101,12 @@ export default async function handler(req, res) {
 
       const headers = req.headers || {};
       const userGeminiKey = (headers['x-gemini-api-key'] || body.byom_gemini_key || '').trim();
-      const isUserByom = Boolean(userGeminiKey && body.include_human_response);
+      const openAIConfig = body.byom_openai_config || null;
+      const isUserByom = Boolean((userGeminiKey || openAIConfig?.api_key) && body.include_human_response);
 
       const limitStatus = checkRateLimit(req, isUserByom);
       if (!limitStatus.allowed) {
-        const errorMsg = `Shared community quota pause (${MAX_REQUESTS_PER_MINUTE} req/min). A personal Gemini key can use your own provider quota for Gemini-backed responses; hosting and provider limits may still apply.`;
+        const errorMsg = `Shared community quota pause (${MAX_REQUESTS_PER_MINUTE} req/min). A personal Gemini or OpenAI-compatible API key can use your own provider quota for generated responses; hosting and provider limits may still apply.`;
         if (wantsMarkdown || body.format === 'markdown') {
           res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
           return res.status(429).send(`# Rate Limit Exceeded\n\n${errorMsg}\n`);
@@ -245,7 +248,19 @@ export default async function handler(req, res) {
         : `I must counsel caution here. ${recommendation} ${reframe}`;
 
       // Deep reasoning enhancement with Gemini Flash if key is available
-      if (geminiKey && body.include_human_response) {
+      if (body.include_human_response && openAIConfig) {
+        try {
+          const text = await generateOpenAICompatible({ baseUrl: openAIConfig.base_url, apiKey: openAIConfig.api_key, model: openAIConfig.model, reasoningEffort: openAIConfig.reasoning_effort || 'auto', messages: [{ role: 'user', content: `You are Metta, a compassionate, practical reflection assistant. Do not claim to be the Buddha or invent canonical quotations.
+Proposal: ${query}
+Safety outcome: ${verdict}
+Observation: ${knot}; need: ${need}
+Reframe: ${reframe}
+Write two direct, kind sentences for a person reading this reflection.` }], maxTokens: 160 });
+          summaryText = text;
+        } catch (error) {
+          console.warn('OpenAI-compatible headless response failed:', error.message);
+        }
+      } else if (geminiKey && body.include_human_response) {
         try {
           const gemPrompt =
             `You are Metta, a Buddhist-inspired reflection assistant. Be compassionate and practical; do not claim to be the Buddha or a historical teacher, and do not invent canonical quotations.\n` +

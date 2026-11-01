@@ -1,3 +1,5 @@
+import { generateOpenAICompatible } from '../lib/openaiCompatible.js';
+
 /**
  * Project Metta: Primary Conversational Reflection Gateway (/api/interact)
  * Buddhist-inspired compassionate reflection for human dialogue.
@@ -91,14 +93,15 @@ export default async function handler(req, res) {
 
     const headers = req.headers || {};
     const userGeminiKey = (headers['x-gemini-api-key'] || body.byom_gemini_key || '').trim();
-    const isUserByom = Boolean(userGeminiKey);
+    const openAIConfig = body.byom_openai_config || null;
+    const isUserByom = Boolean(userGeminiKey || openAIConfig?.api_key);
 
     const limitStatus = checkRateLimit(req, isUserByom);
     if (!limitStatus.allowed) {
       return res.status(429).json({
         error: 'Rate limit exceeded',
         detail: {
-          message: `Shared community quota pause (${MAX_REQUESTS_PER_MINUTE} req/min). A personal Gemini key can use your own provider quota; provider and hosting limits may still apply.`,
+          message: `Shared community quota pause (${MAX_REQUESTS_PER_MINUTE} req/min). A personal Gemini or OpenAI-compatible API key can use your own provider quota; provider and hosting limits may still apply.`,
           reset_seconds: limitStatus.resetSeconds,
         },
       });
@@ -363,6 +366,14 @@ export default async function handler(req, res) {
 
     if (requiresSilence) {
       responseText = "When the mind wanders into boundless speculation about what is far away in time or space, it leaves the immediate ground of living experience. Let us set aside questions that breed endless argument without untangling suffering. Right now, what is the living tension here in your day?";
+    } else if (openAIConfig) {
+      try {
+        const prompt = `You are Metta, a compassionate and practical reflection assistant. Respect the user's intent, do not invent scripture or quotations, and give a relevant, actionable perspective.\n\nUser: ${text}\nEthical review: ${passed ? 'No detected concern' : violations.map(v => v.precept).join(', ')}\nContext: ${emotionalState}; need: ${need}.`;
+        responseText = await generateOpenAICompatible({ baseUrl: openAIConfig.base_url, apiKey: openAIConfig.api_key, model: openAIConfig.model, reasoningEffort: openAIConfig.reasoning_effort || 'auto', messages: [{ role: 'user', content: prompt }], maxTokens: 600 });
+      } catch (error) {
+        console.warn('OpenAI-compatible response generation failed:', error.message);
+        responseText = customFallbackText;
+      }
     } else if (geminiKey) {
       try {
         const prompt =
@@ -471,8 +482,8 @@ export default async function handler(req, res) {
       duration_seconds: durationSeconds,
       system_one_used: false,
       diagnostics: null,
-      provider: geminiKey ? "gemini-3.8-flash" : "metta-heart",
-      model: "gemini-3.8-flash-high",
+      provider: openAIConfig ? "openai-compatible" : geminiKey ? "gemini" : "metta-heart",
+      model: openAIConfig?.model || (geminiKey ? "gemini-2.5-flash" : "metta-heart"),
       mode,
       user_graph_updated: false,
       is_byom: isUserByom,

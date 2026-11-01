@@ -9,7 +9,7 @@
 If this conversation terminates or you resume with a fresh credit allocation, the entire architectural footprint of Project Metta is persisted in four locations:
 1. **Local Obsidian Vault (`/vault`):** All philosophical foundations, architectural blueprints, ADRs 001–010, and daily DevLogs (`DevLog-2026-10-29.md`, `DevLog-2026-10-30.md`, `DevLog-2026-10-31.md`).
 2. **Project Continuity Anchor ([`CONTINUITY.md`](file:///home/guru/Work/metta/CONTINUITY.md)):** Master quickstart, canonical anchors, and component map.
-3. **Local Git History (`main` branch):** Every feature is atomically committed with clean commits authored by `Guru <guru.metta2022@gmail.com>`.
+3. **Local Git Checkout:** Development may include intentional uncommitted work; inspect continuity notes and `git status` before syncing. Never assume the tree is clean or discard local changes.
 4. **Live Production Deployment:** Production Web App live at `https://metta-webapp.vercel.app`.
 
 ---
@@ -30,7 +30,7 @@ When beginning a new session or switching model credits:
    ```bash
    git status
    ```
-   Ensure tree is clean and work is on `main`.
+   Preserve intentional uncommitted and untracked work. Inspect continuity notes before syncing or pushing.
 4. **Check Active Server & Production Endpoints:**
    ```bash
    # Local Health
@@ -42,12 +42,12 @@ When beginning a new session or switching model credits:
 ---
 
 ## 3. Active Capabilities Implemented
-- [x] **Gemini 3.8 Flash** via Antigravity Language Server / `agy` CLI & BYOM Gemini REST.
+- [x] **Generative provider options:** hosted app supports Gemini and public HTTPS OpenAI-compatible Chat Completions endpoints (endpoint, key, model, optional reasoning effort); self-hosted gateways may configure local model services.
 - [x] **TypeSafe Jev System 1 Decision Model** (`TypeSafe-Danger-Zone-Images: true`).
 - [x] **Canonical Anchors** to SuttaCentral and Access to Insight with SHA-256 local bedrock.
 - [x] **Strict Primacy of 5 Precepts** & Inviolability of All Life (*Ahimsa*).
 - [x] **Multi-Platform Voice Dictation Sanitizer** (`VoiceSanitizer.run_diagnostics()`).
-- [x] **Acoustic Speech Purifier & Polish AI Engine** (Phoneme corrections for `"read them a"` $\rightarrow$ `"treat them as"`, etc.).
+- [x] **Editable text polish:** main chat and Simulation Lab use the selected hosted generative provider to improve typed or transcribed text; results replace the draft for review/editing and are never auto-submitted.
 - [x] **Reflection, Decision & Resolution Framework UI**:
   - `CollapsibleBubble.jsx` (>2 lines / ~160 chars with smooth gradient fade).
   - `TriadFrameworkCard.jsx` embedded in messages.
@@ -63,6 +63,11 @@ When beginning a new session or switching model credits:
 - [x] **MCP Server** for external agent integration (Stdio & SSE).
 
 ---
+
+## Latest local/unpushed work (2026-11-01)
+- Hosted provider support is implemented across chat, headless human-facing synthesis, and both polish surfaces. Hosted UI does not expose a local LM Studio choice. TypeSafe Jev is still separate and self-hosted.
+- `npm run build`, route/helper syntax checks, `git diff --check`, and duplicate route comparison passed. These changes have not been pushed or deployed.
+- Before pushing, inspect `git status`, all diffs, and remote `main`; preserve all local changes and do not force push.
 
 ## Related Documents
 - [[Index]]

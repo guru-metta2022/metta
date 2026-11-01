@@ -39,8 +39,8 @@ The fastest way to explore Metta without installing anything locally is the prod
   * **Guest Users:** Retains up to **5 recent sessions** in local browser storage.
   * **Authenticated Users:** Retains up to **100 sessions** in browser storage, keyed to the signed-in profile.
   * Guest chat history is kept in browser storage. Submitted text is sent to the selected Metta endpoint for processing; when a hosted model is used, the relevant text is also sent to that model provider. Guest Mode means no account is required and Metta does not persist guest chat history as an account record; it does not mean that requests stay on the device.
-* ⚙️ **Bring your own model key** — the hosted Vercel app supports Gemini for generative responses. The TypeSafe Jev key is used by the self-hosted Python gateway and MCP server; the hosted Vercel JavaScript routes currently do not run Jev.
-* ⏱️ **Shared community quota** — hosted community requests are rate-limited. A personal Gemini key can be used for Gemini-backed features; a TypeSafe key does not bypass hosted Vercel limits.
+* ⚙️ **Bring your own model** — the hosted Vercel app supports Google Gemini and public HTTPS APIs that implement OpenAI-compatible Chat Completions. Configure the endpoint, provider API key, exact model ID, and optional `reasoning_effort` in Settings. The provider must support the selected model and reasoning field. TypeSafe Jev remains a separate structured decision model for the self-hosted Python gateway and MCP server; hosted Vercel routes do not run Jev.
+* ⏱️ **Shared community quota** — hosted requests without a personal generative-provider key are rate-limited. Gemini and configured OpenAI-compatible API keys use the user’s provider quota; provider and hosting limits still apply. A TypeSafe key does not bypass hosted Vercel limits.
 
 ---
 
@@ -363,7 +363,7 @@ Add Metta to your Claude Desktop configuration file:
   }
 }
 ```
-*(Supports **BYOAI** providers: `gemini`, `local_llm`, or `open_source`. Recommended: Gemini 3.8 Flash).*
+*(Self-hosted deployments support the configured gateway providers. The hosted Vercel UI supports Gemini or public HTTPS OpenAI-compatible Chat Completions endpoints.)*
 
 #### Option B: Cursor IDE (`mcp.json`)
 

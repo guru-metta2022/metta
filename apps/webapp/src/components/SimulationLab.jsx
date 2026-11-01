@@ -503,6 +503,7 @@ async function polishTextWithAI(raw) {
   if (!raw || !raw.trim()) return { text: '', provider: 'heuristic-purifier', model: '' };
 
   const byomGeminiKey = localStorage.getItem('metta_byom_gemini_key') || '';
+  const byomOpenAIConfig = localStorage.getItem('metta_byom_provider') === 'openai_compatible' ? { base_url: localStorage.getItem('metta_byom_openai_base_url') || '', api_key: localStorage.getItem('metta_byom_openai_key') || '', model: localStorage.getItem('metta_byom_openai_model') || '', reasoning_effort: localStorage.getItem('metta_byom_reasoning_effort') || 'auto' } : null;
   const headers = { 'Content-Type': 'application/json' };
   if (byomGeminiKey) headers['X-Gemini-Api-Key'] = byomGeminiKey;
 
@@ -519,6 +520,7 @@ async function polishTextWithAI(raw) {
         raw_transcript: raw,
         mode: 'simulation',
         byom_gemini_key: byomGeminiKey || null,
+        byom_openai_config: byomOpenAIConfig,
       }),
     });
     if (res.ok) {
@@ -534,7 +536,7 @@ async function polishTextWithAI(raw) {
   }
 
   // 2. If serverless did not use Gemini but client has personal BYOM Gemini key, call Google Gemini direct REST API
-  if (byomGeminiKey && providerUsed === 'heuristic-purifier') {
+  if (byomGeminiKey && !byomOpenAIConfig && providerUsed === 'heuristic-purifier') {
     try {
       const systemPrompt =
         "You are an expert copy editor. The input may be typed text or speech transcription. " +
@@ -582,7 +584,7 @@ async function polishTextWithAI(raw) {
 // ==============================================================================
 // Main SimulationLab Component
 // ==============================================================================
-export default function SimulationLab({ onClose = null }) {
+export default function SimulationLab({ onClose = null, onOpenSettings = null }) {
   const [activeTab, setActiveTab] = useState(PREBUILT_SIMULATIONS[0].id);
   const [customProposal, setCustomProposal] = useState(PREBUILT_SIMULATIONS[0].proposal);
   const [customContext, setCustomContext] = useState(PREBUILT_SIMULATIONS[0].context);
@@ -693,18 +695,23 @@ export default function SimulationLab({ onClose = null }) {
           message: `Grammar and clarity improved using ${model || provider}. Review and edit before sending.`,
           type: 'success',
         });
-      } else if (provider === 'heuristic-purifier' && polished !== raw) {
+      } else if (provider === 'provider-error') {
+        showToast({ title: 'AI rewrite failed', message: 'Check the selected provider’s public API URL, key, model, and reasoning setting in Settings. Your draft was left unchanged and remains editable.', type: 'warning', duration: 10000, action: { label: '⚙️ Open Settings', onClick: () => onOpenSettings?.() } });
+      } else if (provider === 'heuristic-purifier') {
         showToast({
-          title: 'Basic cleanup only',
-          message: 'No language model was available, so only simple cleanup was applied. Add a Gemini key in Settings for an AI rewrite.',
-          type: 'info',
+          title: polished !== raw ? 'AI rewrite unavailable • Basic cleanup only' : 'AI rewrite unavailable',
+          message: `${polished !== raw ? 'Only simple cleanup was applied. ' : 'The draft was left unchanged. '}Add the selected provider’s API key and model in Settings. For an OpenAI-compatible provider, use its public HTTPS API endpoint. Your draft remains editable and was not submitted.`,
+          type: 'warning',
+          duration: 10000,
+          action: {
+            label: '⚙️ Open Settings',
+            onClick: () => onOpenSettings?.(),
+          },
         });
-      } else {
+      } else if (polished === raw) {
         showToast({
-          title: provider === 'heuristic-purifier' ? 'AI rewrite unavailable' : 'Text already clear',
-          message: provider === 'heuristic-purifier'
-            ? 'Add a Gemini key in Settings or configure a model on your server to rewrite this text.'
-            : 'No rewrite was needed. You can still edit the text before sending.',
+          title: 'Text already clear',
+          message: 'No rewrite was needed. You can still edit the proposal before running the simulation.',
           type: 'info',
         });
       }

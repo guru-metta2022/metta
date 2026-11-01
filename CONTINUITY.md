@@ -153,13 +153,14 @@ curl -s -X POST http://127.0.0.1:8000/api/headless -H "Accept: text/markdown" -d
 - Updated README, package documentation, machine catalogs, API routes, MCP behavior, decision evaluation, privacy language, and Simulation Lab behavior to align implementation and claims with the advisory product boundary above.
 - The main chat and Simulation Lab polish controls now request grammar, clarity, and natural phrasing improvements for typed text as well as speech transcripts. The result replaces the draft in its text box for user review/editing; it is not sent automatically.
 - LLM output is no longer passed through acoustic heuristic cleanup. If a language model is unavailable, the interface identifies the result as basic heuristic cleanup. The root Vercel route and `apps/webapp/api/voice/polish.js` are synced.
+- Hosted Settings offers Gemini or a public HTTPS OpenAI-compatible Chat Completions endpoint. The main chat and Simulation Lab polish flows use the selected provider; missing or failed provider configuration produces an actionable Settings toast. The hosted UI does not offer local LM Studio. TypeSafe Jev remains separate and self-hosted.
 - Python `/api/voice/polish` reports the provider used and sets `auto_execute` to false.
-- Validation completed: `npm run build` from `apps/webapp`, JavaScript syntax checks for both polish routes, Python AST syntax checks for the modified Python modules, `git diff --check`, and equality check for the duplicated polish routes. Tests were not run.
+- Validation completed for the latest local changes: `npm run build` from `apps/webapp`, JavaScript syntax checks for updated server routes/helper, `git diff --check`, and comparison of duplicated Vercel routes. Tests were not run.
 
 #### Git and deployment handoff
 - Local branch: `main`. `origin`: `https://github.com/guru-metta2022/metta.git`.
-- The current working tree contains multiple uncommitted tracked changes, including this polish feature and broader documentation/API/safety updates. These local changes are the source of truth and must be preserved.
-- No push has been made from this environment. `main` has no configured upstream. Local GitHub CLI authentication could not be checked because the `gh` shim failed to install in the read-only environment, and this environment could not resolve `github.com`.
+- The current working tree contains uncommitted tracked changes and the new `apps/webapp/lib/openaiCompatible.js` helper. The working copy is the source of truth for the latest provider support; preserve all tracked and untracked changes.
+- The latest provider-support changes are local and unpushed. The GitHub-connected agy session should inspect the current branch, upstream, complete diff, and remote state before committing/pushing. Do not reset, discard, overwrite, or edit the implementation; if safe integration is blocked by remote divergence or conflicts, stop and report the exact conflict.
 - A separate authorized agent with GitHub access should inspect the complete diff and remote `main`, preserve all local edits, integrate any remote-only commits without discarding local work, commit the intended changes, and push to `origin main` without force-pushing. Then verify that the push triggered the Vercel deployment and report the commit and deployment status.
 
 ### Completed Milestones (2026-10-31):
@@ -188,3 +189,15 @@ curl -s -X POST http://127.0.0.1:8000/api/headless -H "Accept: text/markdown" -d
 1. **Supabase Cloud Identity**: Pure, branded Metta email/password authentication with custom email templates in `supabase/templates/`.
 2. **Unified Voice Interface**: Real-time Web Audio API frequency analysis oscillator with interim speech stream listener and 3-second auto-stop across both Home Chat and Simulation Lab.
 3. **Voice Polish AI**: BYOM Gemini 3.8 Flash primary pipeline with comprehensive acoustic speech-to-text error reconstruction (eliminated external rate-limited models).
+
+
+## 2026-11-01 hosted BYO provider update
+- Hosted Settings offers Gemini or a public HTTPS endpoint implementing OpenAI-compatible `/chat/completions`; it asks for base URL, API key, exact model ID, and optional `reasoning_effort`. Hosted UI does not present local LM Studio as a selectable provider. Self-hosted gateway settings retain local provider configuration.
+- Main chat, optional headless human-facing response, and text polish route through the selected OpenAI-compatible provider. TypeSafe Jev remains a separate self-hosted structured decision integration.
+- Hosted API requests reject local/private network destinations to prevent server-side requests to private hosts. API keys remain in browser storage and are sent to Metta’s serverless API for provider calls.
+
+
+### Latest provider implementation handoff (2026-11-01)
+- Hosted Settings: Gemini or public HTTPS OpenAI-compatible `/chat/completions`, with API key, model ID, and optional reasoning effort. The selected generative provider routes through main chat, headless human-facing response, and both polish inputs. TypeSafe Jev remains a separate self-hosted structured decision service.
+- Server-side OpenAI-compatible requests block local/private network destinations. Provider keys are stored in browser local storage and passed to Metta's API for requests.
+- Build, JavaScript syntax checks, `git diff --check`, and duplicate-route comparison passed. The changes are not pushed/deployed yet.

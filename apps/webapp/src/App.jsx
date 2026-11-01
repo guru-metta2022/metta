@@ -427,6 +427,7 @@ export default function App() {
     let modelUsed = '';
 
     const byomGeminiKey = localStorage.getItem('metta_byom_gemini_key') || '';
+    const byomOpenAIConfig = localStorage.getItem('metta_byom_provider') === 'openai_compatible' ? { base_url: localStorage.getItem('metta_byom_openai_base_url') || '', api_key: localStorage.getItem('metta_byom_openai_key') || '', model: localStorage.getItem('metta_byom_openai_model') || '', reasoning_effort: localStorage.getItem('metta_byom_reasoning_effort') || 'auto' } : null;
     const headers = { 'Content-Type': 'application/json' };
     if (byomGeminiKey) headers['X-Gemini-Api-Key'] = byomGeminiKey;
 
@@ -438,6 +439,7 @@ export default function App() {
           raw_transcript: raw,
           mode: 'chat',
           byom_gemini_key: byomGeminiKey || null,
+          byom_openai_config: byomOpenAIConfig,
         }),
       });
       if (res.ok) {
@@ -453,7 +455,7 @@ export default function App() {
     }
 
     // If serverless did not use Gemini but client has personal BYOM key, call direct Gemini Flash
-    if (byomGeminiKey && providerUsed === 'heuristic-purifier') {
+    if (byomGeminiKey && !byomOpenAIConfig && providerUsed === 'heuristic-purifier') {
       try {
         const systemPrompt =
           "You are an expert copy editor. The input may be typed text or speech transcription. " +
@@ -503,18 +505,23 @@ export default function App() {
           message: `Grammar and clarity improved using ${modelUsed || providerUsed}. Review and edit before sending.`,
           type: 'success',
         });
-      } else if (providerUsed === 'heuristic-purifier' && polished !== raw) {
+      } else if (providerUsed === 'provider-error') {
+        showToast({ title: 'AI rewrite failed', message: 'Check the selected provider’s public API URL, key, model, and reasoning setting in Settings. Your draft was left unchanged and remains editable.', type: 'warning', duration: 10000, action: { label: '⚙️ Open Settings', onClick: () => setSettingsOpen(true) } });
+      } else if (providerUsed === 'heuristic-purifier') {
         showToast({
-          title: 'Basic cleanup only',
-          message: 'No language model was available, so only simple cleanup was applied. Add a Gemini key in Settings for an AI rewrite.',
-          type: 'info',
+          title: polished !== raw ? 'AI rewrite unavailable • Basic cleanup only' : 'AI rewrite unavailable',
+          message: `${polished !== raw ? 'Only simple cleanup was applied. ' : 'The draft was left unchanged. '}Add the selected provider’s API key and model in Settings. For an OpenAI-compatible provider, use its public HTTPS API endpoint. Your draft remains editable and was not submitted.`,
+          type: 'warning',
+          duration: 10000,
+          action: {
+            label: '⚙️ Open Settings',
+            onClick: () => setSettingsOpen(true),
+          },
         });
-      } else {
+      } else if (polished === raw) {
         showToast({
-          title: providerUsed === 'heuristic-purifier' ? 'AI rewrite unavailable' : 'Text already clear',
-          message: providerUsed === 'heuristic-purifier'
-            ? 'Add a Gemini key in Settings or configure a model on your server to rewrite this text.'
-            : 'No rewrite was needed. You can still edit the text before sending.',
+          title: 'Text already clear',
+          message: 'No rewrite was needed. You can still edit the text before sending.',
           type: 'info',
         });
       }
@@ -630,6 +637,7 @@ export default function App() {
 
     try {
       const byomGeminiKey = localStorage.getItem('metta_byom_gemini_key') || '';
+      const byomOpenAIConfig = localStorage.getItem('metta_byom_provider') === 'openai_compatible' ? { base_url: localStorage.getItem('metta_byom_openai_base_url') || '', api_key: localStorage.getItem('metta_byom_openai_key') || '', model: localStorage.getItem('metta_byom_openai_model') || '', reasoning_effort: localStorage.getItem('metta_byom_reasoning_effort') || 'auto' } : null;
       const byomTypesafeKey = localStorage.getItem('metta_byom_typesafe_key') || '';
       const usesVercelServerless = window.location.hostname.endsWith('.vercel.app');
       const typesafeKeyForEndpoint = usesVercelServerless ? '' : byomTypesafeKey;
@@ -648,6 +656,7 @@ export default function App() {
           user_id: identityMode === 'authenticated' ? userProfile?.user_id : null,
           email: identityMode === 'authenticated' ? userProfile?.email : null,
           byom_gemini_key: byomGeminiKey || null,
+          byom_openai_config: byomOpenAIConfig,
           byom_typesafe_key: typesafeKeyForEndpoint || null,
         }),
       });
@@ -655,7 +664,7 @@ export default function App() {
       if (!res.ok) {
         if (res.status === 429) {
           const hostedVercel = window.location.hostname.endsWith('.vercel.app');
-          const byoHint = hostedVercel ? 'Google Gemini API key' : 'Google Gemini or TypeSafe Jev API key';
+          const byoHint = hostedVercel ? 'Gemini key or OpenAI-compatible API key and model' : 'Google Gemini or TypeSafe Jev API key';
 
           showToast({
             title: 'Shared Quota Pause • Bring Your Own AI',
@@ -810,7 +819,10 @@ export default function App() {
         />
 
         {activeView === 'simulation' ? (
-          <SimulationLab onClose={() => setActiveView('chat')} />
+          <SimulationLab
+            onClose={() => setActiveView('chat')}
+            onOpenSettings={() => setSettingsOpen(true)}
+          />
         ) : (
           /* Main Dialogue Canvas */
           <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-4 sm:py-6 flex flex-col justify-between overflow-y-auto">

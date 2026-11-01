@@ -8,10 +8,15 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
   const [selectedModel, setSelectedModel] = useState('gemini-3.8-flash-high');
   const [byomGeminiKey, setByomGeminiKey] = useState(() => localStorage.getItem('metta_byom_gemini_key') || '');
   const [byomTypesafeKey, setByomTypesafeKey] = useState(() => localStorage.getItem('metta_byom_typesafe_key') || '');
+  const [byomOpenAIKey, setByomOpenAIKey] = useState(() => localStorage.getItem('metta_byom_openai_key') || '');
+  const [byomOpenAIBaseUrl, setByomOpenAIBaseUrl] = useState(() => localStorage.getItem('metta_byom_openai_base_url') || 'https://api.openai.com/v1');
+  const [byomOpenAIModel, setByomOpenAIModel] = useState(() => localStorage.getItem('metta_byom_openai_model') || '');
+  const [reasoningEffort, setReasoningEffort] = useState(() => localStorage.getItem('metta_byom_reasoning_effort') || 'auto');
   const [showKeys, setShowKeys] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const { showToast, showAlert } = useAppDialog();
+  const hostedVercel = window.location.hostname.endsWith('.vercel.app');
 
   useEffect(() => {
     if (isOpen) {
@@ -19,22 +24,30 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
         .then((res) => res.json())
         .then((data) => {
           setSettings(data);
-          setSelectedProvider(data.active_provider);
-          setSelectedModel(data.model);
+          setSelectedProvider(hostedVercel
+            ? (localStorage.getItem('metta_byom_provider') || 'gemini')
+            : data.active_provider);
+          setSelectedModel(hostedVercel
+            ? (localStorage.getItem('metta_byom_openai_model') || data.model)
+            : data.model);
         })
         .catch((err) => console.error('Failed to load settings:', err));
 
       setByomGeminiKey(localStorage.getItem('metta_byom_gemini_key') || '');
       setByomTypesafeKey(localStorage.getItem('metta_byom_typesafe_key') || '');
+      setByomOpenAIKey(localStorage.getItem('metta_byom_openai_key') || '');
+      setByomOpenAIBaseUrl(localStorage.getItem('metta_byom_openai_base_url') || 'https://api.openai.com/v1');
+      setByomOpenAIModel(localStorage.getItem('metta_byom_openai_model') || '');
+      setReasoningEffort(localStorage.getItem('metta_byom_reasoning_effort') || 'auto');
     }
-  }, [isOpen]);
+  }, [isOpen, hostedVercel]);
 
   const handleSave = async () => {
     setIsSaving(true);
     setSaveSuccess(false);
 
     try {
-      // 1. Save BYOM keys in client-side localStorage
+      // Save BYOM credentials/configuration in this browser; do not persist them on Metta's server.
       if (byomGeminiKey.trim()) {
         localStorage.setItem('metta_byom_gemini_key', byomGeminiKey.trim());
       } else {
@@ -47,25 +60,31 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
         localStorage.removeItem('metta_byom_typesafe_key');
       }
 
-      // 2. Update provider/model settings on server
-      const res = await fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          provider: selectedProvider,
-          model: selectedModel,
-        }),
-      });
+      localStorage.setItem('metta_byom_provider', selectedProvider);
+      if (byomOpenAIKey.trim()) localStorage.setItem('metta_byom_openai_key', byomOpenAIKey.trim());
+      else localStorage.removeItem('metta_byom_openai_key');
+      localStorage.setItem('metta_byom_openai_base_url', byomOpenAIBaseUrl.trim());
+      localStorage.setItem('metta_byom_openai_model', byomOpenAIModel.trim());
+      localStorage.setItem('metta_byom_reasoning_effort', reasoningEffort);
 
-      if (!res.ok) throw new Error('Failed to update settings');
-
-      const updated = await res.json();
-      setSettings(updated);
+      let updated = settings;
+      if (!hostedVercel) {
+        const res = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider: selectedProvider, model: selectedModel }),
+        });
+        if (!res.ok) throw new Error('Failed to update settings');
+        updated = await res.json();
+        setSettings(updated);
+      }
       setSaveSuccess(true);
       if (onSettingsUpdated) onSettingsUpdated(updated);
       showToast({
         title: 'Settings Saved',
-        message: 'AI Provider configurations and BYOM API keys updated successfully.',
+        message: hostedVercel
+          ? 'Your provider, model, and BYO API settings were saved in this browser.'
+          : 'AI provider and BYO API settings were saved.',
         type: 'success',
       });
       setTimeout(() => setSaveSuccess(false), 2000);
@@ -81,8 +100,9 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
     }
   };
 
-  const hostedVercel = window.location.hostname.endsWith('.vercel.app');
-  const hasByomActive = Boolean(byomGeminiKey.trim() || (!hostedVercel && byomTypesafeKey.trim()));
+  const hasByomActive = selectedProvider === 'openai_compatible'
+    ? Boolean(byomOpenAIKey.trim() && byomOpenAIModel.trim() && byomOpenAIBaseUrl.trim())
+    : Boolean(byomGeminiKey.trim() || (!hostedVercel && byomTypesafeKey.trim()));
 
   if (!isOpen) return null;
 
@@ -127,7 +147,7 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
                 <span className="text-[11px] opacity-80">
                   {hasByomActive
                     ? 'Shared Metta quota bypassed • Provider limits may still apply'
-                    : 'Shared requests are rate-limited. Add a supported provider key to use your own quota.'}
+                    : 'Shared requests are rate-limited. Add a provider key and model to use your own quota.'}
                 </span>
               </div>
             </div>
@@ -156,35 +176,118 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
               </button>
             </div>
 
-            <div>
-              <span className="text-[11px] text-[#717b8c] block mb-1">
-                Google Gemini API Key (Bypasses server quota)
-              </span>
-              <input
-                type={showKeys ? 'text' : 'password'}
-                value={byomGeminiKey}
-                onChange={(e) => setByomGeminiKey(e.target.value)}
-                placeholder="AIzaSy..."
-                className="w-full px-3 py-2 rounded-lg bg-[#0d1016] border border-[#212736] text-xs text-[#f0f2f5] font-mono focus:outline-none focus:border-[#385343]"
-              />
-            </div>
+            {selectedProvider === 'gemini' ? (
+              <div>
+                <label className="text-[11px] text-[#717b8c] block mb-1" htmlFor="metta-gemini-key">
+                  Google Gemini API Key
+                </label>
+                <input
+                  id="metta-gemini-key"
+                  type={showKeys ? 'text' : 'password'}
+                  value={byomGeminiKey}
+                  onChange={(e) => setByomGeminiKey(e.target.value)}
+                  placeholder="AIzaSy..."
+                  className="w-full px-3 py-2 rounded-lg bg-[#0d1016] border border-[#212736] text-xs text-[#f0f2f5] font-mono focus:outline-none focus:border-[#385343]"
+                />
+              </div>
+            ) : hostedVercel ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[11px] text-[#717b8c] block mb-1" htmlFor="metta-openai-base-url">
+                    Public API Base URL
+                  </label>
+                  <input
+                    id="metta-openai-base-url"
+                    type="url"
+                    value={byomOpenAIBaseUrl}
+                    onChange={(e) => setByomOpenAIBaseUrl(e.target.value)}
+                    placeholder="https://api.openai.com/v1"
+                    className="w-full px-3 py-2 rounded-lg bg-[#0d1016] border border-[#212736] text-xs text-[#f0f2f5] font-mono focus:outline-none focus:border-[#385343]"
+                  />
+                  <span className="text-[10px] text-[#677184] block mt-1">Use a public HTTPS endpoint that supports `/chat/completions`.</span>
+                </div>
+                <div>
+                  <label className="text-[11px] text-[#717b8c] block mb-1" htmlFor="metta-openai-key">
+                    Provider API Key
+                  </label>
+                  <input
+                    id="metta-openai-key"
+                    type={showKeys ? 'text' : 'password'}
+                    value={byomOpenAIKey}
+                    onChange={(e) => setByomOpenAIKey(e.target.value)}
+                    placeholder="Your provider's API key"
+                    className="w-full px-3 py-2 rounded-lg bg-[#0d1016] border border-[#212736] text-xs text-[#f0f2f5] font-mono focus:outline-none focus:border-[#385343]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-[#717b8c] block mb-1" htmlFor="metta-openai-model">
+                    Provider Model ID
+                  </label>
+                  <input
+                    id="metta-openai-model"
+                    type="text"
+                    value={byomOpenAIModel}
+                    onChange={(e) => setByomOpenAIModel(e.target.value)}
+                    placeholder="Enter the exact model ID from your provider"
+                    className="w-full px-3 py-2 rounded-lg bg-[#0d1016] border border-[#212736] text-xs text-[#f0f2f5] font-mono focus:outline-none focus:border-[#385343]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-[#717b8c] block mb-1" htmlFor="metta-reasoning-effort">
+                    Reasoning Effort
+                  </label>
+                  <select
+                    id="metta-reasoning-effort"
+                    value={reasoningEffort}
+                    onChange={(e) => setReasoningEffort(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-[#0d1016] border border-[#212736] text-xs text-[#f0f2f5] focus:outline-none focus:border-[#385343]"
+                  >
+                    <option value="auto">Provider default (recommended)</option>
+                    <option value="none">No reasoning-effort setting</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                  <span className="text-[10px] text-[#677184] block mt-1">Effort is sent only when selected. Your provider and model must support `reasoning_effort`.</span>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <label className="text-[11px] text-[#717b8c] block mb-1" htmlFor="metta-gemini-key">
+                  Google Gemini API Key
+                </label>
+                <input
+                  id="metta-gemini-key"
+                  type={showKeys ? 'text' : 'password'}
+                  value={byomGeminiKey}
+                  onChange={(e) => setByomGeminiKey(e.target.value)}
+                  placeholder="AIzaSy..."
+                  className="w-full px-3 py-2 rounded-lg bg-[#0d1016] border border-[#212736] text-xs text-[#f0f2f5] font-mono focus:outline-none focus:border-[#385343]"
+                />
+              </div>
+            )}
 
-            <div>
-              <span className="text-[11px] text-[#717b8c] block mb-1">
-                TypeSafe Jev API Key (self-hosted Python gateway/MCP)
-              </span>
-              <input
-                type={showKeys ? 'text' : 'password'}
-                value={byomTypesafeKey}
-                onChange={(e) => setByomTypesafeKey(e.target.value)}
-                placeholder="apikey_..."
-                className="w-full px-3 py-2 rounded-lg bg-[#0d1016] border border-[#212736] text-xs text-[#f0f2f5] font-mono focus:outline-none focus:border-[#385343]"
-              />
-            </div>
+            {!hostedVercel && (
+              <div>
+                <label className="text-[11px] text-[#717b8c] block mb-1" htmlFor="metta-typesafe-key">
+                  TypeSafe Jev API Key (structured decisions)
+                </label>
+                <input
+                  id="metta-typesafe-key"
+                  type={showKeys ? 'text' : 'password'}
+                  value={byomTypesafeKey}
+                  onChange={(e) => setByomTypesafeKey(e.target.value)}
+                  placeholder="apikey_..."
+                  className="w-full px-3 py-2 rounded-lg bg-[#0d1016] border border-[#212736] text-xs text-[#f0f2f5] font-mono focus:outline-none focus:border-[#385343]"
+                />
+              </div>
+            )}
 
             <p className="text-[10px] text-[#616a7a] flex items-center gap-1 pt-1">
               <ShieldCheck className="w-3.5 h-3.5 text-[#5e9e7b] shrink-0" />
-              Keys are stored in this browser and sent to the selected endpoint when used. The hosted Vercel app currently uses Gemini keys; TypeSafe keys are used by the self-hosted Python gateway and MCP server.
+              {hostedVercel
+                ? 'Settings and keys stay in this browser. When used, the key passes through Metta’s API to your selected provider; Metta does not save it server-side. Your provider’s billing and data policies apply.'
+                : 'Keys are stored in this browser and sent to the configured gateway when used. TypeSafe Jev is a separate structured decision model.'}
             </p>
           </div>
 
@@ -207,31 +310,31 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
                 }`}
               >
                 <div className="font-semibold text-sm">Google Gemini</div>
-                <div className="text-[11px] text-[#717b8c] mt-1">Antigravity API / Cloud REST</div>
-                <span className="text-[10px] text-[#7ec69d] mt-2 font-mono">Default • High Reasoning</span>
+                <div className="text-[11px] text-[#717b8c] mt-1">Google’s Gemini API</div>
+                <span className="text-[10px] text-[#7ec69d] mt-2 font-mono">Use your Gemini key</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => {
-                  setSelectedProvider('local_llm');
-                  setSelectedModel('gemma-4-E4B-it');
+                  setSelectedProvider(hostedVercel ? 'openai_compatible' : 'local_llm');
+                  setSelectedModel(hostedVercel ? '' : 'gemma-4-E4B-it');
                 }}
                 className={`p-3 rounded-xl border text-left transition flex flex-col justify-between ${
-                  selectedProvider === 'local_llm'
+                  selectedProvider === 'openai_compatible'
                     ? 'bg-[#15231c] border-[#37634a] text-[#8dd4ac]'
                     : 'bg-[#121620] border-[#1f2533] text-[#9ba4b4] hover:border-[#2b3548]'
                 }`}
               >
-                <div className="font-semibold text-sm">Local / Open Source</div>
-                <div className="text-[11px] text-[#717b8c] mt-1">LM Studio / llama.cpp</div>
-                <span className="text-[10px] text-[#8b95a5] mt-2 font-mono">localhost:1234/v1</span>
+                <div className="font-semibold text-sm">{hostedVercel ? 'OpenAI-Compatible API' : 'Local / Open Source'}</div>
+                <div className="text-[11px] text-[#717b8c] mt-1">{hostedVercel ? 'Public hosted provider endpoint' : 'LM Studio / llama.cpp'}</div>
+                <span className="text-[10px] text-[#8b95a5] mt-2 font-mono">{hostedVercel ? 'Custom URL • model • key' : 'localhost:1234/v1'}</span>
               </button>
             </div>
           </div>
 
           {/* Model Target Field */}
-          <div>
+          {!hostedVercel && <div>
             <label className="text-xs font-semibold text-[#8b95a5] uppercase tracking-wider block mb-1.5">
               Target Model Identifier
             </label>
@@ -241,10 +344,10 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
               onChange={(e) => setSelectedModel(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl bg-[#141822] border border-[#212736] text-xs text-[#f0f2f5] font-mono focus:outline-none focus:border-[#385343]"
             />
-          </div>
+          </div>}
 
           {/* System 1 Decision Model Status */}
-          <div className="p-3.5 rounded-xl bg-[#131b17] border border-[#223d2e] flex items-center justify-between text-xs">
+          {!hostedVercel && <div className="p-3.5 rounded-xl bg-[#131b17] border border-[#223d2e] flex items-center justify-between text-xs">
             <div className="flex items-center gap-2.5">
               <Zap className="w-4 h-4 text-[#7ec69d]" />
               <div>
@@ -259,7 +362,7 @@ export default function SettingsModal({ isOpen, onClose, onSettingsUpdated }) {
             <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#1d3528] text-[#8dd4ac] border border-[#2e543e]">
               {settings?.system_one_active ? 'ACTIVE' : 'DORMANT'}
             </span>
-          </div>
+          </div>}
 
           {/* Voice Diagnostics Status */}
           <div className="p-3 rounded-xl bg-[#121620] border border-[#1f2636] flex items-center justify-between text-xs text-[#9aa4b5]">
