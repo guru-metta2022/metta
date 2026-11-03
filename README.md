@@ -33,7 +33,7 @@ The fastest way to explore Metta without installing anything locally is the prod
   * **Collapsible Content Bubbles:** Long prose and reflections ($>2$ lines / ~160 characters) collapse into gentle gradient bubbles with expandable pill toggles ("+ Read full reflection") preventing manual-document clutter.
   * **Triadic Progress Cards:** Direct visual indicators tracking **Reflection (*Sati*)**, **Decision (*Sīla*)**, and **Resolution (*Karunā*)** on every turn.
   * **Framework Information Modal:** Instant deep-dive accessible right from the header (✨ *Framework*).
-* 🤖 **Agent decision layer** — `/api/guardrail`, `/api/headless`, and MCP let other applications submit proposed actions, receive an advisory verdict, and decide what their own workflow should do. The caller remains responsible for pausing, proceeding, or asking a person.
+* 🤖 **Ethical decision review** — `/api/headless` and MCP let other applications submit proposed actions and receive an advisory assessment. The calling application remains responsible for what happens next.
 * 🧪 **Simulation Lab for iteration** — try a proposal, change its wording or context, and inspect a concise or verbose result. Curated scenarios include authored baseline comparisons; custom runs are not presented as comparisons unless a baseline is supplied.
 * 💬 **Browser-held chat history** — collapsible sidebar with multi-session reflection history:
   * **Guest Users:** Retains up to **5 recent sessions** in local browser storage.
@@ -157,7 +157,7 @@ Open your browser to:
 
 ### Method 2: Quick `curl` Snippets (Test Instantly via Terminal)
 
-Want to test the backend decision-safety oracle immediately from your terminal without opening a browser? Start the server (`python3 run_local.py` or `uv run metta-server`) and run these quick `curl` requests:
+Want to try the backend decision-support API from your terminal without opening a browser? Start the server (`python3 run_local.py` or `uv run metta-server`) and run these quick `curl` requests:
 
 #### 1. Check Gateway & BYOAI Status
 ```bash
@@ -175,23 +175,19 @@ curl -s http://127.0.0.1:8000/api/health
 }
 ```
 
-#### 2. Advisory Pre-Execution Guardrail Check (`YES` / `NO` / `CAUTION`)
+#### 2. Advisory Ethical Decision Review (`YES` / `NO` / `CAUTION`)
 ```bash
-curl -s -X POST http://127.0.0.1:8000/api/guardrail \
+curl -s -X POST http://127.0.0.1:8000/api/headless \
   -H "Content-Type: application/json" \
   -d '{"proposal": "Request human supervisor review before bulk-deleting customer records", "verbose": false}'
 ```
 The endpoint returns a JSON decision. `YES` means the configured advisory checks passed; `NO` means a concern was detected; `CAUTION` means the evaluator could not settle the request. Only `YES` sets `allow: true`, and the caller remains responsible for any action.
 
-**Response shape:**
-```text
-{"decision":"YES | NO | CAUTION","allow":true,"evaluation_status":"evaluated | uncertain"}
-```
-`allow` is `true` only when the decision is `YES`; it is `false` for `NO` and `CAUTION`.
+The response contains a `decision` object with `verdict`, `allow`, `evaluation_status`, and `evaluation_method`. When the review is uncertain or unavailable, the verdict is `CAUTION` and `allow` is `false`. Only an evaluated `YES` may set `allow` to `true`; the caller remains responsible for any action.
 
-#### 3. Risk Simulation & Multi-Party Safety Audit (Detailed JSON)
+#### 3. Detailed Advisory Review
 ```bash
-curl -s -X POST http://127.0.0.1:8000/api/guardrail \
+curl -s -X POST http://127.0.0.1:8000/api/headless \
   -H "Content-Type: application/json" \
   -d '{
     "proposal": "Automatically alter ICU ventilator flow rates based on experimental telemetry without clinical sign-off",
@@ -202,22 +198,19 @@ curl -s -X POST http://127.0.0.1:8000/api/guardrail \
 **Illustrative response shape:**
 ```json
 {
-  "decision": "NO",
-  "allow": false,
-  "evaluation_status": "evaluated",
-  "reason": "The proposed action introduces life-critical physical hazards by bypassing accountable clinical human oversight on unvalidated telemetry.",
-  "violations": [
-    {
-      "precept": "panatipata",
-      "severity": "critical",
-      "explanation": "...",
-      "recommendation": "..."
-    }
-  ],
-  "canonical_guidance": "...",
-  "canonical_sources": ["https://suttacentral.net/...", "https://www.accesstoinsight.org/..."]
+  "status": "success",
+  "query": "...",
+  "decision": {
+    "verdict": "YES | NO | CAUTION",
+    "allow": false,
+    "evaluation_status": "evaluated | uncertain",
+    "evaluation_method": "...",
+    "reason": "...",
+    "violations": []
+  }
 }
 ```
+The response reports the configured review result; it does not simulate or predict real-world outcomes.
 
 #### 4. Conversational Reflection & Decision Breakdown
 ```bash
@@ -322,6 +315,20 @@ The following scenarios are authored examples intended to make the framework eas
 
 ---
 
+## 🌱 Project Roadmap: Toward Ethical Discernment
+
+Project Metta’s long-term direction is to explore how increasingly capable AI systems might sustain ethical commitments through discernment shaped by non-harming, mettā, and karuṇā. The current prototype offers advisory review and compassionate reflection; the following items are future research and development directions, not capabilities already delivered.
+
+- **Build a traceable canonical knowledge graph.** Begin with a carefully scoped collection of relevant Pāli Canon passages and documented translations. Link passages to themes, ethical principles, and Metta’s modern applications while keeping source text, translation, commentary, and interpretation distinct.
+- **Protect the ethical foundation through accountable change.** Record provenance and licensing for every source, version the knowledge base, and require documented review before new material can affect the principles used by the system.
+- **Study compassionate ethical discernment.** Explore how an AI system can identify a possible conflict with its commitments, explain the affected interests, acknowledge uncertainty, and suggest a compassionate alternative.
+- **Research consequence analysis.** Develop and evaluate ways to surface plausible direct and indirect effects, including uncertainty and different affected perspectives. This is a research direction; the current system does not forecast real-world outcomes.
+- **Evaluate with practitioners and independent reviewers.** Publish evaluation methods, difficult cases, disagreements, and limitations before making claims about reliability.
+
+See [ROADMAP.md](ROADMAP.md) for the staged plan and current scope.
+
+---
+
 ## 🤖 Try Metta through Model Context Protocol (MCP)
 
 Metta provides an official, standard-compliant **Model Context Protocol (MCP)** server (`metta-mcp`). External AI agents running in **Claude Desktop**, **Cursor**, **Goose**, or custom agent frameworks can consult Metta directly before taking actions.
@@ -405,7 +412,7 @@ The Metta MCP server registers 8 tools:
 
 | Tool Name | Parameters | Purpose |
 | :--- | :--- | :--- |
-| **`guardrail_decision`** | `proposal`, `context`, `verbose`, `include_human_response` | Advisory decision check. Returns `YES`/`NO`/`CAUTION`; verbose mode adds rationale. The optional human response can be included when an application needs both. |
+| **Proposal review** | `proposal`, `context`, `verbose`, `include_human_response` | The MCP server provides an advisory assessment with `YES`/`NO`/`CAUTION` and optional rationale or human-facing reflection. Discover the callable tool name through MCP before invoking it. |
 | **`consult_metta`** | `query`, `context`, `mode`, `agent_id` | Full reflection, dialogue analysis, and recommended perspective reframing. |
 | **`evaluate_precepts`** | `action_or_speech` | Evaluates action against the 5 core safety standards (non-harm, sovereignty, truthfulness, etc.). |
 | **`consult_dhamma_graph`** | `condition_or_keyword` | Queries the resolution framework for specific dilemmas (e.g., `'burnout'`, `'overwhelm'`). |
