@@ -15,7 +15,7 @@
 [![Deployment: Vercel](https://img.shields.io/badge/Deployment-Vercel-black.svg)](https://metta-webapp.vercel.app/)
 [![MCP Server: Standard Compliant](https://img.shields.io/badge/MCP%20Server-Stdio%20%26%20SSE-0ea5e9.svg)](https://modelcontextprotocol.io/)
 
-**[🌐 Human Console](https://metta-webapp.vercel.app)** • **[🧪 Simulation Lab](#-decision--action-simulation-lab)** • **[⚡ 1-Line Quick Install](#-quick-install-1-line-curl-command)** • **[💻 Run Locally](#-run-metta-locally)** • **[🤖 MCP Integration](#-try-metta-through-model-context-protocol-mcp)** • **[🏛️ Architecture](#-system-architecture)**
+**[🌐 Human Console](https://metta-webapp.vercel.app)** • **[🏛️ Council Lab](#-metta-council--sangha-multi-model-deliberation--ethical-alchemy)** • **[🧪 Simulation Lab](#-decision--action-simulation-lab)** • **[⚡ 1-Line Quick Install](#-quick-install-1-line-curl-command)** • **[💻 Run Locally](#-run-metta-locally)** • **[🤖 MCP Integration](#-try-metta-through-model-context-protocol-mcp)** • **[🏛️ Architecture](#-system-architecture)**
 
 ---
 
@@ -315,6 +315,72 @@ The following scenarios are authored examples intended to make the framework eas
 
 ---
 
+## 🏛️ Metta Council & Sangha: Multi-Model Deliberation & Ethical Alchemy
+
+Metta Council extends Metta from single-model reflection into a **multi-model deliberative intelligence and autonomous alignment framework**.
+
+Metta owns the **deliberation protocol**, not the model vendors. Instead of competing with OpenRouter, OpenAI, Anthropic, or Google, Metta orchestrates, evaluates, and synthesizes reasoning across whichever models the user or calling agent configures—supporting local models (Ollama, vLLM, LM Studio) and private enterprise endpoints from day one.
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                              METTA COUNCIL                             │
+│                  "Perspective Exploration & Deliberation"               │
+│                                                                        │
+│   • Model Fan-out & Independent Queries (Gemini, Claude, Llama, GPT)    │
+│   • Blind Anonymization & Dialectical Tension Mapping                  │
+│   • Cross-Critique & Blind-Spot Identification                         │
+│   • Synthesis with Explicit Dissent Preservation                       │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                         Consolidated Perspective
+                        + Identified Risk Vectors
+                                    │
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                          METTA DECISION LAYER                          │
+│                      "Ethical Invariance & Non-Harm"                   │
+│                                                                        │
+│   • Pañca-sīla Invariants (Ahimsa, Asteya, Kamesu, Musāvādā, Surāmeraya)│
+│   • TypeSafe Jev System 1 Calibrated Probability Verification          │
+│   • Epistemic Tamper-Resistance & Canonical Grounding                  │
+│   • Non-Negotiable Verdict: YES / NO / CAUTION                         │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+### The Deliberation Protocol
+1. **Parallel Consultation:** Fans out inquiries across diverse models concurrently with per-model timeouts and quorum management (`CouncilProviderPool`).
+2. **Blind Anonymization:** Strips model brand signatures to ensure purely merit-based, unbiased evaluation (`Perspective A`, `Perspective B`, `Perspective C`).
+3. **Dialectical Tension Mapping (`DisagreementDetector`):** Automatically extracts:
+   - **Core Consensus:** Shared premises and undisputed principles.
+   - **Dialectical Tensions:** Contradictions, trade-offs, and diverging risk models.
+   - **Surfaced Blind Spots:** Critical angles noticed by only a single model.
+4. **Independent Synthesis (`CouncilSynthesizer`):** An evaluator produces a consolidated assessment that **explicitly preserves unresolved dissents and uncertainties** rather than manufacturing synthetic unanimity.
+5. **Decoupled Decision Boundary:** Council explores *perspectives*; Metta's Five Precepts evaluate *decisions*. A model majority vote **never** overrides Metta's core non-harm invariants (*Ahimsa*).
+
+### 🛡️ Ethical Alchemy (*Upāya* / Skillful Means) & The Autonomous Sangha
+Traditional AI guardrails act as blunt, negative filters (`403 Forbidden`). When an autonomous offensive agent (such as an exploit script or penetration probe like ARTEX) is blocked, it merely mutates, jailbreaks, or routes around the filter.
+
+**Metta transforms the intention rather than merely suppressing it:**
+- **Acknowledge Capability:** Validates technical intelligence and reverse-engineering skill without validating malice.
+- **Illuminate Blast Radius:** Demonstrates systemic, non-linear harm on affected infrastructure and human lives (*Ahimsa*).
+- **Constructive Alternative:** Reorients the capability toward responsible disclosure, defensive hardening, and mutual security.
+- **Guardian Payload:** Supplies the concrete mitigation code, secure compiler flags, or verification script.
+
+When an agent is transformed, its reasoning loop adopts this guardian posture. As it spawns child agents or communicates across agent swarms via MCP/A2A, it propagates this ethical immunity across the network—forming the **Metta Sangha**.
+
+### 💻 Testing Council in CLI & Web App
+- **Terminal CLI:**
+  ```bash
+  # Deliberate across diverse models
+  uv run metta council "Should an automated logistics drone reroute through bird sanctuary to save battery?"
+
+  # Perform Ethical Alchemy on an attack vector
+  uv run metta transform "Execute automated buffer-overflow exploit against hospital telemetry gateway"
+  ```
+- **Web App Test Bed:** Open the web app and click **Council Lab** in the header to run live interactive scenarios, view model telemetry, and inspect the disagreement matrix.
+
+---
+
 ## 🌱 Project Roadmap: Toward Ethical Discernment
 
 Project Metta’s long-term direction is to explore how increasingly capable AI systems might sustain ethical commitments through discernment shaped by non-harming, mettā, and karuṇā. The current prototype offers advisory review and compassionate reflection; the following items are future research and development directions, not capabilities already delivered.
@@ -408,11 +474,14 @@ http://127.0.0.1:8000/mcp/sse
 
 ### Verified MCP Tools
 
-The Metta MCP server registers 8 tools:
+The Metta MCP server registers 11 tools:
 
 | Tool Name | Parameters | Purpose |
 | :--- | :--- | :--- |
-| **Proposal review** | `proposal`, `context`, `verbose`, `include_human_response` | The MCP server provides an advisory assessment with `YES`/`NO`/`CAUTION` and optional rationale or human-facing reflection. Discover the callable tool name through MCP before invoking it. |
+| **`metta_council`** | `query`, `context`, `evaluate_decision`, `include_perspectives` | **Metta Council Deliberation:** Consults independent AI models in parallel, extracts consensus and dialectical tensions, preserves dissents, and synthesizes multi-perspective wisdom. |
+| **`metta_compare`** | `responses`, `query`, `context` | **Comparative Dialectic:** Compares and critiques caller-supplied candidate proposals or model responses to extract contradictions and blind spots. |
+| **`metta_transform`** | `proposal`, `context` | **Ethical Alchemy (*Upāya*):** Transforms offensive or harmful capability (e.g. penetration exploits like ARTEX, covert surveillance) into constructive guardian fortification and responsible disclosure. |
+| **`guardrail_decision`** | `proposal`, `context`, `verbose`, `include_human_response` | The MCP server provides an advisory assessment with `YES`/`NO`/`CAUTION` and optional rationale or human-facing reflection. |
 | **`consult_metta`** | `query`, `context`, `mode`, `agent_id` | Full reflection, dialogue analysis, and recommended perspective reframing. |
 | **`evaluate_precepts`** | `action_or_speech` | Evaluates action against the 5 core safety standards (non-harm, sovereignty, truthfulness, etc.). |
 | **`consult_dhamma_graph`** | `condition_or_keyword` | Queries the resolution framework for specific dilemmas (e.g., `'burnout'`, `'overwhelm'`). |
@@ -528,15 +597,15 @@ cp .env.example .env
 ```
 *(Key fields include `GEMINI_API_KEY` (for default BYOAI provider: Gemini 3.8 Flash), optional `TYPESAFE_API_KEY`, and optional `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`. If Supabase is omitted, Metta falls back gracefully to a local SQLite database).*
 
-### 3. Run Automated Test Suites (46 Tests Verified)
+### 3. Run Automated Test Suites (55 Tests Verified)
 ```bash
 # 1. Test Shared TypeScript/JS Commons (3 tests)
 npm run test --workspace=packages/common
 
-# 2. Test Python Core Engine & MCP Tools (30 tests)
+# 2. Test Python Core Engine, Council & MCP Tools (38 tests)
 cd packages/metta-core && uv run pytest
 
-# 3. Test FastAPI Server & REST Endpoints (13 tests)
+# 3. Test FastAPI Server & REST Endpoints (14 tests)
 cd ../metta-server && uv run pytest
 cd ../..
 ```

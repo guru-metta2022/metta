@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Header from './components/Header';
 import ChatSidebar from './components/ChatSidebar';
 import SimulationLab from './components/SimulationLab';
+import CouncilLab from './components/CouncilLab';
 import MessageItem from './components/MessageItem';
 import PreceptsModal from './components/PreceptsModal';
 import GraphModal from './components/GraphModal';
@@ -829,6 +830,11 @@ export default function App() {
 
         {activeView === 'simulation' ? (
           <SimulationLab
+            onClose={() => setActiveView('chat')}
+            onOpenSettings={() => setSettingsOpen(true)}
+          />
+        ) : activeView === 'council' ? (
+          <CouncilLab
             onClose={() => setActiveView('chat')}
             onOpenSettings={() => setSettingsOpen(true)}
           />

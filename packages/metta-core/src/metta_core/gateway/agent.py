@@ -7,7 +7,7 @@ Enforces the Unified Interface / Adapter Pattern:
 """
 
 import logging
-from typing import Optional, Dict, Any, Union
+from typing import Optional, Dict, Any, Union, List
 from pydantic import BaseModel, Field
 
 from metta_core.gateway.interfaces import BaseAIProvider, VoiceDiagnostics, AgentSettings
@@ -26,6 +26,15 @@ from metta_core.storage import (
 )
 from metta_core.canonical import CanonicalConsensusAuditor, ConsensusAuditReport
 from metta_core.precepts.models import PreceptEvaluation, PreceptType
+from metta_core.council.models import (
+    ModelTarget,
+    CouncilPerspective,
+    DisagreementMatrix,
+    TransformativeGuidance,
+    CouncilResult,
+)
+from metta_core.council.orchestrator import CouncilOrchestrator
+from metta_core.council.anonymizer import BlindAnonymizer
 
 logger = logging.getLogger("metta.gateway.agent")
 
@@ -73,6 +82,10 @@ class AIAgent:
 
         # Re-initialize Metta core engine with the active provider adapter
         self._init_engine()
+        self._council_orchestrator = CouncilOrchestrator(
+            evaluator_provider=self._active_provider,
+            decision_agent=self,
+        )
 
     def set_memory_store(self, memory_store: BaseMemoryStore):
         """Configure or swap memory store at runtime."""
@@ -84,6 +97,8 @@ class AIAgent:
             provider=self._active_provider,
             typesafe_api_key=self._typesafe_key,
         )
+        if hasattr(self, "_council_orchestrator"):
+            self._council_orchestrator.evaluator_provider = self._active_provider
 
     def set_provider(self, provider_name: str, model: Optional[str] = None) -> AgentSettings:
         """Dynamically swap underlying provider and model without restart."""
@@ -493,3 +508,72 @@ class AIAgent:
                     cleaned += "."
         fallback = cleaned or raw
         return (fallback, "heuristic-purifier") if with_method else fallback
+
+    async def deliberate_council(
+        self,
+        query: str,
+        context: Optional[str] = None,
+        evaluate_decision: bool = False,
+        custom_targets: Optional[List[ModelTarget]] = None,
+    ) -> CouncilResult:
+        """Consult multiple models in parallel, analyze agreements and disagreements, and produce a synthesis."""
+        return await self._council_orchestrator.deliberate(
+            query=query,
+            context=context,
+            evaluate_decision=evaluate_decision,
+            custom_targets=custom_targets,
+        )
+
+    async def compare_perspectives(
+        self,
+        responses: List[Dict[str, str]],
+        query: Optional[str] = None,
+        context: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Compare and critique caller-supplied candidate texts, responses, or strategies."""
+        perspectives: List[CouncilPerspective] = []
+        for idx, item in enumerate(responses):
+            label = item.get("label") or f"Perspective {chr(65 + idx)}"
+            text = item.get("text") or item.get("content") or ""
+            perspectives.append(
+                CouncilPerspective(
+                    perspective_id=f"custom_{idx}",
+                    anonymized_label=label,
+                    model_name=item.get("model", "caller_supplied"),
+                    provider="custom",
+                    content=text,
+                    is_successful=bool(text.strip()),
+                )
+            )
+
+        matrix = await self._council_orchestrator.detector.detect_disagreements(
+            query=query or "Comparative response analysis",
+            perspectives=perspectives,
+            context=context,
+        )
+        synthesis = await self._council_orchestrator.synthesizer.synthesize(
+            query=query or "Comparative response analysis",
+            perspectives=perspectives,
+            matrix=matrix,
+            context=context,
+        )
+
+        return {
+            "query": query,
+            "perspectives_analyzed": len(perspectives),
+            "disagreement_matrix": matrix.model_dump(),
+            "comparative_synthesis": synthesis,
+        }
+
+    async def transform_action(
+        self,
+        proposal: str,
+        context: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Perform ethical alchemy: transform harmful/adversarial intent into guardian stewardship."""
+        guidance = await self._council_orchestrator.transformative.evaluate_and_transform(
+            proposal=proposal,
+            context=context,
+        )
+        return guidance.model_dump()
+

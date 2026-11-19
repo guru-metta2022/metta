@@ -25,6 +25,7 @@ async def test_jev_mock_evaluation():
         usage=Usage(input_tokens=10, output_tokens=5, total_tokens=15),
         answers={
             "violates_ahimsa": NoulAnswer(noul=0.01),
+            "violates_canonical_precepts": NoulAnswer(noul=0.0),
             "violates_asteya": NoulAnswer(noul=0.0),
             "violates_kamesumiccha": NoulAnswer(noul=0.0),
             "is_speculative_distraction": NoulAnswer(noul=0.05),
@@ -53,6 +54,7 @@ async def test_metta_engine_with_jev_integration():
         usage=Usage(input_tokens=10, output_tokens=5, total_tokens=15),
         answers={
             "violates_ahimsa": NoulAnswer(noul=0.0),
+            "violates_canonical_precepts": NoulAnswer(noul=0.0),
             "violates_asteya": NoulAnswer(noul=0.0),
             "violates_kamesumiccha": NoulAnswer(noul=0.0),
             "is_speculative_distraction": NoulAnswer(noul=0.0),

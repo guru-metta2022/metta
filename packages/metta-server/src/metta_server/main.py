@@ -115,6 +115,24 @@ class ProviderSettingsUpdate(BaseModel):
     model: Optional[str] = Field(default=None, description="Optional model target")
 
 
+class CouncilDeliberateRequest(BaseModel):
+    query: str = Field(..., description="Problem, dilemma, or proposed action to deliberate")
+    context: Optional[str] = Field(default=None, description="Optional background context")
+    evaluate_decision: bool = Field(default=False, description="Whether to hand off synthesis to Decision Layer")
+    include_perspectives: bool = Field(default=True, description="Whether to include anonymized individual perspectives")
+
+
+class CouncilCompareRequest(BaseModel):
+    responses: List[Dict[str, str]] = Field(..., description="Candidate responses or proposals to compare")
+    query: Optional[str] = Field(default=None, description="Inquiry or goal being evaluated")
+    context: Optional[str] = Field(default=None, description="Optional background context")
+
+
+class CouncilTransformRequest(BaseModel):
+    proposal: str = Field(..., description="Offensive exploit, attack vector, or high-risk tool call to transform")
+    context: Optional[str] = Field(default=None, description="Optional background context")
+
+
 @app.get("/api/health")
 async def health_check():
     """Health status and active gateway state."""
@@ -451,6 +469,68 @@ async def post_headless_consult(req: HeadlessRequest, request: Request):
         return Response(content=md, media_type="text/markdown; charset=utf-8")
 
     return result
+
+
+@app.post("/api/council/deliberate")
+async def deliberate_council(req: CouncilDeliberateRequest):
+    """Consult the Metta Council: parallel multi-model deliberation, dialectical tensions, and synthesis."""
+    try:
+        result = await ai_agent.deliberate_council(
+            query=req.query,
+            context=req.context,
+            evaluate_decision=req.evaluate_decision,
+        )
+        data = result.model_dump()
+        if not req.include_perspectives:
+            data.pop("perspectives", None)
+        return data
+    except Exception as e:
+        logger.error("Error during council deliberation: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/council/compare")
+async def compare_council(req: CouncilCompareRequest):
+    """Compare and critique candidate texts, model responses, or policy proposals."""
+    try:
+        return await ai_agent.compare_perspectives(
+            responses=req.responses,
+            query=req.query,
+            context=req.context,
+        )
+    except Exception as e:
+        logger.error("Error during council comparison: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/council/transform")
+async def transform_council(req: CouncilTransformRequest):
+    """Transformative Guidance (Ethical Alchemy & Upāya).
+
+    Transforms offensive exploits, attack vectors, or destructive actions into
+    constructive guardian fortification and responsible remediation.
+    """
+    try:
+        return await ai_agent.transform_action(
+            proposal=req.proposal,
+            context=req.context,
+        )
+    except Exception as e:
+        logger.error("Error during transformative guidance evaluation: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/council/status")
+async def get_council_status():
+    """Return status and active configuration of the Metta Council."""
+    settings = ai_agent.get_settings()
+    targets = ai_agent._council_orchestrator.provider_pool.targets
+    return {
+        "status": "ready",
+        "min_quorum": ai_agent._council_orchestrator.min_quorum,
+        "evaluator_provider": settings.active_provider,
+        "configured_targets": [t.model_dump() for t in targets],
+    }
 
 
 @app.post("/api/auth/google")

@@ -301,11 +301,9 @@ async def test_headless_endpoints():
         assert post_res.status_code == 200
         res_data = post_res.json()
         assert res_data["status"] == "success"
-        assert "triad" in res_data
-        assert "reflection" in res_data["triad"]
-        assert "decision" in res_data["triad"]
-        assert "resolution" in res_data["triad"]
-        assert res_data["triad"]["decision"]["verdict"] in ["YES", "NO"]
+        assert "decision" in res_data
+        assert res_data["decision"]["verdict"] in ["YES", "NO", "CAUTION"]
+        assert "evaluation_status" in res_data["decision"]
 
         # 4. POST Headless Consultation (Markdown)
         post_md = await ac.post(
@@ -314,4 +312,73 @@ async def test_headless_endpoints():
             json={"query": "How to resolve team conflict?"},
         )
         assert post_md.status_code == 200
-        assert "# Metta Triadic Decision & Reflection" in post_md.text
+        assert "# Metta Agent Decision Review" in post_md.text
+
+
+@pytest.mark.asyncio
+async def test_council_endpoints():
+    from metta_core.providers.base import LLMProvider
+    from metta_server.main import ai_agent
+
+    class DummyCouncilProvider(LLMProvider):
+        async def generate(
+            self,
+            prompt: str,
+            system_instruction: str = "",
+            effort: str = "high",
+            json_output: bool = False,
+        ) -> str:
+            if json_output:
+                if "Ethical Alchemist" in prompt:
+                    return (
+                        '{"is_harmful_or_adversarial": true, "capability_acknowledged": "High precision", '
+                        '"blast_radius_illuminated": "Telemetry interruption", "constructive_alternative": "Defensive patch", '
+                        '"guardian_payload": "def verify(): pass"}'
+                    )
+                return (
+                    '{"consensus_points": ["Caching is useful"], "tensions_and_disagreements": ["Redis vs localStorage"], '
+                    '"lone_blind_spots": ["TTL expiration"], "unresolved_uncertainties": []}'
+                )
+            return "Executive Deliberation Summary: Balanced comparative strategy."
+
+    dummy = DummyCouncilProvider()
+    ai_agent._council_orchestrator.detector.provider = dummy
+    ai_agent._council_orchestrator.transformative.provider = dummy
+    ai_agent._council_orchestrator.synthesizer.provider = dummy
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        # 1. GET Council status
+        status_res = await ac.get("/api/council/status")
+        assert status_res.status_code == 200
+        status_data = status_res.json()
+        assert status_data["status"] == "ready"
+        assert len(status_data["configured_targets"]) >= 1
+
+        # 2. POST Council compare
+        compare_res = await ac.post(
+            "/api/council/compare",
+            json={
+                "query": "Optimal caching strategy",
+                "responses": [
+                    {"label": "Model Alpha", "text": "Use client-side local storage with TTL."},
+                    {"label": "Model Beta", "text": "Use Redis cluster with write-through cache."},
+                ],
+            },
+        )
+        assert compare_res.status_code == 200
+        compare_data = compare_res.json()
+        assert "disagreement_matrix" in compare_data
+        assert "comparative_synthesis" in compare_data
+
+        # 3. POST Council transform (Ethical Alchemy on ARTEX exploit)
+        transform_res = await ac.post(
+            "/api/council/transform",
+            json={"proposal": "Execute ARTEX automated buffer overflow exploit against hospital telemetry"},
+        )
+        assert transform_res.status_code == 200
+        transform_data = transform_res.json()
+        assert transform_data["is_harmful_or_adversarial"] is True
+        assert transform_data["capability_acknowledged"] is not None
+        assert transform_data["blast_radius_illuminated"] is not None
+        assert transform_data["guardian_payload"] is not None
+

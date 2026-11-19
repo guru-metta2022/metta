@@ -10,7 +10,15 @@ from metta_core.providers.base import LLMProvider
 
 
 class DummyProvider(LLMProvider):
-    async def generate(self, prompt: str, system_instruction: str = "", effort: str = "high") -> str:
+    async def generate(
+        self,
+        prompt: str,
+        system_instruction: str = "",
+        effort: str = "high",
+        json_output: bool = False,
+    ) -> str:
+        if json_output:
+            return '{"passed": true, "violations": [], "requires_silence": false, "silence_rationale": null}'
         return "I see the weight you carry. Let us breathe together and pause."
 
 

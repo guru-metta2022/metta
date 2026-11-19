@@ -74,6 +74,20 @@ export default function Header({
           <Activity className="w-3.5 h-3.5 text-[#7ec69d]" />
           <span>Simulation Lab</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => onChangeView?.('council')}
+          className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-medium transition ${
+            activeView === 'council'
+              ? 'bg-[#183123] text-[#86e2ad] border border-[#2d523e] shadow-xs'
+              : 'text-[#7d889b] hover:text-[#c4cbda]'
+          }`}
+          title="Metta Council & Sangha: Multi-model deliberation and ethical alchemy"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-[#7ec69d]" />
+          <span>Council Lab</span>
+        </button>
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2">

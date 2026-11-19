@@ -63,6 +63,7 @@ class AntigravityGeminiProvider(LLMProvider):
         cmd = [
             self._agy_path,
             "--model", target_model,
+            "--disable-slash-commands",
             "-p", full_prompt,
             "--output-format", "json",
             "--print-timeout", f"{int(self.timeout_seconds)}s",

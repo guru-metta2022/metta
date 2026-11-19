@@ -97,20 +97,24 @@ METTA_DEFAULT_MODEL=gemini-3.8-flash-high
 
 ## 🚀 4. How to Resume Work & Run All Verification
 
-### Step 1: Run All Test Suites (43 Tests)
+### Step 1: Run All Test Suites (55 Tests Verified)
 ```bash
-# Test Core Engine (30 passing tests including Dhamma graph precedents, canonical consensus, MCP suite and guardrail)
-cd /home/guru/Work/metta/packages/metta-core
-/home/guru/Work/metta/packages/metta-core/.venv/bin/pytest tests
+# 1. Test Shared Commons (3 passing tests)
+npm run test --workspace=packages/common
 
-# Test FastAPI Server & Endpoints (13 passing tests including headless API, canonical verify, guardrail, rate limiter & BYOM bypass)
+# 2. Test Core Engine & Council Protocol (38 passing tests including Council, MCP, Jev, and Consensus)
+cd /home/guru/Work/metta/packages/metta-core
+uv run pytest
+
+# 3. Test FastAPI Server & REST Endpoints (14 passing tests including Council endpoints, rate limiter & headless API)
 cd /home/guru/Work/metta/packages/metta-server
-/home/guru/Work/metta/packages/metta-server/.venv/bin/pytest tests
+uv run pytest
+cd ../..
 ```
 
-### Step 2: Build Zen Web Frontend
+### Step 2: Build Zen Web Frontend & Council Lab
 ```bash
-# Build Zen WebApp
+# Build Zen WebApp with Council Lab
 npm run build --workspace=apps/webapp
 ```
 
@@ -119,9 +123,9 @@ npm run build --workspace=apps/webapp
 cd /home/guru/Work/metta/packages/metta-server
 uv run uvicorn metta_server.main:app --host 127.0.0.1 --port 8000
 ```
-Then visit `http://127.0.0.1:8000` in the browser or check headless endpoint:
+Then visit `http://127.0.0.1:8000` in the browser (toggle between **Dialogue**, **Simulation Lab**, and **Council Lab**) or check MCP:
 ```bash
-curl -s -X POST http://127.0.0.1:8000/api/headless -H "Accept: text/markdown" -d '{"query": "How to resolve team conflict?"}'
+uv run --directory packages/metta-core metta-mcp
 ```
 
 ---

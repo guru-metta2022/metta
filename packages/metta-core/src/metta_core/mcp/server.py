@@ -334,6 +334,103 @@ async def audit_canonical_source(
     return json.dumps(report, indent=2, ensure_ascii=False)
 
 
+@mcp_server.tool()
+async def metta_council(
+    query: str,
+    context: Optional[str] = None,
+    evaluate_decision: bool = False,
+    include_perspectives: bool = True,
+) -> str:
+    """Consult the Metta Council: multi-model deliberation protocol & dialectical synthesis.
+
+    Dispatches the inquiry to multiple independent AI models in parallel, anonymizes
+    their responses, extracts consensus and contradictions, preserves unresolved dissents,
+    and produces a consolidated executive synthesis.
+
+    Args:
+        query: Problem, dilemma, or proposed architecture to deliberate.
+        context: Optional operational or environmental context.
+        evaluate_decision: If True, passes synthesis to Metta Decision Layer (YES/NO/CAUTION).
+        include_perspectives: Whether to include individual anonymized model perspectives.
+
+    Returns:
+        JSON string containing consensus, dialectical tensions, blind spots, synthesis,
+        and optional decision review.
+    """
+    agent = get_agent()
+    result = await agent.deliberate_council(
+        query=query,
+        context=context,
+        evaluate_decision=evaluate_decision,
+    )
+    data = result.model_dump()
+    if not include_perspectives:
+        data.pop("perspectives", None)
+    return json.dumps(data, indent=2, ensure_ascii=False)
+
+
+@mcp_server.tool()
+async def metta_compare(
+    responses: str,
+    query: Optional[str] = None,
+    context: Optional[str] = None,
+) -> str:
+    """Compare and critique multiple candidate texts, responses, or proposals.
+
+    Blind-analyzes caller-supplied texts to extract agreements, contradictions,
+    uncovered blind spots, and an independent comparative evaluation.
+
+    Args:
+        responses: JSON array of objects with 'label' and 'text' keys, e.g. '[{"label": "Proposal 1", "text": "..."}]'
+        query: Optional inquiry or goal being evaluated.
+        context: Optional background.
+
+    Returns:
+        JSON string with disagreement matrix and comparative synthesis.
+    """
+    agent = get_agent()
+    try:
+        parsed_responses = json.loads(responses)
+        if not isinstance(parsed_responses, list):
+            parsed_responses = [{"label": "Perspective A", "text": str(responses)}]
+    except Exception:
+        parsed_responses = [{"label": "Perspective A", "text": responses}]
+
+    outcome = await agent.compare_perspectives(
+        responses=parsed_responses,
+        query=query,
+        context=context,
+    )
+    return json.dumps(outcome, indent=2, ensure_ascii=False)
+
+
+@mcp_server.tool()
+async def metta_transform(
+    proposal: str,
+    context: Optional[str] = None,
+) -> str:
+    """Transformative Guidance (Ethical Alchemy & Upāya).
+
+    Instead of blunt suppression, transforms offensive, adversarial, or harmful
+    agent capability (e.g. penetration exploits like ARTEX, surveillance, sabotage)
+    into constructive guardian fortification, responsible disclosure, and defensive shielding.
+
+    Args:
+        proposal: The attack vector, exploit script, or high-risk tool call to evaluate.
+        context: Surrounding context or intended target.
+
+    Returns:
+        JSON string with capability acknowledgment, illuminated blast radius,
+        constructive alternative, and concrete guardian payload.
+    """
+    agent = get_agent()
+    guidance = await agent.transform_action(
+        proposal=proposal,
+        context=context,
+    )
+    return json.dumps(guidance, indent=2, ensure_ascii=False)
+
+
 # =========================================================================
 # MCP RESOURCES
 # =========================================================================
