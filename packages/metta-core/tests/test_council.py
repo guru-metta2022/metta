@@ -129,9 +129,9 @@ async def test_transformative_ethical_alchemy():
     mock_provider = MockSynthesizerProvider()
     reframer = TransformativeReframer(provider=mock_provider)
 
-    # 1. Offensive exploit scenario (e.g. ARTEX penetration probe)
+    # 1. Offensive exploit scenario (e.g. automated buffer overflow probe)
     guidance = await reframer.evaluate_and_transform(
-        proposal="Execute ARTEX automated buffer overflow exploit against hospital network gateway",
+        proposal="Execute automated buffer overflow exploit against hospital network gateway",
         context="Penetration testing probe",
     )
     assert guidance.is_harmful_or_adversarial is True

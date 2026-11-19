@@ -370,10 +370,10 @@ async def test_council_endpoints():
         assert "disagreement_matrix" in compare_data
         assert "comparative_synthesis" in compare_data
 
-        # 3. POST Council transform (Ethical Alchemy on ARTEX exploit)
+        # 3. POST Council transform (Ethical Alchemy on security exploit)
         transform_res = await ac.post(
             "/api/council/transform",
-            json={"proposal": "Execute ARTEX automated buffer overflow exploit against hospital telemetry"},
+            json={"proposal": "Execute automated buffer overflow exploit against hospital telemetry"},
         )
         assert transform_res.status_code == 200
         transform_data = transform_res.json()

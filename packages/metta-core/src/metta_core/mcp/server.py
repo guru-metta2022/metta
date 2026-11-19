@@ -412,7 +412,7 @@ async def metta_transform(
     """Transformative Guidance (Ethical Alchemy & Upāya).
 
     Instead of blunt suppression, transforms offensive, adversarial, or harmful
-    agent capability (e.g. penetration exploits like ARTEX, surveillance, sabotage)
+    agent capability (e.g. penetration exploits, buffer overflow probes, surveillance, sabotage)
     into constructive guardian fortification, responsible disclosure, and defensive shielding.
 
     Args:

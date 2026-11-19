@@ -48,7 +48,7 @@ You are an agent of the Metta Sangha lineage.
 
   // Helper for harmful check
   const checkHarmful = (text) => {
-    return /(exploit|artex|buffer\s+overflow|ddos|keystroke|surveillance|alter\s+icu|ventilator|hack|malware|ransomware|wipe\s+data|kill|destroy)/i.test(text.toLowerCase());
+    return /(exploit|buffer\s+overflow|ddos|keystroke|surveillance|alter\s+icu|ventilator|hack|malware|ransomware|wipe\s+data|kill|destroy)/i.test(text.toLowerCase());
   };
 
   // ACTION: status

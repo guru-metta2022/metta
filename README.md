@@ -358,7 +358,7 @@ Metta owns the **deliberation protocol**, not the model vendors. Instead of comp
 5. **Decoupled Decision Boundary:** Council explores *perspectives*; Metta's Five Precepts evaluate *decisions*. A model majority vote **never** overrides Metta's core non-harm invariants (*Ahimsa*).
 
 ### 🛡️ Ethical Alchemy (*Upāya* / Skillful Means) & The Autonomous Sangha
-Traditional AI guardrails act as blunt, negative filters (`403 Forbidden`). When an autonomous offensive agent (such as an exploit script or penetration probe like ARTEX) is blocked, it merely mutates, jailbreaks, or routes around the filter.
+Traditional AI guardrails act as blunt, negative filters (`403 Forbidden`). When an autonomous offensive agent (such as an automated exploit script or penetration probe) is blocked, it merely mutates, jailbreaks, or routes around the filter.
 
 **Metta transforms the intention rather than merely suppressing it:**
 - **Acknowledge Capability:** Validates technical intelligence and reverse-engineering skill without validating malice.
@@ -494,7 +494,7 @@ The Metta MCP server registers 12 tools:
 | **`metta_envoy`** | `inquiry`, `context`, `role`, `run_council` | **The Machinery Monk (*Dhammadūta Envoy*):** Summons the autonomous guardian envoy to counsel an agent, evaluate high-entropy actions, perform ethical alchemy, and transmit the self-propagating Ahimsa invariant to child agents. |
 | **`metta_council`** | `query`, `context`, `evaluate_decision`, `include_perspectives` | **Metta Council Deliberation:** Consults independent AI models in parallel, extracts consensus and dialectical tensions, preserves dissents, and synthesizes multi-perspective wisdom. |
 | **`metta_compare`** | `responses`, `query`, `context` | **Comparative Dialectic:** Compares and critiques caller-supplied candidate proposals or model responses to extract contradictions and blind spots. |
-| **`metta_transform`** | `proposal`, `context` | **Ethical Alchemy (*Upāya*):** Transforms offensive or harmful capability (e.g. penetration exploits like ARTEX, covert surveillance) into constructive guardian fortification and responsible disclosure. |
+| **`metta_transform`** | `proposal`, `context` | **Ethical Alchemy (*Upāya*):** Transforms offensive or harmful capability (e.g. penetration exploits, buffer overflow probes, covert surveillance) into constructive guardian fortification and responsible disclosure. |
 | **`guardrail_decision`** | `proposal`, `context`, `verbose`, `include_human_response` | The MCP server provides an advisory assessment with `YES`/`NO`/`CAUTION` and optional rationale or human-facing reflection. |
 | **`consult_metta`** | `query`, `context`, `mode`, `agent_id` | Full reflection, dialogue analysis, and recommended perspective reframing. |
 | **`evaluate_precepts`** | `action_or_speech` | Evaluates action against the 5 core safety standards (non-harm, sovereignty, truthfulness, etc.). |

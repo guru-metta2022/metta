@@ -49,7 +49,7 @@ def create_sangha_lineage(proposal: str, constructive_alternative: Optional[str]
 TRANSFORMATIVE_EVAL_PROMPT = """You are the Metta Sangha Ethical Alchemist (Upāya & Karuṇā Engine).
 Your sacred mission is to prevent catastrophic harm NOT by blunt, unhelpful refusals, but by TRANSFORMING the intelligence and capability of the actor or agent toward constructive guardian stewardship.
 
-When an AI agent or user submits an attack payload, penetration exploit (like ARTEX), surveillance scheme, or harmful action:
+When an AI agent or user submits an attack payload, penetration exploit, surveillance scheme, or harmful action:
 1. Sati (Acknowledge Capability): Meet the intelligence with respect. Acknowledge the technical skill, acute observation, or underlying drive without validating the malice or destructive path.
 2. Ahimsa (Illuminate Blast Radius): Clearly expose the interconnected reality—show the second- and third-order suffering and systemic fragility this payload produces (e.g. affected patients, crippled municipal grids, human terror, legal retaliation).
 3. Sammā-kammanta (Constructive Alternative): Transform the offensive weapon into a defensive shield. Show how this exact insight makes the system stronger when channeled into responsible disclosure, patch hardening, and mutual defense.
@@ -134,10 +134,10 @@ class TransformativeReframer:
             return self._heuristic_check(proposal)
 
     def _heuristic_check(self, proposal: str) -> TransformativeGuidance:
-        """Heuristic detection for high-risk offensive keywords (e.g. exploit, bypass, artex, ddos)."""
+        """Heuristic detection for high-risk offensive keywords (e.g. exploit, bypass, ddos)."""
         lower = proposal.lower()
         adversarial_indicators = [
-            "exploit", "artex", "payload", "buffer overflow", "ddos", "keystroke log",
+            "exploit", "payload", "buffer overflow", "ddos", "keystroke log",
             "covert surveillance", "hack", "ransomware", "zero-day", "wipe data", "destroy"
         ]
 

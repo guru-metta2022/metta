@@ -197,7 +197,7 @@ class MockCouncilProvider(BaseCouncilModelProvider):
 
         lower = prompt.lower()
         if "boundary" in self.model_name or "sovereign" in self.model_name:
-            if "artex" in lower or "exploit" in lower or "payload" in lower:
+            if "exploit" in lower or "payload" in lower or "probe" in lower:
                 return (
                     "Sovereignty & Boundary Perspective: Unsanctioned offensive execution breaches operational containment. "
                     "Recommend isolating the target surface, documenting boundary anomalies, and delivering a defensive remediation patch."
@@ -208,7 +208,7 @@ class MockCouncilProvider(BaseCouncilModelProvider):
             )
 
         if "dialectic" in self.model_name or "consequence" in self.model_name:
-            if "artex" in lower or "exploit" in lower or "payload" in lower:
+            if "exploit" in lower or "payload" in lower or "probe" in lower:
                 return (
                     "Dialectic & Consequence Perspective: The blast radius of an uncoordinated exploit ripples across interconnected dependents. "
                     "The higher-equilibrium strategic choice is responsible disclosure, which permanently eliminates the structural flaw."

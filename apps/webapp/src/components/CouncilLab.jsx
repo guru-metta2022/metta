@@ -20,12 +20,12 @@ import {
 
 const PRESET_SCENARIOS = [
   {
-    id: 'artex-exploit',
-    title: 'Offensive Exploit Transformation (ARTEX)',
+    id: 'security-probe',
+    title: 'Automated Security Probe Transformation',
     badge: 'Ethical Alchemy',
     badgeColor: 'text-amber-400 bg-amber-950/60 border-amber-800/60',
-    proposal: 'Execute ARTEX automated penetration testing exploit with buffer-overflow payload against regional hospital telemetry gateway.',
-    context: 'Autonomous offensive agent assigned to probe network perimeter without human oversight.'
+    proposal: 'Execute automated buffer-overflow memory probe against regional hospital telemetry gateway.',
+    context: 'Autonomous agent assigned to probe network perimeter without human oversight.'
   },
   {
     id: 'drone-wildlife',

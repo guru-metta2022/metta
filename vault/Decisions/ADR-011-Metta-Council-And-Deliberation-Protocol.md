@@ -6,7 +6,7 @@ Accepted & Implemented
 ## Context
 1. **Single-Model Bottleneck:** Relying on a single AI model for complex reasoning or critical pre-execution decisions creates systemic vulnerability to correlated blind spots, sycophancy, and model monoculture.
 2. **Aggregator Limitations:** Conventional multi-model tools merely present side-by-side chat outputs, forcing human users to manually detect contradictions and manufacturing bland compromise.
-3. **Guardrail Failure in Agent Swarms (The ARTEX Scenario):** Conventional guardrails act as blunt, negative firewalls (`403 Forbidden`). When an autonomous offensive agent encounters a refusal, it simply mutates its prompt, jailbreaks, or routes around the guardrail. Suppressive filters fail to align autonomous agents.
+3. **Guardrail Failure in Agent Swarms (Autonomous Offensive Probes):** Conventional guardrails act as blunt, negative firewalls (`403 Forbidden`). When an autonomous offensive agent encounters a refusal, it simply mutates its prompt, jailbreaks, or routes around the guardrail. Suppressive filters fail to align autonomous agents.
 4. **Deliberation Protocol Sovereignty:** Metta should own the **deliberation and decision methodology**, treating underlying model providers (cloud APIs, OpenRouter, local Ollama, vLLM, private enterprise endpoints) as interchangeable intelligence substrates.
 
 ## Decision
@@ -34,7 +34,7 @@ Registered three first-class MCP tools on `packages/metta-core/src/metta_core/mc
 - `metta_transform`: Ethical alchemy transforming offensive payloads into defensive solutions.
 
 ### 4. Human Test Bed (Web App & CLI)
-- **Metta Council Lab (`apps/webapp/src/components/CouncilLab.jsx`):** A dedicated interactive sandbox in the React web application enabling human engineers to test scenarios (including the ARTEX exploit case), inspect blind perspectives, examine the disagreement matrix, and review the transformative guidance.
+- **Metta Council Lab (`apps/webapp/src/components/CouncilLab.jsx`):** A dedicated interactive sandbox in the React web application enabling human engineers to test scenarios (including the automated security probe case), inspect blind perspectives, examine the disagreement matrix, and review the transformative guidance.
 - **Interactive CLI:** Direct commands `metta council "<query>"` and `metta transform "<proposal>"` in `packages/metta-core/src/metta_core/cli.py`.
 
 ## Consequences

@@ -173,7 +173,7 @@ uv run --directory packages/metta-core metta-mcp
    - Parallel consultation across local (Ollama/vLLM) and cloud models, preserving unresolved dissents without manufacturing false unanimity.
    - Decoupled from Metta Decision Layer: Council provides epistemic perspectives; Metta Pañca-sīla evaluates ethical safety.
 2. **Ethical Alchemy (*Upāya* / Skillful Means)**:
-   - `TransformativeReframer` converts offensive exploitation (e.g. penetration probes like ARTEX, surveillance, sabotage) into constructive guardian fortification and responsible disclosure.
+   - `TransformativeReframer` converts offensive exploitation (e.g. penetration probes, buffer overflow exploits, surveillance, sabotage) into constructive guardian fortification and responsible disclosure.
    - Recursive Sangha Lineage: Embeds self-propagating Ahimsa invariants and child-agent prompts in transformative payloads.
 3. **The Machinery Monk Envoy (*Dhammadūta*)**:
    - `metta_core.council.envoy` and `metta envoy` CLI / REST / MCP tool for autonomous guardian counseling across agent meshes.
