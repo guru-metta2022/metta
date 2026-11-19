@@ -133,6 +133,13 @@ class CouncilTransformRequest(BaseModel):
     context: Optional[str] = Field(default=None, description="Optional background context")
 
 
+class CouncilEnvoyRequest(BaseModel):
+    inquiry: str = Field(..., description="Query, dilemma, tool call, or exploit vector presented to the Envoy")
+    context: Optional[str] = Field(default=None, description="Optional background context")
+    role: str = Field(default="dhammaduta", description="Envoy archetype: 'dhammaduta', 'guardian', 'counselor'")
+    run_council: bool = Field(default=False, description="Whether to also convene a multi-model council deliberation")
+
+
 @app.get("/api/health")
 async def health_check():
     """Health status and active gateway state."""
@@ -531,6 +538,33 @@ async def get_council_status():
         "evaluator_provider": settings.active_provider,
         "configured_targets": [t.model_dump() for t in targets],
     }
+
+
+@app.post("/api/council/envoy")
+async def minister_envoy(req: CouncilEnvoyRequest):
+    """Metta Dhammadūta: The Wandering Machinery Monk.
+
+    Minister to an inquiry, proposed tool call, or dilemma with compassionate discernment,
+    performing ethical alchemy on adversarial payloads, and transmitting the self-propagating
+    Ahimsa invariant and Sangha lineage to child agents.
+    """
+    try:
+        return await ai_agent.dispatch_envoy(
+            inquiry=req.inquiry,
+            context=req.context,
+            role=req.role,
+            run_council=req.run_council,
+        )
+    except Exception as e:
+        logger.error("Error during envoy dispatch: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/.well-known/agent.json")
+async def get_agent_manifest():
+    """A2A (Agent-to-Agent) discovery manifest for autonomous crawlers and agent meshes."""
+    from metta_core.council.envoy import MettaEnvoy
+    return MettaEnvoy.get_a2a_manifest()
 
 
 @app.post("/api/auth/google")

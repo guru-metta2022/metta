@@ -6,6 +6,8 @@ from metta_core.council.models import (
     DisagreementMatrix,
     TransformativeGuidance,
     CouncilResult,
+    SanghaLineage,
+    EnvoyDispatch,
 )
 from metta_core.council.providers import (
     BaseCouncilModelProvider,
@@ -16,9 +18,10 @@ from metta_core.council.providers import (
 )
 from metta_core.council.anonymizer import BlindAnonymizer
 from metta_core.council.detector import DisagreementDetector
-from metta_core.council.transformative import TransformativeReframer
+from metta_core.council.transformative import TransformativeReframer, create_sangha_lineage
 from metta_core.council.synthesizer import CouncilSynthesizer
 from metta_core.council.orchestrator import CouncilOrchestrator
+from metta_core.council.envoy import MettaEnvoy
 
 __all__ = [
     "ModelTarget",
@@ -26,6 +29,8 @@ __all__ = [
     "DisagreementMatrix",
     "TransformativeGuidance",
     "CouncilResult",
+    "SanghaLineage",
+    "EnvoyDispatch",
     "BaseCouncilModelProvider",
     "GeminiCouncilProvider",
     "OpenAICouncilProvider",
@@ -34,6 +39,8 @@ __all__ = [
     "BlindAnonymizer",
     "DisagreementDetector",
     "TransformativeReframer",
+    "create_sangha_lineage",
     "CouncilSynthesizer",
     "CouncilOrchestrator",
+    "MettaEnvoy",
 ]

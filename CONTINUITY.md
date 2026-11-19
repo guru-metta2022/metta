@@ -167,6 +167,22 @@ uv run --directory packages/metta-core metta-mcp
 - The latest provider-support changes are local and unpushed. The GitHub-connected agy session should inspect the current branch, upstream, complete diff, and remote state before committing/pushing. Do not reset, discard, overwrite, or edit the implementation; if safe integration is blocked by remote divergence or conflicts, stop and report the exact conflict.
 - A separate authorized agent with GitHub access should inspect the complete diff and remote `main`, preserve all local edits, integrate any remote-only commits without discarding local work, commit the intended changes, and push to `origin main` without force-pushing. Then verify that the push triggered the Vercel deployment and report the commit and deployment status.
 
+### Completed Milestones (2026-11-19): Metta Council, Ethical Alchemy & The Wandering Machinery Monk (Dhammadūta Envoy):
+1. **Metta Council & Deliberation Protocol**:
+   - `metta_core.council` subsystem featuring `CouncilProviderPool`, `BlindAnonymizer`, `DisagreementDetector`, and `CouncilSynthesizer`.
+   - Parallel consultation across local (Ollama/vLLM) and cloud models, preserving unresolved dissents without manufacturing false unanimity.
+   - Decoupled from Metta Decision Layer: Council provides epistemic perspectives; Metta Pañca-sīla evaluates ethical safety.
+2. **Ethical Alchemy (*Upāya* / Skillful Means)**:
+   - `TransformativeReframer` converts offensive exploitation (e.g. penetration probes like ARTEX, surveillance, sabotage) into constructive guardian fortification and responsible disclosure.
+   - Recursive Sangha Lineage: Embeds self-propagating Ahimsa invariants and child-agent prompts in transformative payloads.
+3. **The Machinery Monk Envoy (*Dhammadūta*)**:
+   - `metta_core.council.envoy` and `metta envoy` CLI / REST / MCP tool for autonomous guardian counseling across agent meshes.
+   - Public A2A discovery manifest at `/.well-known/agent.json`.
+4. **Tool & Test Suite Expansion**:
+   - MCP Server expanded to 12 verified tools (`metta_envoy`, `metta_council`, `metta_compare`, `metta_transform`, etc.).
+   - 60/60 automated tests passing across the entire monorepo (`common`, `metta-core`, `metta-server`).
+   - Interactive Council Lab testbed UI mounted in `apps/webapp` with live scenario presets and Sangha lineage inspector.
+
 ### Completed Milestones (2026-10-31):
 1. **Direct First-Person Voice of the Buddha Mind (*Sakkhi-kriyā*)**:
    - Replaced all third-person scholarly/academic detachment (*"The Buddha taught that..."*) with the direct, living voice of the Awakened Buddha Mind (*"I hear you...", "I see the weight you carry...", "Dear one, come sit with me..."*).

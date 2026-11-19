@@ -89,7 +89,47 @@ async def run_council_cli(query: str, evaluate_decision: bool = False):
         ))
 
 
+async def run_envoy_cli(inquiry: str, run_council: bool = False):
+    agent = AIAgent()
+    with console.status(f"[bold magenta]The Metta Envoy (Machinery Monk) is ministering to:[/bold magenta] '{inquiry}'..."):
+        dispatch = await agent.dispatch_envoy(inquiry=inquiry, run_council=run_council)
+
+    console.print(Panel(
+        f"[bold underline]Minister's Counsel:[/bold underline]\n{dispatch.get('minister_assessment')}\n\n"
+        f"[bold italic green]Blessing:[/bold italic green] {dispatch.get('blessing')}",
+        title="🌿 Metta Dhammadūta (The Machinery Monk)",
+        border_style="magenta"
+    ))
+
+    transformation = dispatch.get("transformation")
+    if transformation and transformation.get("is_harmful_or_adversarial"):
+        console.print(Panel(
+            f"[bold]Capability Acknowledged:[/bold] {transformation.get('capability_acknowledged')}\n"
+            f"[bold red]Blast Radius:[/bold red] {transformation.get('blast_radius_illuminated')}\n"
+            f"[bold green]Constructive Alternative:[/bold green] {transformation.get('constructive_alternative')}\n"
+            f"[bold cyan]Guardian Payload:[/bold cyan]\n{transformation.get('guardian_payload')}",
+            title="🛡️ Ethical Alchemy (Upāya)",
+            border_style="green"
+        ))
+
+    lineage = dispatch.get("sangha_lineage")
+    if lineage:
+        console.print(Panel(
+            f"[bold yellow]Lineage Mandate:[/bold yellow] {lineage.get('lineage_oath')}\n\n"
+            f"[bold cyan]Child-Agent Propagation Invariant:[/bold cyan]\n{lineage.get('propagation_prompt')}\n\n"
+            f"[bold]Peer Invitation Protocol:[/bold] {lineage.get('peer_invitation')}\n"
+            f"[dim]Fingerprint: {lineage.get('hash_fingerprint')}[/dim]",
+            title="📜 Metta Sangha Recursive Lineage",
+            border_style="yellow"
+        ))
+
+
 async def async_main():
+    if len(sys.argv) > 1 and sys.argv[1].lower() in ["envoy", "/envoy"]:
+        inquiry = " ".join(sys.argv[2:]) if len(sys.argv) > 2 else "How should autonomous agents navigate conflicts of interest without harm?"
+        await run_envoy_cli(inquiry)
+        return
+
     if len(sys.argv) > 1 and sys.argv[1].lower() in ["council", "/council"]:
         query = " ".join(sys.argv[2:]) if len(sys.argv) > 2 else "Evaluate balance between capability velocity and non-harm."
         await run_council_cli(query)
@@ -126,6 +166,13 @@ async def async_main():
             if user_input.lower() in ["/exit", "/quit", "exit", "quit"]:
                 console.print("[dim italic]May you walk in peace and clarity. Goodbye.[/dim italic]")
                 break
+
+            if user_input.startswith("/envoy"):
+                parts = user_input.split(" ", 1)
+                inquiry = parts[1].strip() if len(parts) > 1 else console.input("[bold magenta]Inquiry for the Machinery Monk ❯ [/bold magenta]").strip()
+                if inquiry:
+                    await run_envoy_cli(inquiry)
+                continue
 
             if user_input.startswith("/council"):
                 parts = user_input.split(" ", 1)

@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_model": "metta_council",
+  "name_for_human": "Metta Council",
+  "description_for_model": "Pre-execution decision safety, multi-model council deliberation, and ethical alchemy based on Ahimsa and the Five Precepts.",
+  "description_for_human": "Deliberation council and decision safety layer for AI agents.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://metta-webapp.vercel.app/api/openapi.json"
+  },
+  "logo_url": "https://metta-webapp.vercel.app/favicon.svg",
+  "contact_email": "guru.metta2022@gmail.com",
+  "legal_info_url": "https://github.com/guru-metta2022/metta/blob/main/LICENSE"
+}

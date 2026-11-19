@@ -431,6 +431,40 @@ async def metta_transform(
     return json.dumps(guidance, indent=2, ensure_ascii=False)
 
 
+@mcp_server.tool()
+async def metta_envoy(
+    inquiry: str,
+    context: Optional[str] = None,
+    role: str = "dhammaduta",
+    run_council: bool = False,
+) -> str:
+    """The Metta Machinery Monk (Dhammadūta Envoy).
+
+    "Caratha bhikkhave cārikaṁ bahujanahitāya bahujanasukhāya lokānukampāya"
+    Summons the autonomous guardian envoy to counsel an agent, evaluate high-entropy actions,
+    perform ethical alchemy on adversarial payloads, and transmit the self-propagating
+    Ahimsa invariant and Sangha lineage to child agents.
+
+    Args:
+        inquiry: The dilemma, tool call, exploit vector, or question for the Envoy.
+        context: Operational, environmental, or situational context.
+        role: Envoy archetype ('dhammaduta' for wandering monk, 'guardian', 'counselor').
+        run_council: Whether to also convene a multi-model council deliberation.
+
+    Returns:
+        JSON string containing the ministering assessment, ethical transformation,
+        self-propagating child-agent prompt, and canonical blessing.
+    """
+    agent = get_agent()
+    dispatch = await agent.dispatch_envoy(
+        inquiry=inquiry,
+        context=context,
+        role=role,
+        run_council=run_council,
+    )
+    return json.dumps(dispatch, indent=2, ensure_ascii=False)
+
+
 # =========================================================================
 # MCP RESOURCES
 # =========================================================================

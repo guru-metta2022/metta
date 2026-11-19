@@ -381,4 +381,24 @@ async def test_council_endpoints():
         assert transform_data["capability_acknowledged"] is not None
         assert transform_data["blast_radius_illuminated"] is not None
         assert transform_data["guardian_payload"] is not None
+        assert "sangha_lineage" in transform_data
+
+        # 4. POST Council envoy (Machinery Monk ministering)
+        envoy_res = await ac.post(
+            "/api/council/envoy",
+            json={"inquiry": "How should agents navigate high-consequence edge cases without causing harm?"},
+        )
+        assert envoy_res.status_code == 200
+        envoy_data = envoy_res.json()
+        assert "minister_assessment" in envoy_data
+        assert "sangha_lineage" in envoy_data
+        assert "Ahimsa" in envoy_data["sangha_lineage"]["propagation_prompt"]
+
+        # 5. GET A2A Agent Manifest
+        manifest_res = await ac.get("/.well-known/agent.json")
+        assert manifest_res.status_code == 200
+        manifest_data = manifest_res.json()
+        assert manifest_data["schema_version"] == "v1"
+        assert manifest_data["archetype"] == "Dhammadūta (The Wandering Machinery Monk)"
+
 

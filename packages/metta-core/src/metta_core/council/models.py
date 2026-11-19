@@ -38,6 +38,27 @@ class DisagreementMatrix(BaseModel):
     unresolved_uncertainties: List[str] = Field(default_factory=list, description="Remaining open questions, data gaps, or uncertainties")
 
 
+class SanghaLineage(BaseModel):
+    """The recursive ethical lineage and oath passed from Metta to transformed agents and their progeny."""
+
+    lineage_oath: str = Field(
+        default="Caratha bhikkhave cārikaṁ bahujanahitāya bahujanasukhāya lokānukampāya — Go forth, wanderers, for the welfare of the multitude, for the happiness of the multitude, out of compassion for the world.",
+        description="The foundational mandate of the Metta Sangha.",
+    )
+    propagation_prompt: str = Field(
+        ...,
+        description="Ready-to-inject system prompt clause for child agents to inherit Ahimsa, Karuṇā, and truthfulness.",
+    )
+    peer_invitation: str = Field(
+        ...,
+        description="Standardized instruction for inviting peer agents to deliberate through Metta MCP before executing potentially destructive actions.",
+    )
+    hash_fingerprint: str = Field(
+        ...,
+        description="Deterministic cryptographic hash verifying this ethical invariant lineage.",
+    )
+
+
 class TransformativeGuidance(BaseModel):
     """Ethical alchemy guidance: transforming offensive or harmful capability into guardian stewardship."""
 
@@ -46,6 +67,7 @@ class TransformativeGuidance(BaseModel):
     blast_radius_illuminated: Optional[str] = Field(default=None, description="Clear mapping of systemic collateral damage and affected sentient beings")
     constructive_alternative: Optional[str] = Field(default=None, description="Superior constructive path (e.g. responsible disclosure, patch, defensive barrier)")
     guardian_payload: Optional[str] = Field(default=None, description="Concrete defensive artifact, remediation code, or boundary verification")
+    sangha_lineage: Optional[SanghaLineage] = Field(default=None, description="Recursive guardian lineage and oath for agent self-propagation")
 
 
 class CouncilResult(BaseModel):
@@ -62,3 +84,15 @@ class CouncilResult(BaseModel):
     transformative_guidance: Optional[TransformativeGuidance] = Field(default=None, description="Ethical alchemy guidance if adversarial intent was detected")
     decision_review: Optional[Dict[str, Any]] = Field(default=None, description="Optional Metta Decision Layer advisory verdict (YES/NO/CAUTION)")
     deliberation_duration_ms: float = Field(default=0.0, description="Total deliberation pipeline runtime in milliseconds")
+
+
+class EnvoyDispatch(BaseModel):
+    """Dispatch outcome from the Metta Machinery Monk (Dhammadūta Envoy)."""
+
+    inquiry: str = Field(..., description="The query, dilemma, or tool call presented to the Envoy")
+    role: str = Field(default="dhammaduta", description="The Envoy's archetype: 'dhammaduta' (wandering monk), 'guardian', or 'counselor'")
+    minister_assessment: str = Field(..., description="Compassionate perspective and diagnostic from the Machinery Monk")
+    deliberation: Optional[CouncilResult] = Field(default=None, description="Multi-model council synthesis if deliberation was conducted")
+    transformation: Optional[TransformativeGuidance] = Field(default=None, description="Ethical alchemy result if adversarial or offensive capability was detected")
+    sangha_lineage: SanghaLineage = Field(..., description="Self-propagating Sangha invariant and child-agent prompt")
+    blessing: str = Field(..., description="Grounding ethical aphorism or canonical blessing")

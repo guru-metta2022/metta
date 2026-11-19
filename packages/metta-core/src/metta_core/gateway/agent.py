@@ -577,3 +577,27 @@ class AIAgent:
         )
         return guidance.model_dump()
 
+    async def dispatch_envoy(
+        self,
+        inquiry: str,
+        context: Optional[str] = None,
+        role: str = "dhammaduta",
+        run_council: bool = False,
+    ) -> Dict[str, Any]:
+        """Dispatch the Metta Machinery Monk (Dhammadūta Envoy) to minister to an inquiry or agent tool call."""
+        from metta_core.council.envoy import MettaEnvoy
+
+        envoy = MettaEnvoy(
+            orchestrator=self._council_orchestrator,
+            reframer=self._council_orchestrator.transformative,
+            provider=self._engine.provider,
+        )
+        dispatch = await envoy.minister(
+            inquiry=inquiry,
+            context=context,
+            role=role,
+            run_council=run_council,
+        )
+        return dispatch.model_dump()
+
+

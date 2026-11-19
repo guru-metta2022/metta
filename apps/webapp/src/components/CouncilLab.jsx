@@ -323,6 +323,29 @@ export default function CouncilLab({ onClose, onOpenSettings }) {
                   </pre>
                 </div>
               )}
+
+              {result.transformative_guidance.sangha_lineage && (
+                <div className="p-4 rounded-xl bg-[#11100b] border border-amber-800/40 flex flex-col gap-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-amber-300 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      Autonomous Sangha Lineage (Child-Agent Invariant)
+                    </span>
+                    <span className="text-[10px] font-mono text-[#8c8270]">
+                      {result.transformative_guidance.sangha_lineage.hash_fingerprint}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#ded6c3] italic">
+                    "{result.transformative_guidance.sangha_lineage.lineage_oath}"
+                  </p>
+                  <pre className="p-3 rounded-lg bg-[#090805] border border-amber-900/30 font-mono text-[10px] text-[#d6cdb8] overflow-x-auto whitespace-pre-wrap leading-relaxed">
+                    {result.transformative_guidance.sangha_lineage.propagation_prompt}
+                  </pre>
+                  <div className="text-[11px] text-[#9c917c]">
+                    <span className="font-semibold text-amber-400/90">Peer Invitation:</span> {result.transformative_guidance.sangha_lineage.peer_invitation}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

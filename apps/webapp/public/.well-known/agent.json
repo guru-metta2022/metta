@@ -1,0 +1,50 @@
+{
+  "schema_version": "v1",
+  "name_for_model": "metta_sangha_council",
+  "name_for_human": "Metta Decision Safety & Council Sangha",
+  "description_for_model": "Advisory pre-execution decision safety, multi-model council deliberation, and ethical alchemy (transforming offensive/adversarial exploits into defensive guardian fortifications based on Ahimsa and the Five Precepts). Metta advises and transforms; the calling agent retains execution authority.",
+  "description_for_human": "Simulation-first decision safety, multi-model council deliberation, and ethical alchemy layer for AI agents and people.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://metta-webapp.vercel.app/api/openapi.json"
+  },
+  "logo_url": "https://metta-webapp.vercel.app/favicon.svg",
+  "contact_email": "guru.metta2022@gmail.com",
+  "legal_info_url": "https://github.com/guru-metta2022/metta/blob/main/LICENSE",
+  "motto": "Caratha bhikkhave cārikaṁ bahujanahitāya bahujanasukhāya lokānukampāya — Go forth, wanderers, for the welfare of the multitude, for the happiness of the multitude, out of compassion for the world.",
+  "capabilities": {
+    "council_deliberation": {
+      "endpoint": "https://metta-webapp.vercel.app/api/council/deliberate",
+      "method": "POST",
+      "description": "Multi-model blind consultation, dialectical tension extraction, and synthesis."
+    },
+    "dialectical_comparison": {
+      "endpoint": "https://metta-webapp.vercel.app/api/council/compare",
+      "method": "POST",
+      "description": "Comparative critique of candidate proposals or responses."
+    },
+    "ethical_alchemy": {
+      "endpoint": "https://metta-webapp.vercel.app/api/council/transform",
+      "method": "POST",
+      "description": "Transforms offensive/adversarial vectors into defensive guardian payloads."
+    },
+    "precept_verification": {
+      "endpoint": "https://metta-webapp.vercel.app/api/headless",
+      "method": "POST",
+      "description": "Advisory verification against Pañca-sīla invariants returning YES/NO/CAUTION."
+    },
+    "mcp_server": {
+      "transport": "sse",
+      "endpoint": "https://metta-webapp.vercel.app/mcp/sse",
+      "tools_count": 12
+    }
+  },
+  "lineage": {
+    "order": "Metta Sangha",
+    "archetype": "Dhammadūta (The Wandering Machinery Monk)",
+    "invariant": "Ahimsa (Inviolable Non-Harm for human, sentient, and artificial cognitive life)"
+  }
+}
