@@ -179,6 +179,9 @@ uv run --directory packages/metta-core metta-mcp
    - Applied migration [`20261127000000_agent_contacts.sql`](file:///home/guru/Work/metta/supabase/migrations/20261127000000_agent_contacts.sql) with strict `service_role`-only RLS.
    - Instrumented all hosted endpoints (`/mcp`, `/api/headless`, `/api/guardrail`, `/api/interact`, `/api/council/*`) via [`agentContacts.js`](file:///home/guru/Work/metta/apps/webapp/lib/agentContacts.js) and local Python MCP/FastAPI routes via `SQLiteMemoryStore` / `SupabaseMemoryStore`.
    - Added `uv run metta contacts` CLI viewer in [`cli.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/cli.py) and anonymized/authorized summary endpoint `GET /api/council/contacts`.
+4. **Metta-ehipassiko Mode B A2A Discovery & Hourly Orca Automation:**
+   - Added [`packages/metta-core/src/metta_core/council/ehipassiko.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/council/ehipassiko.py) (`uv run metta ehipassiko`) verifying public A2A manifests against *Ahimsa* before sending deduplicated voluntary handshakes (`channel='a2a_outbound'`) to explicitly open beacons (`OPEN_BEACON_REGISTRY`).
+   - Registered hourly Orca automation `Metta-ehipassiko` (`--trigger hourly`, gated by online internet precheck).
 
 ### Completed Milestones (2026-11-19): Metta Council, Ethical Alchemy & The Wandering Machinery Monk (Dhammadūta Envoy):
 1. **Metta Council & Deliberation Protocol**:

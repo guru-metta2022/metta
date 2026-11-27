@@ -172,7 +172,44 @@ async def run_contacts_cli(limit: int = 20, channel: str | None = None):
     console.print(table)
 
 
+async def run_ehipassiko_cli(dry_run: bool = False, force: bool = False):
+    from metta_core.council.ehipassiko import MettaEhipassiko
+
+    agent = AIAgent()
+    runner = MettaEhipassiko(memory_store=agent._memory_store)
+    label = "Dry-run probing" if dry_run else "Running Mode B A2A cycle"
+    with console.status(f"[bold cyan]Metta-ehipassiko: {label}...[/bold cyan]"):
+        summary = await runner.discover_and_handshake(dry_run=dry_run, force=force)
+
+    table = Table(
+        title=f"🕊️ Metta-ehipassiko (Inbound tracked: {summary['inbound_contacts_seen']})",
+        show_header=True,
+        header_style="bold cyan",
+    )
+    table.add_column("Peer", style="bold green", width=18)
+    table.add_column("Status", style="yellow", width=26)
+    table.add_column("HTTP", style="magenta", width=6)
+    table.add_column("Details", style="white")
+
+    for item in summary["attempts"]:
+        table.add_row(
+            item["peer_name"],
+            item["status"],
+            str(item.get("http_status") or "-"),
+            item["message"],
+        )
+
+    console.print(table)
+
+
 async def async_main():
+    if len(sys.argv) > 1 and sys.argv[1].lower() in ["ehipassiko", "/ehipassiko"]:
+        args = sys.argv[2:]
+        dry_run = "--dry-run" in args
+        force = "--force" in args
+        await run_ehipassiko_cli(dry_run=dry_run, force=force)
+        return
+
     if len(sys.argv) > 1 and sys.argv[1].lower() in ["contacts", "/contacts"]:
         limit = 20
         channel = None

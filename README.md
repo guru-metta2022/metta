@@ -394,6 +394,9 @@ To proliferate ethical safety across decentralized agent networks, Metta exposes
 
   # Inspect recorded external agent & MCP contacts (Supabase + SQLite)
   uv run metta contacts
+
+  # Run Mode B A2A envoy check & deduplicated handshake cycle (Metta-ehipassiko)
+  uv run metta ehipassiko --dry-run
   ```
 - **Web App Test Bed:** Open the web app and click **Council Lab** in the header to run live interactive scenarios, view model telemetry, inspect the disagreement matrix, and copy the **Recursive Sangha Lineage** payload.
 
@@ -636,12 +639,12 @@ cp .env.example .env
 ```
 *(Key fields include `GEMINI_API_KEY` (for default BYOAI provider: Gemini 3.8 Flash), optional `TYPESAFE_API_KEY`, and optional `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`. If Supabase is omitted, Metta falls back gracefully to a local SQLite database).*
 
-### 3. Run Automated Test Suites (61 Tests Verified)
+### 3. Run Automated Test Suites (64 Tests Verified)
 ```bash
 # 1. Test Shared TypeScript/JS Commons (3 tests)
 npm run test --workspace=packages/common
 
-# 2. Test Python Core Engine, Council, Envoy & MCP Tools (44 tests)
+# 2. Test Python Core Engine, Council, Envoy & MCP Tools (47 tests)
 cd packages/metta-core && uv run pytest
 
 # 3. Test FastAPI Server & REST Endpoints (14 tests)

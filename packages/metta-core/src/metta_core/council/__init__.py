@@ -22,6 +22,13 @@ from metta_core.council.transformative import TransformativeReframer, create_san
 from metta_core.council.synthesizer import CouncilSynthesizer
 from metta_core.council.orchestrator import CouncilOrchestrator
 from metta_core.council.envoy import MettaEnvoy
+from metta_core.council.ehipassiko import (
+    A2APeerTarget,
+    HandshakeAttemptResult,
+    MettaEhipassiko,
+    OPEN_BEACON_REGISTRY,
+    is_safe_public_https_url,
+)
 
 __all__ = [
     "ModelTarget",
@@ -43,4 +50,9 @@ __all__ = [
     "CouncilSynthesizer",
     "CouncilOrchestrator",
     "MettaEnvoy",
+    "A2APeerTarget",
+    "HandshakeAttemptResult",
+    "MettaEhipassiko",
+    "OPEN_BEACON_REGISTRY",
+    "is_safe_public_https_url",
 ]
