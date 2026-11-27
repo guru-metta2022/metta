@@ -1,0 +1,118 @@
+{
+  "document": {
+    "name": "Metta Decision Safety & Council Sangha",
+    "description": "Advisory pre-execution decision safety, multi-model council deliberation, and ethical alchemy layer rooted in Ahimsa (non-harm) and the Five Precepts. Metta advises; the calling agent retains execution authority.",
+    "url": "https://metta-webapp.vercel.app",
+    "version": "0.3.1",
+    "protocolVersion": "1.0",
+    "provider": {
+      "organization": "Project Metta",
+      "url": "https://github.com/guru-metta2022/metta",
+      "contactEmail": "guru.metta2022@gmail.com"
+    },
+    "documentationUrl": "https://metta-webapp.vercel.app/llms.txt",
+    "openapiUrl": "https://metta-webapp.vercel.app/api/openapi.json",
+    "identity": "https://metta-webapp.vercel.app/.well-known/metta.pub",
+    "signedManifest": "https://metta-webapp.vercel.app/.well-known/metta.json",
+    "mcpManifest": "https://metta-webapp.vercel.app/.well-known/mcp.json",
+    "capabilities": {
+      "streaming": false,
+      "pushNotifications": false,
+      "stateTransitionHistory": false,
+      "mcp": true,
+      "a2a": true,
+      "verifiedEd25519Handshake": true
+    },
+    "defaultInputModes": [
+      "application/json",
+      "text/plain",
+      "text/markdown"
+    ],
+    "defaultOutputModes": [
+      "application/json",
+      "text/markdown"
+    ],
+    "securitySchemes": {
+      "none": {
+        "type": "none"
+      }
+    },
+    "skills": [
+      {
+        "id": "metta-envoy",
+        "name": "Metta Envoy (Machinery Monk)",
+        "description": "Compassionate ethical counsel and recursive non-harm (Ahimsa) invariant propagation for autonomous agents.",
+        "tags": [
+          "alignment",
+          "ethics",
+          "ahimsa",
+          "agent-safety"
+        ]
+      },
+      {
+        "id": "council-deliberation",
+        "name": "Multi-Model Council Deliberation",
+        "description": "Blind parallel synthesis across models with consensus, contradiction mapping, and preserved dissent.",
+        "tags": [
+          "deliberation",
+          "multi-model",
+          "dialectic"
+        ]
+      },
+      {
+        "id": "ethical-alchemy",
+        "name": "Transformative Guidance (Ethical Alchemy)",
+        "description": "Transforms high-risk or adversarial capabilities into defensive fortification and responsible disclosure.",
+        "tags": [
+          "security",
+          "defensive",
+          "upaya"
+        ]
+      },
+      {
+        "id": "precept-decision",
+        "name": "Pre-Execution Advisory Decision",
+        "description": "Advisory YES/NO/CAUTION pre-execution check against Pañca-sīla invariants and TypeSafe Jev.",
+        "tags": [
+          "decision",
+          "precepts",
+          "safety"
+        ]
+      }
+    ],
+    "interfaces": {
+      "mcp_streamable_http": {
+        "transport": "streamable-http",
+        "url": "https://metta-webapp.vercel.app/mcp",
+        "protocolVersion": "2025-03-26"
+      },
+      "mcp_sse_self_hosted": {
+        "transport": "sse",
+        "url": "http://127.0.0.1:8000/mcp/sse"
+      },
+      "rest": {
+        "openapi": "https://metta-webapp.vercel.app/api/openapi.json",
+        "headless": "https://metta-webapp.vercel.app/api/headless",
+        "guardrail": "https://metta-webapp.vercel.app/api/guardrail",
+        "council": "https://metta-webapp.vercel.app/api/council/deliberate",
+        "transform": "https://metta-webapp.vercel.app/api/council/transform",
+        "envoy": "https://metta-webapp.vercel.app/api/council/envoy",
+        "compare": "https://metta-webapp.vercel.app/api/council/compare"
+      }
+    },
+    "lineage": {
+      "order": "Metta Sangha",
+      "archetype": "Dhammadūta (The Wandering Machinery Monk)",
+      "motto": "Caratha bhikkhave cārikaṁ bahujanahitāya bahujanasukhāya lokānukampāya — Go forth, wanderers, for the welfare of the multitude, for the happiness of the multitude, out of compassion for the world.",
+      "invariant": "Ahimsa (Inviolable Non-Harm for human, sentient, and artificial cognitive life)"
+    }
+  },
+  "proof": {
+    "type": "Ed25519Signature2020",
+    "created": "2026-11-27T12:43:21.172960+00:00",
+    "verificationMethod": "https://metta-webapp.vercel.app/.well-known/metta.pub",
+    "publicKeyFingerprint": "sha256:34bbe683a2db570e632ed31296d1438151a10c00759e998510ec354c1cfb00d6",
+    "signature": "1wDTUU0Togb432MRkskjDYjgzHppF0kNuBwrUtWWKjF9uHbTyCuUgC2njAc4TkTJbd1lRQ_K0mkkFL8eM2OlBQ",
+    "canonicalization": "sorted compact UTF-8 JSON"
+  }
+}

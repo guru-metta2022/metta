@@ -29,6 +29,13 @@ from metta_core.council.ehipassiko import (
     OPEN_BEACON_REGISTRY,
     is_safe_public_https_url,
 )
+from metta_core.council.identity import (
+    MettaIdentity,
+    canonical_json_bytes,
+)
+from metta_core.council.telemetry import (
+    sync_vercel_discovery_logs,
+)
 
 __all__ = [
     "ModelTarget",
@@ -55,4 +62,7 @@ __all__ = [
     "MettaEhipassiko",
     "OPEN_BEACON_REGISTRY",
     "is_safe_public_https_url",
+    "MettaIdentity",
+    "canonical_json_bytes",
+    "sync_vercel_discovery_logs",
 ]

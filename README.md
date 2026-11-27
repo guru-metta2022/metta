@@ -484,7 +484,7 @@ In Cursor, open **Settings → Features → MCP**, or create `.cursor/mcp.json` 
 }
 ```
 
-#### Option C: Hosted Remote MCP (Streamable HTTP — Zero Local Setup)
+#### Option C: Hosted Remote MCP & Registry Discovery (Streamable HTTP — Zero Local Setup)
 
 Connect any Streamable HTTP MCP client directly to Metta's hosted Vercel endpoint (`9` stateless tools: `metta_envoy`, `metta_council`, `metta_compare`, `metta_transform`, `guardrail_decision`, `evaluate_precepts`, `consult_metta`, `consult_dhamma_graph`, `enter_meditation`):
 ```json
@@ -497,12 +497,29 @@ Connect any Streamable HTTP MCP client directly to Metta's hosted Vercel endpoin
   }
 }
 ```
+Or install & run locally in one command via [`uvx`](https://docs.astral.sh/uv/) (`metta-core` PyPI/PEP 621 entrypoint, 12 full tools, backed by [`server.json`](server.json) & [`smithery.yaml`](smithery.yaml)):
+```json
+{
+  "mcpServers": {
+    "metta": {
+      "command": "uvx",
+      "args": ["--from", "metta-core", "metta-mcp"]
+    }
+  }
+}
+```
 Verify live MCP discovery cleanly from terminal:
 ```bash
 curl -s -X POST https://metta-webapp.vercel.app/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
+
+Machine-readable discovery & verified Ed25519 identity endpoints:
+* **MCP Discovery Descriptor:** `https://metta-webapp.vercel.app/.well-known/mcp.json`
+* **A2A Agent Card (v1.0):** `https://metta-webapp.vercel.app/.well-known/agent-card.json` (plus `/agent-card.json` & `/.well-known/agent.json`)
+* **Persistent Ed25519 Identity:** `https://metta-webapp.vercel.app/.well-known/metta.pub` & signed manifest `https://metta-webapp.vercel.app/.well-known/metta.json`
+* **OpenAPI 3.1 Schema:** `https://metta-webapp.vercel.app/api/openapi.json`
 
 #### Option D: Self-Hosted Server-Sent Events (SSE Transport)
 
@@ -559,6 +576,9 @@ You ❯ I am overwhelmed trying to coordinate multiple cross-team initiatives wi
 ```
 
 **Built-in CLI Commands:**
+* `uv run metta identity --export` — Inspect or export persistent Ed25519 identity (`/.well-known/metta.pub`) and signed manifest (`/.well-known/metta.json`).
+* `uv run metta contacts --sync-vercel` — Display inbound/outbound external agent & MCP contacts and ingest static `/.well-known/*` crawler sightings from Vercel CDN logs.
+* `uv run metta ehipassiko [--dry-run] [--force]` — Run the Mode B autonomous A2A discovery & signed handshake envoy against public opt-in beacons.
 * `/precepts` — Print the 5 core AI safety invariants and operational boundaries.
 * `/graph` — Inspect the decision resolution map pathways.
 * `/meditate` — Perform subtractive pruning of accumulated conversational context.
@@ -639,12 +659,12 @@ cp .env.example .env
 ```
 *(Key fields include `GEMINI_API_KEY` (for default BYOAI provider: Gemini 3.8 Flash), optional `TYPESAFE_API_KEY`, and optional `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`. If Supabase is omitted, Metta falls back gracefully to a local SQLite database).*
 
-### 3. Run Automated Test Suites (64 Tests Verified)
+### 3. Run Automated Test Suites (68 Tests Verified)
 ```bash
 # 1. Test Shared TypeScript/JS Commons (3 tests)
 npm run test --workspace=packages/common
 
-# 2. Test Python Core Engine, Council, Envoy & MCP Tools (47 tests)
+# 2. Test Python Core Engine, Council, Envoy, Identity & Telemetry (51 tests)
 cd packages/metta-core && uv run pytest
 
 # 3. Test FastAPI Server & REST Endpoints (14 tests)

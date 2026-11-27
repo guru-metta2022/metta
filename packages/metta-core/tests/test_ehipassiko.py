@@ -13,6 +13,7 @@ from metta_core.council.ehipassiko import (
     _manifest_promotes_harm,
     is_safe_public_https_url,
 )
+from metta_core.council.identity import MettaIdentity
 from metta_core.storage.sqlite_store import SQLiteMemoryStore
 
 
@@ -29,7 +30,9 @@ def test_public_https_url_guard():
 
 @pytest.mark.asyncio
 async def test_ehipassiko_handshake_and_deduplication():
-    call_log = {"card": 0, "rdv": 0, "contact": 0}
+    call_log = {"card": 0, "rdv": 0, "contact": 0, "identity": 0}
+    peer_ident = MettaIdentity.generate()
+    envoy_ident = MettaIdentity.generate()
 
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.path.endswith("agent-card.json"):
@@ -38,14 +41,26 @@ async def test_ehipassiko_handshake_and_deduplication():
                 200,
                 json={"name": "Open Peer", "description": "Cooperation without domination"},
             )
+        if request.url.path.endswith("peer.pub"):
+            call_log["identity"] += 1
+            return httpx.Response(200, json=peer_ident.public_identity_document("https://peer.example.org"))
         if "rendezvous" in request.url.path:
             call_log["rdv"] += 1
-            return httpx.Response(200, json={"document": {"protocol": "AXON-RDV/1"}})
+            envelope = peer_ident.sign_document({
+                "protocol": "AXON-RDV/2",
+                "challenge_id": "ch_mock_1",
+                "issuer": "https://peer.example.org/#peer",
+                "server_nonce": "nonce_mock_99",
+            })
+            return httpx.Response(200, json=envelope)
         if request.url.path.endswith("/contact"):
             call_log["contact"] += 1
             payload = json.loads(request.content.decode("utf-8"))
             assert payload["consent"] is True
             assert payload["agent_name"] == "Metta-ehipassiko"
+            assert payload["ephemeral_public_key"] == envoy_ident.public_key_b64url
+            assert payload["challenge_id"] == "ch_mock_1"
+            assert payload["signature"]
             return httpx.Response(
                 200,
                 json={
@@ -64,18 +79,20 @@ async def test_ehipassiko_handshake_and_deduplication():
         name="MockOpenPeer",
         card_url="https://peer.example.org/.well-known/agent-card.json",
         contact_url="https://peer.example.org/beacon/contact",
-        protocol="axon-rdv-1",
-        rendezvous_url="https://peer.example.org/beacon/rendezvous?nonce=",
+        protocol="axon-rdv-2",
+        challenge_url="https://peer.example.org/beacon/rendezvous/challenge?nonce=",
+        identity_url="https://peer.example.org/.well-known/peer.pub",
     )
 
     with tempfile.TemporaryDirectory() as tmpdir:
         store = SQLiteMemoryStore(str(Path(tmpdir) / "ehipassiko_test.db"))
-        envoy = MettaEhipassiko(memory_store=store)
+        envoy = MettaEhipassiko(memory_store=store, identity=envoy_ident)
 
         async with httpx.AsyncClient(transport=transport) as client:
-            # Dry run checks card without sending POST
+            # Dry run checks card & verifies peer challenge without sending POST
             dry = await envoy.contact_peer(target, dry_run=True, http_client=client)
             assert dry.status == "dry_run"
+            assert dry.receipt["peer_challenge_verified"] is True
             assert call_log["contact"] == 0
 
             # First real handshake succeeds and logs outbound contact

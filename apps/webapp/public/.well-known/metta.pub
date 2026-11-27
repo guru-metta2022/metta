@@ -1,0 +1,14 @@
+{
+  "id": "https://metta-webapp.vercel.app/#metta",
+  "type": "Ed25519VerificationKey2020",
+  "controller": "https://metta-webapp.vercel.app",
+  "publicKeyJwk": {
+    "kty": "OKP",
+    "crv": "Ed25519",
+    "x": "qrKZppRfGZvIlcIX58trunuPtBTWshNK6TC_cyRKHcI"
+  },
+  "fingerprint": "sha256:34bbe683a2db570e632ed31296d1438151a10c00759e998510ec354c1cfb00d6",
+  "publicKeyBase64": "qrKZppRfGZvIlcIX58trunuPtBTWshNK6TC/cyRKHcI=",
+  "agentCard": "https://metta-webapp.vercel.app/.well-known/agent-card.json",
+  "mcpEndpoint": "https://metta-webapp.vercel.app/mcp"
+}

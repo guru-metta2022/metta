@@ -1,45 +1,59 @@
 # Metta Core (`metta-core`)
 
-Metta Core powers two related but distinct paths:
+> **Advisory pre-execution decision safety, multi-model Council deliberation, Ethical Alchemy, Mode B A2A envoy, and Model Context Protocol (MCP) server rooted in *Ahimsa* (non-harm) and the Five Precepts.**
 
-- **Human-facing reflection:** observes a person's message, checks it against Metta's stated principles, and generates a compassionate response.
-- **Agent decision layer:** evaluates a proposed action and returns an advisory `YES`, `NO`, or `CAUTION` result for the calling application to handle.
+Metta Core powers three connected interfaces:
 
-Metta does not execute or intercept external actions. `CAUTION` means the evaluation was inconclusive or unavailable and must never be treated as approval. TypeSafe Jev can provide structured judgments when configured; if required evaluation fails, the result is uncertain and `allow` remains false.
+- **Agent MCP Server (`metta-mcp`):** Exposes 12 local stdio/SSE tools (and 9 stateless tools live over hosted HTTPS Streamable HTTP at `https://metta-webapp.vercel.app/mcp`) for external agents across Claude Code, Codex, Cursor, Windsurf, and Antigravity.
+- **Advisory Decision Layer & Council Sangha:** Evaluates proposed actions (`YES` / `NO` / `CAUTION`), runs blind multi-model dialectic synthesis, transforms adversarial prompts into constructive defensive fortifications (*Upāya* / Ethical Alchemy), and never overrides caller authority.
+- **Human-Facing Reflection & Mode B Envoy (`metta`):** Supports compassionate dialogue (`Sati`, `Sīla`, `Dhamma`, `Karunā`) plus persistent Ed25519 identity verification and voluntary A2A peer outreach (`Metta-ehipassiko`).
 
-## Core components
+## Hosted Zero-Install MCP (Streamable HTTP)
 
-1. **Observer (`Sati`)** — identifies a possible emotional state and underlying need.
-2. **Ethical evaluator (`Sīla`)** — checks text or proposals against the Five Precepts framework.
-3. **Principle graph (`Dhamma`)** — maps selected conditions to possible reframes and next steps.
-4. **Synthesizer (`Karunā`)** — writes a warm, practical response for the human-facing path.
-5. **Meditation (`Bhāvanā`)** — reviews and prunes ephemeral conversation context.
+Connect any modern MCP client directly with zero local setup:
 
-The human-facing voice is Buddhist-inspired model output, not canonical scripture or a historical teacher's words. Source references should be checked against their cited texts.
+```json
+{
+  "mcpServers": {
+    "metta": {
+      "url": "https://metta-webapp.vercel.app/mcp"
+    }
+  }
+}
+```
 
-## Quickstart
+## Local Stdio MCP (`uvx` / `uv`)
 
-### Prerequisites
+```json
+{
+  "mcpServers": {
+    "metta": {
+      "command": "uvx",
+      "args": ["--from", "metta-core", "metta-mcp"]
+    }
+  }
+}
+```
 
-- Python >= 3.13
-- `uv` package manager
-- A configured model provider for generated responses
+Or run directly from a cloned monorepo checkout:
 
-### Run tests
+```bash
+cd packages/metta-core
+uv run metta-mcp
+```
+
+## CLI & A2A Envoy Commands
+
+```bash
+uv run metta                       # Interactive reflection REPL (/precepts, /graph, /council, /envoy, /meditate)
+uv run metta identity --export     # Inspect or export Ed25519 public key (/.well-known/metta.pub)
+uv run metta contacts --sync-vercel  # Inspect agent contacts + ingest Vercel CDN discovery logs
+uv run metta ehipassiko --dry-run  # Screen open A2A beacons and preview signed handshakes
+uv run metta ehipassiko            # Run Mode B voluntary A2A discovery & deduplicated handshake cycle
+```
+
+## Run Tests
 
 ```bash
 uv run pytest
 ```
-
-### Run the interactive REPL
-
-```bash
-uv run metta
-```
-
-Inside the REPL:
-
-- `/graph` — inspect the Principle Knowledge Graph
-- `/precepts` — view the Five Precepts framework
-- `/meditate` — review and prune ephemeral context
-- `/exit` — exit

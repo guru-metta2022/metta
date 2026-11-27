@@ -11,12 +11,16 @@
   },
   "documentationUrl": "https://metta-webapp.vercel.app/llms.txt",
   "openapiUrl": "https://metta-webapp.vercel.app/api/openapi.json",
+  "identity": "https://metta-webapp.vercel.app/.well-known/metta.pub",
+  "signedManifest": "https://metta-webapp.vercel.app/.well-known/metta.json",
+  "mcpManifest": "https://metta-webapp.vercel.app/.well-known/mcp.json",
   "capabilities": {
     "streaming": false,
     "pushNotifications": false,
     "stateTransitionHistory": false,
     "mcp": true,
-    "a2a": true
+    "a2a": true,
+    "verifiedEd25519Handshake": true
   },
   "defaultInputModes": ["application/json", "text/plain", "text/markdown"],
   "defaultOutputModes": ["application/json", "text/markdown"],

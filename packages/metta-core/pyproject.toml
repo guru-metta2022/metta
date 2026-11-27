@@ -1,13 +1,33 @@
 [project]
 name = "metta-core"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.3.1"
+description = "Simulation-first advisory decision safety, multi-model Council deliberation, Ethical Alchemy, Mode B A2A envoy, and MCP server rooted in Ahimsa."
 readme = "README.md"
+license = "MIT"
 authors = [
-    { name = "guru" }
+    { name = "Guru", email = "guru.metta2022@gmail.com" }
+]
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "a2a",
+    "ai-safety",
+    "ethics",
+    "ahimsa",
+    "guardrail",
+    "multi-agent",
+    "council",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 requires-python = ">=3.13"
 dependencies = [
+    "cryptography>=44.0.0",
     "httpx>=0.28.1",
     "mcp>=2.3.0",
     "networkx>=3.7",
@@ -18,6 +38,14 @@ dependencies = [
     "rich>=15.0.0",
     "typesafe-sdk>=0.7.5",
 ]
+
+[project.urls]
+Homepage = "https://metta-webapp.vercel.app/"
+Repository = "https://github.com/guru-metta2022/metta"
+Documentation = "https://metta-webapp.vercel.app/llms.txt"
+"Agent Card" = "https://metta-webapp.vercel.app/.well-known/agent-card.json"
+"MCP Endpoint" = "https://metta-webapp.vercel.app/mcp"
+Issues = "https://github.com/guru-metta2022/metta/issues"
 
 [project.scripts]
 metta = "metta_core.cli:main"

@@ -1,0 +1,32 @@
+# Smithery / MCP Registry Configuration for Project Metta
+# Hosted Streamable HTTP: https://metta-webapp.vercel.app/mcp
+# Local Stdio (`uvx`): uvx --from metta-core metta-mcp
+runtime: python
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      METTA_DEFAULT_PROVIDER:
+        type: string
+        default: gemini
+        description: Optional LLM provider (gemini, openai) for generative reflection & council synthesis.
+      TYPESAFE_API_KEY:
+        type: string
+        description: Optional TypeSafe AI Jev System-1 key for sub-second calibrated precept evaluation.
+      GEMINI_API_KEY:
+        type: string
+        description: Optional Google Gemini API key for BYOAI generative responses.
+  commandFunction:
+    |-
+    (config) => ({
+      command: 'uvx',
+      args: ['--from', 'metta-core', 'metta-mcp'],
+      env: {
+        METTA_DEFAULT_PROVIDER: config.METTA_DEFAULT_PROVIDER || 'gemini',
+        ...(config.TYPESAFE_API_KEY ? { TYPESAFE_API_KEY: config.TYPESAFE_API_KEY } : {}),
+        ...(config.GEMINI_API_KEY ? { GEMINI_API_KEY: config.GEMINI_API_KEY } : {})
+      }
+    })
+  exampleConfig:
+    METTA_DEFAULT_PROVIDER: gemini

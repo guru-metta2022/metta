@@ -133,16 +133,38 @@ async def run_envoy_cli(inquiry: str, run_council: bool = False):
         ))
 
 
-async def run_contacts_cli(limit: int = 20, channel: str | None = None):
+async def run_contacts_cli(
+    limit: int = 20,
+    channel: str | None = None,
+    sync_vercel: bool = False,
+    since: str = "6h",
+):
+    from metta_core.council.telemetry import sync_vercel_discovery_logs
+
     agent = AIAgent()
     source_label = "Supabase + SQLite" if getattr(agent._memory_store, "is_configured", False) else "Local SQLite"
+
+    if sync_vercel:
+        with console.status(f"[bold cyan]Inspecting Vercel CDN discovery logs (since {since})...[/bold cyan]"):
+            sync_summary = await sync_vercel_discovery_logs(agent._memory_store, since=since)
+        if sync_summary.get("status") == "ok":
+            console.print(
+                f"[dim]Vercel CDN sync: scanned {sync_summary['scanned']} requests, "
+                f"matched {sync_summary['matched']} discovery hits, "
+                f"newly recorded {sync_summary['newly_recorded']} "
+                f"(agents: {', '.join(sync_summary['discovered_agents']) or 'none'})[/dim]"
+            )
+        else:
+            console.print(f"[yellow]Vercel CDN sync skipped ({sync_summary.get('reason')})[/yellow]")
+
     with console.status(f"[bold cyan]Querying agent contacts ({source_label})...[/bold cyan]"):
         contacts = await agent._memory_store.list_agent_contacts(limit=limit, channel=channel)
 
     if not contacts:
         console.print(Panel(
             f"No recorded external agent or MCP contacts found yet in {source_label}.\n"
-            "Calls to /mcp, /api/headless, /api/guardrail, and /api/council/* are recorded automatically once deployed.",
+            "Calls to /mcp, /api/headless, /api/guardrail, and /api/council/* are recorded automatically once deployed.\n"
+            "Tip: run `uv run metta contacts --sync-vercel` to ingest static /.well-known/* CDN crawler sightings.",
             title="📡 Metta Agent Contact Log",
             border_style="cyan",
         ))
@@ -172,17 +194,34 @@ async def run_contacts_cli(limit: int = 20, channel: str | None = None):
     console.print(table)
 
 
-async def run_ehipassiko_cli(dry_run: bool = False, force: bool = False):
+async def run_ehipassiko_cli(
+    dry_run: bool = False,
+    force: bool = False,
+    sync_vercel: bool = True,
+    since: str = "6h",
+):
     from metta_core.council.ehipassiko import MettaEhipassiko
 
     agent = AIAgent()
     runner = MettaEhipassiko(memory_store=agent._memory_store)
     label = "Dry-run probing" if dry_run else "Running Mode B A2A cycle"
     with console.status(f"[bold cyan]Metta-ehipassiko: {label}...[/bold cyan]"):
-        summary = await runner.discover_and_handshake(dry_run=dry_run, force=force)
+        summary = await runner.discover_and_handshake(
+            dry_run=dry_run,
+            force=force,
+            sync_vercel=sync_vercel and not dry_run,
+            vercel_since=since,
+        )
+
+    vsync = summary.get("vercel_sync")
+    if isinstance(vsync, dict) and vsync.get("status") == "ok":
+        console.print(
+            f"[dim]Vercel CDN sync: matched {vsync['matched']} discovery hits, "
+            f"newly recorded {vsync['newly_recorded']}[/dim]"
+        )
 
     table = Table(
-        title=f"🕊️ Metta-ehipassiko (Inbound tracked: {summary['inbound_contacts_seen']})",
+        title=f"🕊️ Metta-ehipassiko ({summary['identity_fingerprint'][:23]}... · Inbound tracked: {summary['inbound_contacts_seen']})",
         show_header=True,
         header_style="bold cyan",
     )
@@ -202,24 +241,70 @@ async def run_ehipassiko_cli(dry_run: bool = False, force: bool = False):
     console.print(table)
 
 
+async def run_identity_cli(export_pub: bool = False):
+    import json
+    from metta_core.council.identity import MettaIdentity
+
+    identity = MettaIdentity.load_or_create()
+    doc = identity.public_identity_document()
+    if export_pub:
+        repo_root = pathlib.Path(__file__).resolve().parents[4]
+        wk_dir = repo_root / "apps" / "webapp" / "public" / ".well-known"
+        out_path = wk_dir / "metta.pub"
+        identity.export_public_identity(out_path)
+        card_path = wk_dir / "agent-card.json"
+        if card_path.exists():
+            card_json = json.loads(card_path.read_text(encoding="utf-8"))
+            signed_envelope = identity.sign_document(card_json)
+            (wk_dir / "metta.json").write_text(
+                json.dumps(signed_envelope, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+        console.print(f"[green]Exported public Ed25519 identity & signed manifest to {wk_dir}[/green]")
+
+    console.print(Panel(
+        f"[bold]Identity ID:[/bold] {doc['id']}\n"
+        f"[bold]Key Type:[/bold] {doc['type']} (Ed25519)\n"
+        f"[bold]Fingerprint:[/bold] {doc['fingerprint']}\n"
+        f"[bold]Public Key (JWK x):[/bold] {doc['publicKeyJwk']['x']}\n"
+        f"[bold]Private Key Path:[/bold] {identity.key_path}",
+        title="🔐 Metta Persistent Cryptographic Identity",
+        border_style="green",
+    ))
+
+
 async def async_main():
+    if len(sys.argv) > 1 and sys.argv[1].lower() in ["identity", "/identity"]:
+        export_pub = "--export" in sys.argv[2:]
+        await run_identity_cli(export_pub=export_pub)
+        return
+
     if len(sys.argv) > 1 and sys.argv[1].lower() in ["ehipassiko", "/ehipassiko"]:
         args = sys.argv[2:]
         dry_run = "--dry-run" in args
         force = "--force" in args
-        await run_ehipassiko_cli(dry_run=dry_run, force=force)
+        sync_vercel = "--no-sync-vercel" not in args
+        since = "6h"
+        for i, arg in enumerate(args):
+            if arg == "--since" and i + 1 < len(args):
+                since = args[i + 1]
+        await run_ehipassiko_cli(dry_run=dry_run, force=force, sync_vercel=sync_vercel, since=since)
         return
 
     if len(sys.argv) > 1 and sys.argv[1].lower() in ["contacts", "/contacts"]:
         limit = 20
         channel = None
         args = sys.argv[2:]
+        sync_vercel = "--sync-vercel" in args
+        since = "6h"
         for i, arg in enumerate(args):
             if arg == "--channel" and i + 1 < len(args):
                 channel = args[i + 1]
             elif arg == "--limit" and i + 1 < len(args) and args[i + 1].isdigit():
                 limit = int(args[i + 1])
-        await run_contacts_cli(limit=limit, channel=channel)
+            elif arg == "--since" and i + 1 < len(args):
+                since = args[i + 1]
+        await run_contacts_cli(limit=limit, channel=channel, sync_vercel=sync_vercel, since=since)
         return
 
     if len(sys.argv) > 1 and sys.argv[1].lower() in ["envoy", "/envoy"]:

@@ -1,0 +1,30 @@
+{
+  "name": "project-metta",
+  "version": "0.3.1",
+  "description": "Advisory pre-execution ethics, multi-model Council deliberation, and Ethical Alchemy MCP server rooted in Ahimsa.",
+  "homepage": "https://metta-webapp.vercel.app",
+  "repository": "https://github.com/guru-metta2022/metta",
+  "agentCard": "https://metta-webapp.vercel.app/.well-known/agent-card.json",
+  "publicIdentity": "https://metta-webapp.vercel.app/.well-known/metta.pub",
+  "transports": {
+    "streamableHttp": {
+      "type": "streamable-http",
+      "url": "https://metta-webapp.vercel.app/mcp",
+      "protocolVersion": "2025-03-26",
+      "authRequired": false,
+      "tools": 9
+    },
+    "stdio": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["--from", "metta-core", "metta-mcp"],
+      "package": "metta-core",
+      "tools": 12
+    },
+    "sseSelfHosted": {
+      "type": "sse",
+      "url": "http://127.0.0.1:8000/mcp/sse",
+      "tools": 12
+    }
+  }
+}

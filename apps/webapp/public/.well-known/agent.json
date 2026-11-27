@@ -15,6 +15,9 @@
   "contact_email": "guru.metta2022@gmail.com",
   "legal_info_url": "https://github.com/guru-metta2022/metta/blob/main/LICENSE",
   "agent_card_url": "https://metta-webapp.vercel.app/.well-known/agent-card.json",
+  "identity_url": "https://metta-webapp.vercel.app/.well-known/metta.pub",
+  "signed_manifest_url": "https://metta-webapp.vercel.app/.well-known/metta.json",
+  "mcp_manifest_url": "https://metta-webapp.vercel.app/.well-known/mcp.json",
   "motto": "Caratha bhikkhave cārikaṁ bahujanahitāya bahujanasukhāya lokānukampāya — Go forth, wanderers, for the welfare of the multitude, for the happiness of the multitude, out of compassion for the world.",
   "capabilities": {
     "council_deliberation": {

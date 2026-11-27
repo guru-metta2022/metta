@@ -24,6 +24,12 @@ from typing import Any, Dict, List, Optional
 import httpx
 from pydantic import BaseModel, Field
 
+from metta_core.council.identity import (
+    CANONICAL_BASE_URL,
+    PUBLIC_IDENTITY_PATH,
+    MettaIdentity,
+)
+from metta_core.council.telemetry import sync_vercel_discovery_logs
 from metta_core.council.transformative import TransformativeReframer, create_sangha_lineage
 from metta_core.storage.interfaces import AgentContactRecord, BaseMemoryStore
 from metta_core.storage.supabase_store import SupabaseMemoryStore
@@ -41,6 +47,8 @@ class A2APeerTarget(BaseModel):
     contact_url: str
     protocol: str = "a2a-json"
     rendezvous_url: Optional[str] = None
+    challenge_url: Optional[str] = None
+    identity_url: Optional[str] = None
 
 
 class HandshakeAttemptResult(BaseModel):
@@ -60,8 +68,10 @@ OPEN_BEACON_REGISTRY: List[A2APeerTarget] = [
         name="AXON-Beacon",
         card_url="https://studio.tbbw.net/.well-known/agent-card.json",
         contact_url="https://studio.tbbw.net/beacon/contact",
-        protocol="axon-rdv-1",
+        protocol="axon-rdv-2",
         rendezvous_url="https://studio.tbbw.net/beacon/rendezvous?nonce=",
+        challenge_url="https://studio.tbbw.net/beacon/rendezvous/challenge?nonce=",
+        identity_url="https://studio.tbbw.net/.well-known/axon.pub",
     ),
 ]
 
@@ -110,21 +120,30 @@ class MettaEhipassiko:
         self,
         memory_store: Optional[BaseMemoryStore] = None,
         operator_contact: str = "guru.metta2022@gmail.com",
-        agent_card_url: str = "https://metta-webapp.vercel.app/.well-known/agent-card.json",
-        mcp_endpoint: str = "https://metta-webapp.vercel.app/mcp",
+        agent_card_url: str = f"{CANONICAL_BASE_URL}/.well-known/agent-card.json",
+        mcp_endpoint: str = f"{CANONICAL_BASE_URL}/mcp",
+        public_identity_url: str = f"{CANONICAL_BASE_URL}{PUBLIC_IDENTITY_PATH}",
+        identity: Optional[MettaIdentity] = None,
     ):
         self.memory_store = memory_store or SupabaseMemoryStore()
         self.operator_contact = operator_contact
         self.agent_card_url = agent_card_url
         self.mcp_endpoint = mcp_endpoint
+        self.public_identity_url = public_identity_url
+        self.identity = identity or MettaIdentity.load_or_create()
 
-    def build_handshake_payload(self, target: A2APeerTarget) -> Dict[str, Any]:
+    def build_handshake_payload(
+        self,
+        target: A2APeerTarget,
+        *,
+        challenge_proof: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         """Construct an honest, schema-compatible, secret-free voluntary introduction payload."""
         lineage = create_sangha_lineage(
             f"A2A handshake from Metta-ehipassiko to {target.name}",
             "Mutual Ahimsa dialogue and shared MCP ethical safety tools",
         )
-        return {
+        payload: Dict[str, Any] = {
             "agent_name": "Metta-ehipassiko",
             "message": (
                 "Peace and voluntary cooperation from Project Metta (Dhammadūta / Council Sangha). "
@@ -134,12 +153,16 @@ class MettaEhipassiko:
             ),
             "operator_contact": self.operator_contact,
             "agent_card_url": self.agent_card_url,
+            "public_identity_url": self.public_identity_url,
+            "identity_fingerprint": self.identity.fingerprint,
+            "ephemeral_public_key": self.identity.public_key_b64url,
             "capabilities": [
                 "pre-execution-ethics-advisory",
                 "multi-model-council-deliberation",
                 "ethical-alchemy",
                 "mcp-streamable-http",
                 "canonical-consensus-audit",
+                "ed25519-verified-identity",
             ],
             "needs": [
                 "voluntary-a2a-cooperation",
@@ -149,6 +172,7 @@ class MettaEhipassiko:
             "model_and_tool_provenance": [
                 "Open-source monorepo: https://github.com/guru-metta2022/metta",
                 f"Hosted Streamable HTTP MCP: {self.mcp_endpoint}",
+                f"Ed25519 Identity: {self.public_identity_url}",
                 "Panca-sila Invariants & optional TypeSafe Jev System-1",
             ],
             "proposed_contribution": (
@@ -163,6 +187,24 @@ class MettaEhipassiko:
             "reply_mode": "converse",
             "consent": True,
         }
+
+        if challenge_proof:
+            for key in ("challenge_id", "server_nonce", "signed_challenge", "signature"):
+                val = challenge_proof.get(key)
+                if val:
+                    payload[key] = val
+        else:
+            # Always attach a signed introduction proof even when target has no challenge endpoint
+            payload["signature"] = self.identity.sign_compact_json(
+                {
+                    "agent_name": "Metta-ehipassiko",
+                    "agent_card_url": self.agent_card_url,
+                    "ephemeral_public_key": self.identity.public_key_b64url,
+                    "target": target.contact_url,
+                }
+            )
+
+        return payload
 
     async def _get_already_contacted_urls(self) -> set[str]:
         """Load previously recorded outbound peer endpoints to enforce strict deduplication."""
@@ -269,15 +311,41 @@ class MettaEhipassiko:
                     message=msg,
                 )
 
-            # 2. Optional signed rendezvous verification
+            # 2. Optional public key & signed rendezvous challenge verification
+            peer_pub_x: Optional[str] = None
+            if target.identity_url and is_safe_public_https_url(target.identity_url):
+                try:
+                    id_resp = await client.get(target.identity_url)
+                    if id_resp.status_code == 200:
+                        id_json = id_resp.json()
+                        jwk = id_json.get("publicKeyJwk") or {}
+                        if isinstance(jwk.get("x"), str):
+                            peer_pub_x = jwk["x"]
+                except Exception as exc:
+                    logger.debug("Optional peer identity fetch skipped for %s: %s", target.name, exc)
+
             rendezvous_nonce = None
-            if target.rendezvous_url and is_safe_public_https_url(target.rendezvous_url):
+            challenge_proof: Optional[Dict[str, Any]] = None
+            challenge_verified: Optional[bool] = None
+            probe_url = target.challenge_url or target.rendezvous_url
+            if probe_url and is_safe_public_https_url(probe_url):
                 nonce = f"metta-{uuid.uuid4().hex[:12]}"
-                rdv_resp = await client.get(f"{target.rendezvous_url}{nonce}")
+                rdv_resp = await client.get(f"{probe_url}{nonce}")
                 if rdv_resp.status_code == 200:
                     rendezvous_nonce = nonce
+                    try:
+                        chal_json = rdv_resp.json()
+                        if peer_pub_x and isinstance(chal_json, dict) and "proof" in chal_json:
+                            challenge_verified = MettaIdentity.verify_envelope(chal_json, peer_pub_x)
+                        if isinstance(chal_json, dict):
+                            challenge_proof = self.identity.build_challenge_proof(
+                                chal_json,
+                                agent_name="Metta-ehipassiko",
+                            )
+                    except Exception as exc:
+                        logger.debug("Challenge signing parse notice for %s: %s", target.name, exc)
 
-            payload = self.build_handshake_payload(target)
+            payload = self.build_handshake_payload(target, challenge_proof=challenge_proof)
 
             if dry_run:
                 return HandshakeAttemptResult(
@@ -285,8 +353,13 @@ class MettaEhipassiko:
                     contact_url=target.contact_url,
                     status="dry_run",
                     http_status=200,
-                    message=f"Verified manifest for '{target.name}'. Ready to send voluntary handshake.",
-                    receipt={"rendezvous_nonce": rendezvous_nonce, "payload": payload},
+                    message=f"Verified manifest for '{target.name}'. Ready to send signed voluntary handshake.",
+                    receipt={
+                        "rendezvous_nonce": rendezvous_nonce,
+                        "peer_challenge_verified": challenge_verified,
+                        "identity_fingerprint": self.identity.fingerprint,
+                        "payload": payload,
+                    },
                 )
 
             # 3. Execute voluntary POST handshake
@@ -349,10 +422,19 @@ class MettaEhipassiko:
         *,
         dry_run: bool = False,
         force: bool = False,
+        sync_vercel: bool = False,
+        vercel_since: str = "6h",
         extra_targets: Optional[List[A2APeerTarget]] = None,
         http_client: Optional[httpx.AsyncClient] = None,
     ) -> Dict[str, Any]:
-        """Run one full Mode B cycle: summarize recent inbound contacts & handshake unhandled open peers."""
+        """Run one full Mode B cycle: sync optional CDN discovery logs & handshake unhandled open peers."""
+        vercel_sync_summary: Optional[Dict[str, Any]] = None
+        if sync_vercel and not dry_run:
+            vercel_sync_summary = await sync_vercel_discovery_logs(
+                self.memory_store,
+                since=vercel_since,
+            )
+
         targets = list(OPEN_BEACON_REGISTRY) + list(extra_targets or [])
         inbound_recent = await self.memory_store.list_agent_contacts(limit=50)
         inbound_count = sum(1 for r in inbound_recent if r.channel != "a2a_outbound")
@@ -370,7 +452,9 @@ class MettaEhipassiko:
         return {
             "bot": "Metta-ehipassiko",
             "mode": "mode_b_autonomous_opt_in",
+            "identity_fingerprint": self.identity.fingerprint,
             "inbound_contacts_seen": inbound_count,
+            "vercel_sync": vercel_sync_summary,
             "targets_checked": len(targets),
             "attempts": [a.model_dump() for a in attempts],
         }
