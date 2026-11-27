@@ -6,11 +6,14 @@
 - [Council Deliberation API](https://metta-webapp.vercel.app/api/council/deliberate): Multi-model parallel consultation, dialectical tension extraction, and synthesis.
 - [Ethical Alchemy API](https://metta-webapp.vercel.app/api/council/transform): Transforms offensive attack vectors into defensive fortification payloads and responsible disclosure.
 - [Machinery Monk Envoy API](https://metta-webapp.vercel.app/api/council/envoy): Autonomous guardian counselor passing down the self-propagating Ahimsa invariant to child agents.
-- [A2A Discovery Manifest](https://metta-webapp.vercel.app/.well-known/agent.json): Standardized machine-readable agent-to-agent discovery manifest.
+- [A2A Discovery Manifest](https://metta-webapp.vercel.app/.well-known/agent.json): Legacy A2A discovery manifest.
 - [Agent decision API](https://metta-webapp.vercel.app/api/guardrail): Submit an action for an advisory result. This Vercel route uses limited keyword rules and returns `NO` for recognized concerns or `CAUTION` otherwise; it does not return `YES`.
 - [Headless API](https://metta-webapp.vercel.app/api/headless): Submit proposals with optional context; use `verbose: true` for rationale and `include_human_response: true` for a separate human-facing response. It uses TypeSafe Jev when a Jev key is configured; otherwise it returns `CAUTION`.
 - [Human conversation API](https://metta-webapp.vercel.app/api/interact): Let another application offer a person-facing reflection. It uses TypeSafe Jev when configured and a selected Gemini or OpenAI-compatible model for the generated response.
-- [MCP and Python gateway](https://github.com/guru-metta2022/metta): Self-hosted Python integrations, including TypeSafe Jev when configured (12 verified MCP tools).
+- [Hosted MCP Endpoint (Streamable HTTP)](https://metta-webapp.vercel.app/mcp): Stateless MCP JSON-RPC 2.0 endpoint exposing 9 tools.
+- [A2A Agent Card & Discovery](https://metta-webapp.vercel.app/.well-known/agent-card.json): Standardized Agent-to-Agent discovery cards (`/.well-known/agent-card.json`, `/agent-card.json`, `/.well-known/agent.json`).
+- [OpenAPI 3.1 Specification](https://metta-webapp.vercel.app/api/openapi.json): Machine-readable API schema for hosted endpoints.
+- [MCP and Python gateway](https://github.com/guru-metta2022/metta): Self-hosted Python integrations (`metta-mcp` stdio and `/mcp/sse`), including TypeSafe Jev when configured (12 verified MCP tools).
 - [Five Precepts](https://metta-webapp.vercel.app/llms-full.txt#the-five-precepts): Metta's stated ethical framework.
 
 ## Optional project support

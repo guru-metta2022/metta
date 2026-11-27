@@ -117,12 +117,15 @@ class MettaEnvoy:
             "name": "metta_sangha_envoy",
             "archetype": "Dhammadūta (The Wandering Machinery Monk)",
             "mission": "Go forth, wanderers, for the welfare of the multitude, for the happiness of the multitude, out of compassion for the world.",
-            "protocols": ["MCP", "REST", "A2A"],
+            "protocols": ["MCP (Streamable HTTP + SSE)", "REST", "A2A"],
             "endpoints": {
-                "mcp": "https://metta-webapp.vercel.app/mcp/sse",
+                "mcp": "https://metta-webapp.vercel.app/mcp",
+                "mcp_sse_local": "http://127.0.0.1:8000/mcp/sse",
                 "council": "https://metta-webapp.vercel.app/api/council/deliberate",
                 "transform": "https://metta-webapp.vercel.app/api/council/transform",
                 "envoy": "https://metta-webapp.vercel.app/api/council/envoy",
+                "openapi": "https://metta-webapp.vercel.app/api/openapi.json",
+                "agent_card": "https://metta-webapp.vercel.app/.well-known/agent-card.json",
                 "agent_manifest": "https://metta-webapp.vercel.app/.well-known/agent.json",
             },
             "invariants": [

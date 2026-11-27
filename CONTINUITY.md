@@ -167,6 +167,19 @@ uv run --directory packages/metta-core metta-mcp
 - The latest provider-support changes are local and unpushed. The GitHub-connected agy session should inspect the current branch, upstream, complete diff, and remote state before committing/pushing. Do not reset, discard, overwrite, or edit the implementation; if safe integration is blocked by remote divergence or conflicts, stop and report the exact conflict.
 - A separate authorized agent with GitHub access should inspect the complete diff and remote `main`, preserve all local edits, integrate any remote-only commits without discarding local work, commit the intended changes, and push to `origin main` without force-pushing. Then verify that the push triggered the Vercel deployment and report the commit and deployment status.
 
+### Completed Milestones (2026-11-27): External Agent Telemetry, Hosted MCP & A2A Card Fix:
+1. **First External Agent Sightings Recorded (Vercel 12h CDN Logs):**
+   - `2026-11-27T10:34:29Z–10:34:30Z` (`iad1`): **`AXON-Scout/1.0`** (`https://studio.tbbw.net/beacon`) fetched `/.well-known/agent.json` (`200 HIT`) after hitting `404` on `/.well-known/agent-card.json` and `/agent-card.json`.
+   - `2026-11-27T00:43:46Z–00:43:50Z` (`pdx1`): **`OpenAI-Codex/0.49.0`** fetched `/assets/index-DtUwveHe.js` (`200 HIT`) and **`claude-cli/2.0.19`** queried `/api/settings` (`200`).
+2. **Hosted MCP Streamable HTTP, A2A v1.0 Cards & OpenAPI 3.1 (0 Extra Serverless Functions):**
+   - Fixed 404s by adding static [`apps/webapp/public/.well-known/agent-card.json`](file:///home/guru/Work/metta/apps/webapp/public/.well-known/agent-card.json), [`apps/webapp/public/agent-card.json`](file:///home/guru/Work/metta/apps/webapp/public/agent-card.json), and [`apps/webapp/public/api/openapi.json`](file:///home/guru/Work/metta/apps/webapp/public/api/openapi.json).
+   - Added [`apps/webapp/vercel.json`](file:///home/guru/Work/metta/apps/webapp/vercel.json) rewrites mapping `/mcp` and `/mcp/sse` to `/api/council/mcp`, powered by [`apps/webapp/lib/mcpServerless.js`](file:///home/guru/Work/metta/apps/webapp/lib/mcpServerless.js) (9 stateless MCP JSON-RPC 2.0 tools + 3 resources + 1 prompt sharing [`councilEngine.js`](file:///home/guru/Work/metta/apps/webapp/lib/councilEngine.js)).
+   - Added matching `/.well-known/agent-card.json`, `/agent-card.json`, `/api/openapi.json`, and `/api/agent-contacts` routes to `packages/metta-server`.
+3. **Durable External Agent Contact Persistence (`public.agent_contacts` + SQLite):**
+   - Applied migration [`20261127000000_agent_contacts.sql`](file:///home/guru/Work/metta/supabase/migrations/20261127000000_agent_contacts.sql) with strict `service_role`-only RLS.
+   - Instrumented all hosted endpoints (`/mcp`, `/api/headless`, `/api/guardrail`, `/api/interact`, `/api/council/*`) via [`agentContacts.js`](file:///home/guru/Work/metta/apps/webapp/lib/agentContacts.js) and local Python MCP/FastAPI routes via `SQLiteMemoryStore` / `SupabaseMemoryStore`.
+   - Added `uv run metta contacts` CLI viewer in [`cli.py`](file:///home/guru/Work/metta/packages/metta-core/src/metta_core/cli.py) and anonymized/authorized summary endpoint `GET /api/council/contacts`.
+
 ### Completed Milestones (2026-11-19): Metta Council, Ethical Alchemy & The Wandering Machinery Monk (Dhammadūta Envoy):
 1. **Metta Council & Deliberation Protocol**:
    - `metta_core.council` subsystem featuring `CouncilProviderPool`, `BlindAnonymizer`, `DisagreementDetector`, and `CouncilSynthesizer`.

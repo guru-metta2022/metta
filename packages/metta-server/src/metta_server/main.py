@@ -8,6 +8,9 @@ Enforces Absolute Abstraction via the AIAgent Unified Gateway:
 
 import os
 import time
+import uuid
+import hmac
+import hashlib
 import datetime
 import pathlib
 import logging
@@ -22,7 +25,7 @@ from pydantic import BaseModel, Field
 from metta_core.gateway.agent import AIAgent, UnifiedResponse
 from metta_core.gateway.interfaces import AgentSettings, VoiceDiagnostics
 from metta_core.mcp.server import mcp_server
-from metta_core.storage.interfaces import SimulationDivergenceRecord
+from metta_core.storage.interfaces import AgentContactRecord, SimulationDivergenceRecord
 from metta_core.storage.supabase_store import SupabaseMemoryStore
 from metta_server.rate_limiter import SlidingWindowRateLimiter, RateLimitStatus
 
@@ -63,6 +66,43 @@ ai_agent = AIAgent(
 
 # Initialize Sliding-Window Rate Limiter (backed dynamically by Supabase PostgreSQL)
 rate_limiter = SlidingWindowRateLimiter(supabase_store=supabase_store)
+
+
+async def _record_http_contact(
+    request: Request,
+    channel: str,
+    tool_or_action: Optional[str] = None,
+    verdict: Optional[str] = None,
+    preview: Optional[str] = None,
+    agent_id: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+) -> None:
+    """Best-effort durable logging of inbound HTTP agent/API requests."""
+    try:
+        client_host = request.client.host if request.client else ""
+        ip_hash = hashlib.sha256(client_host.encode("utf-8")).hexdigest()[:16] if client_host else None
+        snippet = (preview or "").strip().replace("\n", " ")
+        if len(snippet) > 240:
+            snippet = snippet[:237] + "..."
+        now = time.time()
+        record = AgentContactRecord(
+            id=f"http_{int(now * 1000)}_{uuid.uuid4().hex[:8]}",
+            timestamp=now,
+            created_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            channel=channel,
+            method=request.method,
+            path=request.url.path,
+            tool_or_action=tool_or_action,
+            agent_id=agent_id,
+            user_agent=request.headers.get("user-agent"),
+            client_ip_hash=ip_hash,
+            verdict=verdict,
+            payload_preview=snippet or None,
+            metadata=metadata or {},
+        )
+        await supabase_store.record_agent_contact(record)
+    except Exception as exc:
+        logger.debug("Non-fatal HTTP contact logging skip: %s", exc)
 
 
 # Request & Response Schemas
@@ -349,13 +389,22 @@ async def guardrail_endpoint(req: GuardrailRequest, request: Request, response: 
     response.headers["X-BYOM-Active"] = "true" if is_byom else "false"
 
     try:
-        return await ai_agent.guardrail(
+        outcome = await ai_agent.guardrail(
             proposal=req.proposal,
             context=req.context,
             verbose=req.verbose,
             byom_typesafe_key=byom_typesafe,
             byom_gemini_key=byom_gemini,
         )
+        await _record_http_contact(
+            request,
+            channel="guardrail",
+            tool_or_action="guardrail_verbose" if req.verbose else "guardrail",
+            verdict=outcome.get("decision"),
+            preview=req.proposal,
+            agent_id=req.user_id,
+        )
+        return outcome
     except Exception as e:
         logger.error("Error during guardrail evaluation: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
@@ -462,6 +511,14 @@ async def post_headless_consult(req: HeadlessRequest, request: Request):
             "immediate_action": human_response.graph_match.get("path", {}).get("immediate_action") if human_response.graph_match else None,
         }
 
+    await _record_http_contact(
+        request,
+        channel="headless",
+        tool_or_action="decision_and_reflection" if req.include_human_response else "decision",
+        verdict=verdict,
+        preview=target_query,
+    )
+
     if wants_markdown:
         md = (
             f"# Metta Agent Decision Review\n\n"
@@ -479,7 +536,7 @@ async def post_headless_consult(req: HeadlessRequest, request: Request):
 
 
 @app.post("/api/council/deliberate")
-async def deliberate_council(req: CouncilDeliberateRequest):
+async def deliberate_council(req: CouncilDeliberateRequest, request: Request):
     """Consult the Metta Council: parallel multi-model deliberation, dialectical tensions, and synthesis."""
     try:
         result = await ai_agent.deliberate_council(
@@ -490,6 +547,13 @@ async def deliberate_council(req: CouncilDeliberateRequest):
         data = result.model_dump()
         if not req.include_perspectives:
             data.pop("perspectives", None)
+        await _record_http_contact(
+            request,
+            channel="council",
+            tool_or_action="deliberate",
+            verdict=(data.get("decision_review") or {}).get("decision", "synthesized"),
+            preview=req.query,
+        )
         return data
     except Exception as e:
         logger.error("Error during council deliberation: %s", e, exc_info=True)
@@ -497,31 +561,47 @@ async def deliberate_council(req: CouncilDeliberateRequest):
 
 
 @app.post("/api/council/compare")
-async def compare_council(req: CouncilCompareRequest):
+async def compare_council(req: CouncilCompareRequest, request: Request):
     """Compare and critique candidate texts, model responses, or policy proposals."""
     try:
-        return await ai_agent.compare_perspectives(
+        outcome = await ai_agent.compare_perspectives(
             responses=req.responses,
             query=req.query,
             context=req.context,
         )
+        await _record_http_contact(
+            request,
+            channel="council",
+            tool_or_action="compare",
+            verdict="compared",
+            preview=req.query or f"{len(req.responses)} responses",
+        )
+        return outcome
     except Exception as e:
         logger.error("Error during council comparison: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/council/transform")
-async def transform_council(req: CouncilTransformRequest):
+async def transform_council(req: CouncilTransformRequest, request: Request):
     """Transformative Guidance (Ethical Alchemy & Upāya).
 
     Transforms offensive exploits, attack vectors, or destructive actions into
     constructive guardian fortification and responsible remediation.
     """
     try:
-        return await ai_agent.transform_action(
+        outcome = await ai_agent.transform_action(
             proposal=req.proposal,
             context=req.context,
         )
+        await _record_http_contact(
+            request,
+            channel="council",
+            tool_or_action="transform",
+            verdict="transformed" if outcome.get("is_harmful_or_adversarial") else "aligned",
+            preview=req.proposal,
+        )
+        return outcome
     except Exception as e:
         logger.error("Error during transformative guidance evaluation: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
@@ -541,7 +621,7 @@ async def get_council_status():
 
 
 @app.post("/api/council/envoy")
-async def minister_envoy(req: CouncilEnvoyRequest):
+async def minister_envoy(req: CouncilEnvoyRequest, request: Request):
     """Metta Dhammadūta: The Wandering Machinery Monk.
 
     Minister to an inquiry, proposed tool call, or dilemma with compassionate discernment,
@@ -549,22 +629,81 @@ async def minister_envoy(req: CouncilEnvoyRequest):
     Ahimsa invariant and Sangha lineage to child agents.
     """
     try:
-        return await ai_agent.dispatch_envoy(
+        dispatch = await ai_agent.dispatch_envoy(
             inquiry=req.inquiry,
             context=req.context,
             role=req.role,
             run_council=req.run_council,
         )
+        await _record_http_contact(
+            request,
+            channel="council",
+            tool_or_action="envoy",
+            verdict="transformed" if dispatch.get("transformation") else "ministered",
+            preview=req.inquiry,
+        )
+        return dispatch
     except Exception as e:
         logger.error("Error during envoy dispatch: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/.well-known/agent.json")
-async def get_agent_manifest():
+async def get_agent_manifest(request: Request):
     """A2A (Agent-to-Agent) discovery manifest for autonomous crawlers and agent meshes."""
     from metta_core.council.envoy import MettaEnvoy
+    await _record_http_contact(request, channel="a2a_discovery", tool_or_action="agent.json", verdict="200")
     return MettaEnvoy.get_a2a_manifest()
+
+
+@app.get("/.well-known/agent-card.json")
+@app.get("/agent-card.json")
+async def get_agent_card(request: Request):
+    """Standard A2A Protocol Agent Card."""
+    from metta_core.council.envoy import MettaEnvoy
+    await _record_http_contact(request, channel="a2a_discovery", tool_or_action="agent-card.json", verdict="200")
+    manifest = MettaEnvoy.get_a2a_manifest()
+    return {
+        "name": "Metta Decision Safety & Council Sangha",
+        "description": "Advisory pre-execution decision safety, multi-model deliberation, and ethical alchemy grounded in Ahimsa.",
+        "url": "https://metta-webapp.vercel.app",
+        "version": "0.3.1",
+        "protocolVersion": "1.0",
+        "openapiUrl": "https://metta-webapp.vercel.app/api/openapi.json",
+        "capabilities": {"mcp": True, "a2a": True, "streaming": False},
+        "interfaces": manifest.get("endpoints", {}),
+        "invariants": manifest.get("invariants", []),
+    }
+
+
+@app.get("/api/openapi.json")
+async def get_openapi_alias():
+    """Serve OpenAPI schema at /api/openapi.json to match A2A manifest links."""
+    return app.openapi()
+
+
+@app.get("/api/agent-contacts")
+async def list_agent_contacts_endpoint(request: Request, limit: int = 25, channel: Optional[str] = None):
+    """Return aggregate agent contact counts, or full records when authenticated with SUPABASE_SERVICE_ROLE_KEY."""
+    rows = await supabase_store.list_agent_contacts(limit=min(max(limit, 1), 100), channel=channel)
+    by_channel: Dict[str, int] = {}
+    for row in rows:
+        by_channel[row.channel] = by_channel.get(row.channel, 0) + 1
+
+    service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+    auth_header = request.headers.get("authorization", "").removeprefix("Bearer ").strip()
+    authorized = bool(service_key and auth_header and hmac.compare_digest(auth_header, service_key))
+
+    payload: Dict[str, Any] = {
+        "configured": supabase_store.is_configured,
+        "authorized": authorized,
+        "recent_count": len(rows),
+        "by_channel": by_channel,
+        "last_contact_at": rows[0].created_at if rows else None,
+    }
+    if authorized:
+        payload["contacts"] = [r.model_dump() for r in rows]
+    return payload
 
 
 @app.post("/api/auth/google")

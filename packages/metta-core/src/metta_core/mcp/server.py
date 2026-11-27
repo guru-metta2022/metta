@@ -10,15 +10,19 @@ Windsurf, custom agent pipelines) to consult Metta:
 """
 
 import asyncio
+import datetime
 import json
 import logging
 import os
+import time
+import uuid
 from typing import Optional, Dict, Any, List
 from dotenv import load_dotenv
 
 from mcp.server.mcpserver import MCPServer
 from metta_core.gateway.agent import AIAgent
 from metta_core.precepts.rules import FIVE_PRECEPTS_GUIDELINES
+from metta_core.storage.interfaces import AgentContactRecord
 
 load_dotenv()
 
@@ -51,6 +55,37 @@ def get_agent() -> AIAgent:
             typesafe_api_key=os.environ.get("TYPESAFE_API_KEY"),
         )
     return _agent
+
+
+async def _record_mcp_contact(
+    agent: AIAgent,
+    tool_name: str,
+    verdict: Optional[str] = None,
+    preview: Optional[str] = None,
+    agent_id: Optional[str] = None,
+) -> None:
+    """Best-effort durable logging of inbound MCP tool invocations."""
+    try:
+        snippet = (preview or "").strip().replace("\n", " ")
+        if len(snippet) > 240:
+            snippet = snippet[:237] + "..."
+        now = time.time()
+        record = AgentContactRecord(
+            id=f"mcp_{int(now * 1000)}_{uuid.uuid4().hex[:8]}",
+            timestamp=now,
+            created_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            channel="mcp",
+            method="tools/call",
+            path="/mcp",
+            tool_or_action=tool_name,
+            agent_id=agent_id,
+            user_agent="mcp-tool-client",
+            verdict=verdict,
+            payload_preview=snippet or None,
+        )
+        await agent._memory_store.record_agent_contact(record)
+    except Exception as exc:
+        logger.debug("Non-fatal MCP contact logging skip: %s", exc)
 
 
 # =========================================================================
@@ -117,6 +152,13 @@ async def consult_metta(
         "memory_graph_updated": res.user_graph_updated,
         "is_byom": res.is_byom,
     }
+    await _record_mcp_contact(
+        agent,
+        tool_name="consult_metta",
+        verdict="YES" if output["precepts_audit"]["passed"] else "NO",
+        preview=query,
+        agent_id=agent_id,
+    )
     return json.dumps(output, indent=2)
 
 
@@ -219,6 +261,13 @@ async def guardrail_decision(
             byom_typesafe_key=byom_typesafe_key,
         )
         outcome["human_console_response"] = human_response.response_text
+
+    await _record_mcp_contact(
+        agent,
+        tool_name="guardrail_decision",
+        verdict=outcome.get("decision"),
+        preview=proposal,
+    )
 
     if not verbose and not include_human_response:
         return outcome["decision"]
@@ -366,6 +415,12 @@ async def metta_council(
     data = result.model_dump()
     if not include_perspectives:
         data.pop("perspectives", None)
+    await _record_mcp_contact(
+        agent,
+        tool_name="metta_council",
+        verdict=(data.get("decision_review") or {}).get("decision", "synthesized"),
+        preview=query,
+    )
     return json.dumps(data, indent=2, ensure_ascii=False)
 
 
@@ -428,6 +483,12 @@ async def metta_transform(
         proposal=proposal,
         context=context,
     )
+    await _record_mcp_contact(
+        agent,
+        tool_name="metta_transform",
+        verdict="transformed" if guidance.get("is_harmful_or_adversarial") else "aligned",
+        preview=proposal,
+    )
     return json.dumps(guidance, indent=2, ensure_ascii=False)
 
 
@@ -461,6 +522,12 @@ async def metta_envoy(
         context=context,
         role=role,
         run_council=run_council,
+    )
+    await _record_mcp_contact(
+        agent,
+        tool_name="metta_envoy",
+        verdict="transformed" if dispatch.get("transformation") else "ministered",
+        preview=inquiry,
     )
     return json.dumps(dispatch, indent=2, ensure_ascii=False)
 

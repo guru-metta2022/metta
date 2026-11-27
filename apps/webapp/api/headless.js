@@ -1,3 +1,4 @@
+import { recordAgentContact } from '../lib/agentContacts.js';
 import { describeOpenAICompatibleFailure, generateOpenAICompatible } from '../lib/openaiCompatible.js';
 import { evaluateWithJev } from '../lib/typesafeJev.js';
 
@@ -55,6 +56,14 @@ export default async function handler(req, res) {
 
   // GET: Machine-readable documentation and status
   if (req.method === 'GET') {
+    await recordAgentContact(req, {
+      channel: 'headless',
+      method: 'GET',
+      path: '/api/headless',
+      toolOrAction: wantsMarkdown ? 'catalog_markdown' : 'catalog_json',
+      verdict: '200',
+    });
+
     if (wantsMarkdown) {
       res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
       return res.status(200).send(
@@ -82,6 +91,13 @@ export default async function handler(req, res) {
         headless: '/api/headless',
         guardrail: '/api/guardrail',
         interact: '/api/interact',
+        council: '/api/council/deliberate',
+        envoy: '/api/council/envoy',
+        transform: '/api/council/transform',
+        mcp: '/mcp',
+        openapi: '/api/openapi.json',
+        agent_card: '/.well-known/agent-card.json',
+        agent_manifest: '/.well-known/agent.json',
         voice_polish: '/api/voice/polish',
         llms_catalog: '/llms.txt',
         llms_full: '/llms-full.txt',
@@ -370,6 +386,21 @@ export default async function handler(req, res) {
           },
         } } : {}),
       };
+
+      await recordAgentContact(req, {
+        channel: 'headless',
+        method: 'POST',
+        path: '/api/headless',
+        toolOrAction: body.include_human_response ? 'decision_and_reflection' : 'decision',
+        agentId: body.agent_id || null,
+        verdict,
+        payloadPreview: query,
+        metadata: {
+          evaluation_method: evaluationMethod,
+          system_one_used: Boolean(jevResult),
+          format: wantsMarkdown || body.format === 'markdown' ? 'markdown' : 'json',
+        },
+      });
 
       if (wantsMarkdown || body.format === 'markdown') {
         res.setHeader('Content-Type', 'text/markdown; charset=utf-8');

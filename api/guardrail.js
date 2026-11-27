@@ -2,7 +2,9 @@
  * Project Metta: Fast Compassionate Guardrail API (/api/guardrail)
  */
 
-export default function handler(req, res) {
+import { recordAgentContact } from '../apps/webapp/lib/agentContacts.js';
+
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Gemini-Api-Key');
@@ -59,6 +61,17 @@ export default function handler(req, res) {
     result.violations = violations;
     result.invariants_protected = invariants;
   }
+
+  await recordAgentContact(req, {
+    channel: 'guardrail',
+    method: req.method,
+    path: '/api/guardrail',
+    toolOrAction: body.verbose ? 'guardrail_verbose' : 'guardrail',
+    agentId: body.agent_id || null,
+    verdict: decision,
+    payloadPreview: proposal,
+    metadata: { evaluation_method: 'limited_keyword_rules', violations },
+  });
 
   return res.status(200).json(result);
 }

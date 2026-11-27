@@ -1,3 +1,4 @@
+import { recordAgentContact } from '../lib/agentContacts.js';
 import { describeOpenAICompatibleFailure, generateOpenAICompatible } from '../lib/openaiCompatible.js';
 import { evaluateWithJev } from '../lib/typesafeJev.js';
 
@@ -496,6 +497,17 @@ export default async function handler(req, res) {
       },
       relevance_score: 1.0,
     };
+
+    await recordAgentContact(req, {
+      channel: 'interact',
+      method: 'POST',
+      path: '/api/interact',
+      toolOrAction: source,
+      agentId: userId,
+      verdict: jevResult?.decision || 'CAUTION',
+      payloadPreview: text,
+      metadata: { mode, source, system_one_used: Boolean(jevResult) },
+    });
 
     return res.status(200).json({
       response_text: responseText,

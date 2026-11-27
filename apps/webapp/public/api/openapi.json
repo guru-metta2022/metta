@@ -1,0 +1,241 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Project Metta — Advisory Decision, Council & MCP API",
+    "version": "0.3.1",
+    "description": "Advisory pre-execution decision safety, multi-model Council deliberation, Ethical Alchemy, and hosted Streamable HTTP MCP gateway grounded in Ahimsa (non-harm) and the Five Precepts.",
+    "contact": {
+      "name": "Project Metta",
+      "email": "guru.metta2022@gmail.com",
+      "url": "https://github.com/guru-metta2022/metta"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://github.com/guru-metta2022/metta/blob/main/LICENSE"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://metta-webapp.vercel.app",
+      "description": "Hosted Vercel Production Gateway"
+    }
+  ],
+  "paths": {
+    "/mcp": {
+      "get": {
+        "summary": "MCP Streamable HTTP Server Info",
+        "description": "Returns hosted Model Context Protocol capabilities, endpoints, and supported tools.",
+        "responses": {
+          "200": { "description": "Server capability metadata" }
+        }
+      },
+      "post": {
+        "summary": "MCP JSON-RPC 2.0 Transport (Streamable HTTP)",
+        "description": "Executes MCP JSON-RPC 2.0 requests (initialize, tools/list, tools/call, resources/list, resources/read, prompts/list, prompts/get, ping).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["jsonrpc", "method"],
+                "properties": {
+                  "jsonrpc": { "type": "string", "const": "2.0" },
+                  "id": { "type": ["string", "integer", "null"] },
+                  "method": { "type": "string" },
+                  "params": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "JSON-RPC 2.0 response payload" },
+          "202": { "description": "Accepted notification" }
+        }
+      }
+    },
+    "/api/headless": {
+      "get": {
+        "summary": "Headless Agent API Status",
+        "responses": { "200": { "description": "Module status and endpoints" } }
+      },
+      "post": {
+        "summary": "Advisory Pre-Execution Decision Check",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "proposal": { "type": "string" },
+                  "query": { "type": "string" },
+                  "context": { "type": "string" },
+                  "verbose": { "type": "boolean" },
+                  "include_human_response": { "type": "boolean" },
+                  "format": { "type": "string", "enum": ["json", "markdown"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Advisory YES/NO/CAUTION decision payload" } }
+      }
+    },
+    "/api/guardrail": {
+      "post": {
+        "summary": "Keyword-Rule Advisory Precept Check",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "proposal": { "type": "string" },
+                  "context": { "type": "string" },
+                  "verbose": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "NO or CAUTION advisory review" } }
+      }
+    },
+    "/api/council/deliberate": {
+      "post": {
+        "summary": "Metta Council Multi-Model Deliberation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["query"],
+                "properties": {
+                  "query": { "type": "string" },
+                  "context": { "type": "string" },
+                  "evaluate_decision": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Perspectives, disagreement matrix, synthesis, and optional transformative guidance" } }
+      }
+    },
+    "/api/council/transform": {
+      "post": {
+        "summary": "Ethical Alchemy (Upaya) Transformation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["proposal"],
+                "properties": {
+                  "proposal": { "type": "string" },
+                  "context": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Defensive reorientation, hardening payload, and Sangha lineage" } }
+      }
+    },
+    "/api/council/envoy": {
+      "post": {
+        "summary": "Metta Dhammaduta Envoy Counsel",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["inquiry"],
+                "properties": {
+                  "inquiry": { "type": "string" },
+                  "context": { "type": "string" },
+                  "role": { "type": "string", "default": "dhammaduta" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Envoy ministering assessment, transformation, lineage, and blessing" } }
+      }
+    },
+    "/api/council/compare": {
+      "post": {
+        "summary": "Comparative Dialectical Critique",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": { "type": "string" },
+                  "responses": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "label": { "type": "string" },
+                        "text": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Disagreement matrix and comparative synthesis" } }
+      }
+    },
+    "/api/council/status": {
+      "get": {
+        "summary": "Metta Council Status",
+        "responses": { "200": { "description": "Active Council configuration and target models" } }
+      }
+    },
+    "/api/precepts": {
+      "get": {
+        "summary": "Five Precepts Constitution",
+        "responses": { "200": { "description": "Canonical Panca-sila boundaries for humans and AI" } }
+      }
+    },
+    "/api/graph": {
+      "get": {
+        "summary": "Universal Dhamma Principle Knowledge Graph",
+        "responses": { "200": { "description": "Distress conditions, resolution paths, and equanimity nodes" } }
+      }
+    },
+    "/api/interact": {
+      "post": {
+        "summary": "Human-Facing Compassionate Reflection Console",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": { "type": "string" },
+                  "source": { "type": "string" },
+                  "mode": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Reflection response with safety review and Dhamma graph match" } }
+      }
+    }
+  }
+}

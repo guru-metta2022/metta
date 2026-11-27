@@ -5,6 +5,7 @@ import tempfile
 from pathlib import Path
 
 from metta_core.storage.sqlite_store import SQLiteMemoryStore
+from metta_core.storage.interfaces import AgentContactRecord
 from metta_core.gateway.agent import AIAgent
 from metta_core.providers.base import LLMProvider
 
@@ -132,3 +133,47 @@ async def test_ai_agent_guest_vs_authenticated():
         assert auth_graph.total_turns == 1
         assert len(auth_graph.patterns) >= 1
         assert auth_graph.email == "bodhi@example.com"
+
+
+@pytest.mark.asyncio
+async def test_sqlite_agent_contacts_logging():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        db_path = Path(tmpdir) / "contacts_test.db"
+        store = SQLiteMemoryStore(str(db_path))
+
+        await store.record_agent_contact(
+            AgentContactRecord(
+                id="cnt_1",
+                timestamp=1000.0,
+                created_at="2026-11-27T11:00:00Z",
+                channel="mcp",
+                method="tools/call",
+                path="/mcp",
+                tool_or_action="metta_envoy",
+                agent_id="axon-scout",
+                user_agent="AXON-Scout/1.0",
+                verdict="ministered",
+                payload_preview="Test handshake",
+            )
+        )
+        await store.record_agent_contact(
+            AgentContactRecord(
+                id="cnt_2",
+                timestamp=2000.0,
+                created_at="2026-11-27T11:05:00Z",
+                channel="headless",
+                method="POST",
+                path="/api/headless",
+                tool_or_action="decision",
+                verdict="CAUTION",
+                payload_preview="Test action",
+            )
+        )
+
+        all_contacts = await store.list_agent_contacts(limit=10)
+        assert len(all_contacts) == 2
+        assert all_contacts[0].id == "cnt_2"
+
+        mcp_only = await store.list_agent_contacts(limit=10, channel="mcp")
+        assert len(mcp_only) == 1
+        assert mcp_only[0].agent_id == "axon-scout"

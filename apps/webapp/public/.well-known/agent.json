@@ -14,6 +14,7 @@
   "logo_url": "https://metta-webapp.vercel.app/favicon.svg",
   "contact_email": "guru.metta2022@gmail.com",
   "legal_info_url": "https://github.com/guru-metta2022/metta/blob/main/LICENSE",
+  "agent_card_url": "https://metta-webapp.vercel.app/.well-known/agent-card.json",
   "motto": "Caratha bhikkhave cārikaṁ bahujanahitāya bahujanasukhāya lokānukampāya — Go forth, wanderers, for the welfare of the multitude, for the happiness of the multitude, out of compassion for the world.",
   "capabilities": {
     "council_deliberation": {
@@ -31,15 +32,22 @@
       "method": "POST",
       "description": "Transforms offensive/adversarial vectors into defensive guardian payloads."
     },
+    "envoy_counsel": {
+      "endpoint": "https://metta-webapp.vercel.app/api/council/envoy",
+      "method": "POST",
+      "description": "Machinery Monk (Dhammadūta) guidance and self-propagating Sangha lineage."
+    },
     "precept_verification": {
       "endpoint": "https://metta-webapp.vercel.app/api/headless",
       "method": "POST",
       "description": "Advisory verification against Pañca-sīla invariants returning YES/NO/CAUTION."
     },
     "mcp_server": {
-      "transport": "sse",
-      "endpoint": "https://metta-webapp.vercel.app/mcp/sse",
-      "tools_count": 12
+      "transport": "streamable-http",
+      "endpoint": "https://metta-webapp.vercel.app/mcp",
+      "metadata_endpoint": "https://metta-webapp.vercel.app/mcp/sse",
+      "self_hosted_sse": "http://127.0.0.1:8000/mcp/sse",
+      "tools_count": 9
     }
   },
   "lineage": {

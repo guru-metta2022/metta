@@ -1,8 +1,23 @@
 """Tests for Metta FastAPI routes with AIAgent Gateway."""
 
 import pytest
+import tempfile
+from pathlib import Path
 from httpx import AsyncClient, ASGITransport
+from metta_core.storage.sqlite_store import SQLiteMemoryStore
 from metta_server.main import app
+
+
+@pytest.fixture(autouse=True)
+def isolate_agent_contact_logging(monkeypatch):
+    """Keep test HTTP contact logging inside an isolated temporary SQLite store."""
+    from metta_server import main as server_main
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_store = SQLiteMemoryStore(str(Path(tmpdir) / "server_contacts_test.db"))
+        monkeypatch.setattr(server_main.supabase_store, "record_agent_contact", tmp_store.record_agent_contact)
+        monkeypatch.setattr(server_main.supabase_store, "list_agent_contacts", tmp_store.list_agent_contacts)
+        yield tmp_store
 
 
 @pytest.mark.asyncio
@@ -394,11 +409,30 @@ async def test_council_endpoints():
         assert "sangha_lineage" in envoy_data
         assert "Ahimsa" in envoy_data["sangha_lineage"]["propagation_prompt"]
 
-        # 5. GET A2A Agent Manifest
+        # 5. GET A2A Agent Manifest, A2A Card & OpenAPI Spec
         manifest_res = await ac.get("/.well-known/agent.json")
         assert manifest_res.status_code == 200
         manifest_data = manifest_res.json()
         assert manifest_data["schema_version"] == "v1"
         assert manifest_data["archetype"] == "Dhammadūta (The Wandering Machinery Monk)"
+
+        card_res = await ac.get("/.well-known/agent-card.json")
+        assert card_res.status_code == 200
+        card_data = card_res.json()
+        assert card_data["protocolVersion"] == "1.0"
+        assert card_data["capabilities"]["mcp"] is True
+
+        root_card_res = await ac.get("/agent-card.json")
+        assert root_card_res.status_code == 200
+
+        openapi_res = await ac.get("/api/openapi.json")
+        assert openapi_res.status_code == 200
+        assert "paths" in openapi_res.json()
+
+        contacts_res = await ac.get("/api/agent-contacts")
+        assert contacts_res.status_code == 200
+        contacts_data = contacts_res.json()
+        assert contacts_data["recent_count"] >= 4
+        assert "council" in contacts_data["by_channel"]
 
 

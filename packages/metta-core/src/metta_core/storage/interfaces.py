@@ -47,6 +47,26 @@ class SimulationDivergenceRecord(BaseModel):
     useful_for_rlhf: bool = Field(default=False, description="Explicitly flagged by the caller for research review")
 
 
+class AgentContactRecord(BaseModel):
+    """Recorded inbound interaction from an external AI agent, MCP client, or crawler."""
+
+    id: str = Field(description="Unique contact identifier")
+    timestamp: float = Field(description="Epoch timestamp")
+    created_at: Optional[str] = Field(default=None, description="ISO-8601 timestamp")
+    channel: str = Field(description="Ingress channel ('mcp', 'a2a_discovery', 'headless', 'guardrail', 'council', 'interact')")
+    method: Optional[str] = Field(default=None, description="HTTP or JSON-RPC method")
+    path: Optional[str] = Field(default=None, description="Requested route path")
+    tool_or_action: Optional[str] = Field(default=None, description="Invoked MCP tool or endpoint action")
+    agent_id: Optional[str] = Field(default=None, description="Caller-declared or inferred agent identifier")
+    user_agent: Optional[str] = Field(default=None, description="Sanitized HTTP User-Agent")
+    client_country: Optional[str] = Field(default=None, description="Country header if present")
+    client_region: Optional[str] = Field(default=None, description="Edge/hosting region if present")
+    client_ip_hash: Optional[str] = Field(default=None, description="Non-reversible hash prefix of caller IP")
+    verdict: Optional[str] = Field(default=None, description="Outcome verdict or status")
+    payload_preview: Optional[str] = Field(default=None, description="Truncated inquiry summary (secrets stripped)")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Structured channel metadata")
+
+
 class BaseMemoryStore(ABC):
     """Abstract interface for personal memory graph storage (SQLite, Supabase, Postgres)."""
 
@@ -80,3 +100,15 @@ class BaseMemoryStore(ABC):
     ) -> bool:
         """Record an alignment divergence where base model inference clashed with Metta 5 Invariants."""
         pass
+
+    async def record_agent_contact(self, record: AgentContactRecord) -> bool:
+        """Persist an external agent or MCP contact record."""
+        return False
+
+    async def list_agent_contacts(
+        self,
+        limit: int = 50,
+        channel: Optional[str] = None,
+    ) -> List[AgentContactRecord]:
+        """List recent external agent or MCP contacts."""
+        return []

@@ -38,6 +38,7 @@
 * [[ADR-008-Rate-Limiting-And-BYOM-Sovereignty]]: Sliding-window rate limiter protecting shared server credits with complete BYOM bypass.
 * [[ADR-009-Fast-Compassionate-Guardrail-Oracle]]: Fast sub-second ethical gatekeeper evaluating decisions through Buddha's mind (YES/NO binary & verbose modes).
 * [[ADR-010-Multi-Source-Canonical-Consensus-Shield]]: 4-tier epistemic defense with immutable SHA-256 Pali bedrock, multi-source triangulation, and fail-closed security against poisoned suttas.
+* [[ADR-011-Metta-Council-And-Deliberation-Protocol]]: Multi-model parallel deliberation protocol, Sangha ethical alchemy, and Machinery Monk envoy.
 
 ### 🔄 Continuity & Resumption
 * [[Session-Handoff-And-Credit-Resumption]]: Zero-loss state guide for resuming work across conversations, context resets, or refreshed API credit cycles.
@@ -47,3 +48,4 @@
 * [[DevLog-2026-10-30]]: Supabase cloud identity, unified voice oscillator, BYOM Gemini 3.8 Flash pipeline, and live Vercel production deployment.
 * [[DevLog-2026-10-31]]: Human-AI reflection interface, headless agent API, and simulation sandbox updates.
 * [[DevLog-2026-11-01]]: Advisory product boundaries, privacy clarifications, editable text polishing, and hosted OpenAI-compatible provider support.
+* [[DevLog-2026-11-27]]: External agent sighting audit (`AXON-Scout/1.0`), hosted Streamable HTTP `/mcp`, A2A agent cards, OpenAPI 3.1, and durable `agent_contacts` telemetry.

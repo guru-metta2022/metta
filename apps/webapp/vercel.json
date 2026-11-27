@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/mcp",
+      "destination": "/api/council/mcp"
+    },
+    {
+      "source": "/mcp/sse",
+      "destination": "/api/council/mcp"
+    }
+  ]
+}

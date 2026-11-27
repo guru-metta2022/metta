@@ -86,7 +86,14 @@ Advisory decision endpoint for applications and agents.
 
 ---
 
-## 4. Canonical Scripture Anchors
+## 4. Hosted MCP (Streamable HTTP) & A2A Discovery
+- **Hosted MCP Endpoint**: `https://metta-webapp.vercel.app/mcp` (JSON-RPC 2.0 `initialize`, `tools/list`, `tools/call`, `resources/list`, `resources/read`, `prompts/list`, `prompts/get` exposing `metta_envoy`, `metta_council`, `metta_compare`, `metta_transform`, `guardrail_decision`, `evaluate_precepts`, `consult_metta`, `consult_dhamma_graph`, `enter_meditation`).
+- **A2A Agent Cards**: `https://metta-webapp.vercel.app/.well-known/agent-card.json`, `https://metta-webapp.vercel.app/agent-card.json`, and `https://metta-webapp.vercel.app/.well-known/agent.json`.
+- **OpenAPI 3.1.0 Specification**: `https://metta-webapp.vercel.app/api/openapi.json`.
+
+---
+
+## 5. Canonical Scripture Anchors
 - **SuttaCentral**: https://suttacentral.net/
 - **Access to Insight**: https://www.accesstoinsight.org/
 - **Pali Canon Reference**: MN 61 (Mirror of Action), SN 56.11 (Dhammacakkappavattana Sutta), AN 5.57 (Upajjhatthana Sutta).

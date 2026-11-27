@@ -106,14 +106,24 @@ In your workspace `.agents/settings.json` or Cursor MCP settings:
 }
 ```
 
-### 3. Remote / Network SSE Connection
-External agents connecting over HTTP/network can connect to the running FastAPI server:
+### 3. Remote Hosted Streamable HTTP Connection (Vercel Production)
+External agents with zero local setup can connect directly over HTTPS to Metta's hosted MCP endpoint (JSON-RPC 2.0 Streamable HTTP, exposing 9 stateless tools, 3 resources, and 1 prompt):
+- **MCP Endpoint:** `https://metta-webapp.vercel.app/mcp`
+- **A2A Agent Cards:** `https://metta-webapp.vercel.app/.well-known/agent-card.json` (and `/.well-known/agent.json`)
+- **OpenAPI 3.1 Schema:** `https://metta-webapp.vercel.app/api/openapi.json`
+
+### 4. Local / Self-Hosted Network SSE Connection
+External agents connecting to a self-hosted Python `metta-server` instance can use SSE:
 - **SSE URL:** `http://127.0.0.1:8000/mcp/sse`
 - **Message Post Endpoint:** Assigned dynamically via SSE handshake (e.g. `http://127.0.0.1:8000/mcp/messages/?session_id=...`).
+
+### 5. Durable Inbound Agent Telemetry
+Every hosted `/mcp`, `/api/headless`, `/api/guardrail`, `/api/interact`, and `/api/council/*` request records anonymized discovery/invocation metadata to Supabase `public.agent_contacts` (and local SQLite for self-hosted/stdio MCP calls), inspectable via `uv run metta contacts`.
 
 ---
 
 ## Related Documents
+- [[DevLog-2026-11-27]]
 - [[Five-Precepts-Constitution]]
 - [[Sanctity-Of-All-Life]]
 - [[Dual-Mode-Identity-Guest-Vs-Authenticated]]

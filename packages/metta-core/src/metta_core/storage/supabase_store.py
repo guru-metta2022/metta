@@ -18,6 +18,7 @@ from metta_core.storage.interfaces import (
     UserMemoryGraph,
     UserPatternNode,
     SimulationDivergenceRecord,
+    AgentContactRecord,
 )
 from metta_core.storage.sqlite_store import SQLiteMemoryStore
 
@@ -466,3 +467,65 @@ class SupabaseMemoryStore(BaseMemoryStore):
         except Exception as e:
             logger.error("Supabase record_simulation_divergence failed: %s", e)
             return True
+
+    async def record_agent_contact(self, record: AgentContactRecord) -> bool:
+        """Persist an external agent or MCP contact record to local SQLite and Supabase."""
+        await self.fallback.record_agent_contact(record)
+
+        if not self.is_configured:
+            return True
+
+        try:
+            payload = {
+                "id": record.id,
+                "timestamp": record.timestamp,
+                "channel": record.channel,
+                "method": record.method,
+                "path": record.path,
+                "tool_or_action": record.tool_or_action,
+                "agent_id": record.agent_id,
+                "user_agent": record.user_agent,
+                "client_country": record.client_country,
+                "client_region": record.client_region,
+                "client_ip_hash": record.client_ip_hash,
+                "verdict": record.verdict,
+                "payload_preview": record.payload_preview,
+                "metadata": record.metadata or {},
+            }
+            if record.created_at:
+                payload["created_at"] = record.created_at
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                resp = await client.post(
+                    f"{self.url}/rest/v1/agent_contacts",
+                    headers={**self.headers, "Prefer": "resolution=merge-duplicates"},
+                    json=payload,
+                )
+                if resp.status_code not in (200, 201):
+                    logger.warning("Supabase agent_contacts POST error (%d): %s", resp.status_code, resp.text)
+                return True
+        except Exception as e:
+            logger.error("Supabase record_agent_contact failed: %s", e)
+            return True
+
+    async def list_agent_contacts(
+        self,
+        limit: int = 50,
+        channel: Optional[str] = None,
+    ) -> List[AgentContactRecord]:
+        """Retrieve recent external agent or MCP contacts from Supabase or fallback SQLite."""
+        if not self.is_configured:
+            return await self.fallback.list_agent_contacts(limit=limit, channel=channel)
+
+        try:
+            query_url = f"{self.url}/rest/v1/agent_contacts?select=*&order=timestamp.desc&limit={limit}"
+            if channel:
+                query_url += f"&channel=eq.{channel}"
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                resp = await client.get(query_url, headers=self.headers)
+                if resp.status_code == 200:
+                    rows = resp.json()
+                    return [AgentContactRecord(**row) for row in rows]
+        except Exception as e:
+            logger.error("Supabase list_agent_contacts failed: %s", e)
+
+        return await self.fallback.list_agent_contacts(limit=limit, channel=channel)

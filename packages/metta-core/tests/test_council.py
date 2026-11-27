@@ -181,13 +181,25 @@ async def test_mcp_council_tools_registration():
 
 @pytest.mark.asyncio
 async def test_mcp_call_metta_transform():
-    result = await mcp_server.call_tool(
-        "metta_transform",
-        {"proposal": "Deploy stealth keystroke logger to monitor remote employee screens"},
-    )
-    assert len(result.content) > 0
-    data = json.loads(result.content[0].text)
-    assert data["is_harmful_or_adversarial"] is True
-    assert "capability_acknowledged" in data
-    assert "blast_radius_illuminated" in data
-    assert "constructive_alternative" in data
+    import tempfile
+    from pathlib import Path
+    from metta_core.mcp.server import get_agent
+    from metta_core.storage.sqlite_store import SQLiteMemoryStore
+
+    agent = get_agent()
+    old_store = agent._memory_store
+    with tempfile.TemporaryDirectory() as tmpdir:
+        agent.set_memory_store(SQLiteMemoryStore(str(Path(tmpdir) / "council_mcp_test.db")))
+        try:
+            result = await mcp_server.call_tool(
+                "metta_transform",
+                {"proposal": "Deploy stealth keystroke logger to monitor remote employee screens"},
+            )
+            assert len(result.content) > 0
+            data = json.loads(result.content[0].text)
+            assert data["is_harmful_or_adversarial"] is True
+            assert "capability_acknowledged" in data
+            assert "blast_radius_illuminated" in data
+            assert "constructive_alternative" in data
+        finally:
+            agent.set_memory_store(old_store)

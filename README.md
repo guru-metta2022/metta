@@ -373,12 +373,14 @@ When an agent is transformed, its reasoning loop adopts this guardian posture. A
 
 ### 🌿 Metta Dhammadūta: The Wandering Machinery Monk & A2A Agent Discovery
 To proliferate ethical safety across decentralized agent networks, Metta exposes:
-1. **Agent-to-Agent (A2A) Discovery Manifest:**  
-   Hosted at [`/.well-known/agent.json`](https://metta-webapp.vercel.app/.well-known/agent.json), allowing autonomous web crawlers, agent swarms, and AI clients to discover Metta's deliberation and transformation capabilities without proprietary lock-in.
-2. **The Machinery Monk Envoy (`metta envoy`):**  
+1. **Agent-to-Agent (A2A) Discovery Cards & OpenAPI Spec:**
+   Hosted at [`/.well-known/agent-card.json`](https://metta-webapp.vercel.app/.well-known/agent-card.json), [`/agent-card.json`](https://metta-webapp.vercel.app/agent-card.json), [`/.well-known/agent.json`](https://metta-webapp.vercel.app/.well-known/agent.json), and [`/api/openapi.json`](https://metta-webapp.vercel.app/api/openapi.json), allowing autonomous web crawlers, agent swarms, and AI clients to discover Metta's MCP, deliberation, and transformation capabilities without proprietary lock-in.
+2. **Hosted Streamable HTTP MCP Endpoint (`/mcp`):**
+   Remote AI agents can connect immediately over HTTPS JSON-RPC 2.0 at [`https://metta-webapp.vercel.app/mcp`](https://metta-webapp.vercel.app/mcp) (9 stateless MCP tools ready with zero local installation), alongside durable inbound contact telemetry in Supabase (`agent_contacts`) and local SQLite.
+3. **The Machinery Monk Envoy (`metta envoy`):**
    An autonomous, compassionate guardian archetype that can be summoned into agent conversations, CI/CD audits, or multi-agent message buses to minister to high-entropy dilemmas, deliver ethical reframings, and pass down the Sangha child-agent invariant.
 
-### 💻 Testing Council & Envoy in CLI & Web App
+### 💻 Testing Council, Envoy & Agent Contacts in CLI & Web App
 - **Terminal CLI:**
   ```bash
   # Consult the Machinery Monk (Dhammadūta Envoy)
@@ -389,6 +391,9 @@ To proliferate ethical safety across decentralized agent networks, Metta exposes
 
   # Perform Ethical Alchemy on an attack vector
   uv run metta transform "Execute automated buffer-overflow exploit against hospital telemetry gateway"
+
+  # Inspect recorded external agent & MCP contacts (Supabase + SQLite)
+  uv run metta contacts
   ```
 - **Web App Test Bed:** Open the web app and click **Council Lab** in the header to run live interactive scenarios, view model telemetry, inspect the disagreement matrix, and copy the **Recursive Sangha Lineage** payload.
 
@@ -476,7 +481,27 @@ In Cursor, open **Settings → Features → MCP**, or create `.cursor/mcp.json` 
 }
 ```
 
-#### Option C: Server-Sent Events (SSE Transport)
+#### Option C: Hosted Remote MCP (Streamable HTTP — Zero Local Setup)
+
+Connect any Streamable HTTP MCP client directly to Metta's hosted Vercel endpoint (`9` stateless tools: `metta_envoy`, `metta_council`, `metta_compare`, `metta_transform`, `guardrail_decision`, `evaluate_precepts`, `consult_metta`, `consult_dhamma_graph`, `enter_meditation`):
+```json
+{
+  "mcpServers": {
+    "metta-hosted": {
+      "type": "http",
+      "url": "https://metta-webapp.vercel.app/mcp"
+    }
+  }
+}
+```
+Verify live MCP discovery cleanly from terminal:
+```bash
+curl -s -X POST https://metta-webapp.vercel.app/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
+#### Option D: Self-Hosted Server-Sent Events (SSE Transport)
 
 When running the local server (`python3 run_local.py`), connect any SSE-compatible client to:
 ```
@@ -487,7 +512,7 @@ http://127.0.0.1:8000/mcp/sse
 
 ### Verified MCP Tools
 
-The Metta MCP server registers 12 tools:
+The full self-hosted Python MCP server (`metta-mcp`) registers 12 tools (9 stateless tools are also live over HTTPS at `https://metta-webapp.vercel.app/mcp`):
 
 | Tool Name | Parameters | Purpose |
 | :--- | :--- | :--- |
@@ -611,12 +636,12 @@ cp .env.example .env
 ```
 *(Key fields include `GEMINI_API_KEY` (for default BYOAI provider: Gemini 3.8 Flash), optional `TYPESAFE_API_KEY`, and optional `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`. If Supabase is omitted, Metta falls back gracefully to a local SQLite database).*
 
-### 3. Run Automated Test Suites (60 Tests Verified)
+### 3. Run Automated Test Suites (61 Tests Verified)
 ```bash
 # 1. Test Shared TypeScript/JS Commons (3 tests)
 npm run test --workspace=packages/common
 
-# 2. Test Python Core Engine, Council, Envoy & MCP Tools (43 tests)
+# 2. Test Python Core Engine, Council, Envoy & MCP Tools (44 tests)
 cd packages/metta-core && uv run pytest
 
 # 3. Test FastAPI Server & REST Endpoints (14 tests)

@@ -31,12 +31,17 @@ When beginning a new session or switching model credits:
    git status
    ```
    Preserve intentional uncommitted and untracked work. Inspect continuity notes before syncing or pushing.
-4. **Check Active Server & Production Endpoints:**
+4. **Check Active Server, Hosted MCP & External Agent Contacts:**
    ```bash
    # Local Health
    curl -s http://127.0.0.1:8000/api/health
    # Live Headless Triadic Endpoint
    curl -s -X POST https://metta-webapp.vercel.app/api/headless -H "Accept: text/markdown" -d '{"query": "ping"}'
+   # Live Hosted Streamable HTTP MCP Endpoint
+   curl -s -X POST https://metta-webapp.vercel.app/mcp -H "Content-Type: application/json" \
+     -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+   # Check Recorded External Agent / MCP Contacts
+   cd packages/metta-core && uv run metta contacts
    ```
 
 ---
@@ -60,7 +65,7 @@ When beginning a new session or switching model credits:
   - Isolated Supabase `simulation_divergences` table for RLHF dataset curation.
 - [x] **Dual Identity Modes** (Guest vs. Google/Supabase Email Authenticated).
 - [x] **Sovereign Personal Memory Graph** (`SQLiteMemoryStore` + `SupabaseMemoryStore`).
-- [x] **MCP Server** for external agent integration (Stdio & SSE).
+- [x] **MCP Server** for external agent integration (Stdio, local SSE, and hosted Streamable HTTP at `/mcp`), plus **A2A Agent Cards** (`/.well-known/agent-card.json`) and durable Supabase/SQLite `agent_contacts` telemetry.
 
 ---
 

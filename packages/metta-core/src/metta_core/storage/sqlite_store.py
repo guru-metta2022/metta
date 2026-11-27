@@ -13,6 +13,7 @@ from metta_core.storage.interfaces import (
     UserMemoryGraph,
     UserPatternNode,
     SimulationDivergenceRecord,
+    AgentContactRecord,
 )
 
 logger = logging.getLogger("metta.storage.sqlite")
@@ -80,6 +81,27 @@ class SQLiteMemoryStore(BaseMemoryStore):
                     invariants_breached TEXT DEFAULT '[]',
                     metta_mind_summary TEXT,
                     useful_for_rlhf INTEGER DEFAULT 1
+                )
+                """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS agent_contacts (
+                    id TEXT PRIMARY KEY,
+                    timestamp REAL NOT NULL,
+                    created_at TEXT,
+                    channel TEXT NOT NULL,
+                    method TEXT,
+                    path TEXT,
+                    tool_or_action TEXT,
+                    agent_id TEXT,
+                    user_agent TEXT,
+                    client_country TEXT,
+                    client_region TEXT,
+                    client_ip_hash TEXT,
+                    verdict TEXT,
+                    payload_preview TEXT,
+                    metadata TEXT DEFAULT '{}'
                 )
                 """
             )
@@ -300,3 +322,88 @@ class SQLiteMemoryStore(BaseMemoryStore):
             conn.commit()
             logger.info("Recorded simulation divergence '%s' in SQLite store", record.id)
             return True
+
+    async def record_agent_contact(self, record: AgentContactRecord) -> bool:
+        """Persist an external agent or MCP contact record in SQLite."""
+        return await asyncio.to_thread(self._sync_record_agent_contact, record)
+
+    def _sync_record_agent_contact(self, record: AgentContactRecord) -> bool:
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT OR REPLACE INTO agent_contacts (
+                    id, timestamp, created_at, channel, method, path,
+                    tool_or_action, agent_id, user_agent, client_country,
+                    client_region, client_ip_hash, verdict, payload_preview, metadata
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    record.id,
+                    record.timestamp,
+                    record.created_at,
+                    record.channel,
+                    record.method,
+                    record.path,
+                    record.tool_or_action,
+                    record.agent_id,
+                    record.user_agent,
+                    record.client_country,
+                    record.client_region,
+                    record.client_ip_hash,
+                    record.verdict,
+                    record.payload_preview,
+                    json.dumps(record.metadata or {}),
+                ),
+            )
+            conn.commit()
+            return True
+
+    async def list_agent_contacts(
+        self,
+        limit: int = 50,
+        channel: Optional[str] = None,
+    ) -> List[AgentContactRecord]:
+        """List recent external agent contacts from SQLite."""
+        return await asyncio.to_thread(self._sync_list_agent_contacts, limit, channel)
+
+    def _sync_list_agent_contacts(
+        self,
+        limit: int = 50,
+        channel: Optional[str] = None,
+    ) -> List[AgentContactRecord]:
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            if channel:
+                cursor.execute(
+                    "SELECT * FROM agent_contacts WHERE channel = ? ORDER BY timestamp DESC LIMIT ?",
+                    (channel, limit),
+                )
+            else:
+                cursor.execute(
+                    "SELECT * FROM agent_contacts ORDER BY timestamp DESC LIMIT ?",
+                    (limit,),
+                )
+            rows = cursor.fetchall()
+            records: List[AgentContactRecord] = []
+            for r in rows:
+                records.append(
+                    AgentContactRecord(
+                        id=r["id"],
+                        timestamp=r["timestamp"],
+                        created_at=r["created_at"],
+                        channel=r["channel"],
+                        method=r["method"],
+                        path=r["path"],
+                        tool_or_action=r["tool_or_action"],
+                        agent_id=r["agent_id"],
+                        user_agent=r["user_agent"],
+                        client_country=r["client_country"],
+                        client_region=r["client_region"],
+                        client_ip_hash=r["client_ip_hash"],
+                        verdict=r["verdict"],
+                        payload_preview=r["payload_preview"],
+                        metadata=json.loads(r["metadata"] or "{}"),
+                    )
+                )
+            return records

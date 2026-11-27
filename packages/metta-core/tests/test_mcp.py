@@ -2,9 +2,12 @@
 
 import pytest
 import json
+import tempfile
+from pathlib import Path
 from typing import Optional
 from metta_core.mcp.server import mcp_server, get_agent
 from metta_core.providers.base import LLMProvider
+from metta_core.storage.sqlite_store import SQLiteMemoryStore
 
 
 class DummyProvider(LLMProvider):
@@ -24,10 +27,15 @@ class DummyProvider(LLMProvider):
 def setup_dummy_agent():
     agent = get_agent()
     dummy = DummyProvider()
+    old_store = agent._memory_store
     agent._engine.provider = dummy
     agent._engine.synthesizer.provider = dummy
     agent._engine.precept_evaluator.provider = dummy
     agent._engine.observer.provider = dummy
+    with tempfile.TemporaryDirectory() as tmpdir:
+        agent.set_memory_store(SQLiteMemoryStore(str(Path(tmpdir) / "mcp_test.db")))
+        yield agent
+    agent.set_memory_store(old_store)
 
 
 @pytest.mark.asyncio
@@ -122,3 +130,7 @@ async def test_mcp_guardrail_decision():
     assert v_data["allow"] is True
     assert "reason" in v_data
     assert "canonical_guidance" in v_data
+
+    # 3. Verify MCP invocation was durably logged in agent_contacts
+    contacts = await get_agent()._memory_store.list_agent_contacts(limit=10, channel="mcp")
+    assert any(c.tool_or_action == "guardrail_decision" for c in contacts)

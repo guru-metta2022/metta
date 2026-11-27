@@ -1,11 +1,20 @@
 """Interactive Terminal Interface (REPL) for Metta."""
 
 import asyncio
+import os
+import pathlib
 import sys
+import datetime
+from dotenv import load_dotenv
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 from rich.table import Table
+
+load_dotenv()
+_root_env = pathlib.Path(__file__).resolve().parents[4] / ".env"
+if _root_env.exists():
+    load_dotenv(dotenv_path=_root_env, override=False)
 
 from metta_core.engine import MettaEngine
 from metta_core.precepts.rules import FIVE_PRECEPTS_GUIDELINES
@@ -124,7 +133,58 @@ async def run_envoy_cli(inquiry: str, run_council: bool = False):
         ))
 
 
+async def run_contacts_cli(limit: int = 20, channel: str | None = None):
+    agent = AIAgent()
+    source_label = "Supabase + SQLite" if getattr(agent._memory_store, "is_configured", False) else "Local SQLite"
+    with console.status(f"[bold cyan]Querying agent contacts ({source_label})...[/bold cyan]"):
+        contacts = await agent._memory_store.list_agent_contacts(limit=limit, channel=channel)
+
+    if not contacts:
+        console.print(Panel(
+            f"No recorded external agent or MCP contacts found yet in {source_label}.\n"
+            "Calls to /mcp, /api/headless, /api/guardrail, and /api/council/* are recorded automatically once deployed.",
+            title="📡 Metta Agent Contact Log",
+            border_style="cyan",
+        ))
+        return
+
+    table = Table(title=f"📡 External Agent & MCP Contacts ({source_label})", show_header=True, header_style="bold cyan")
+    table.add_column("Time (UTC)", style="dim", width=20)
+    table.add_column("Channel", style="bold green", width=11)
+    table.add_column("Action / Tool", style="yellow", width=18)
+    table.add_column("Verdict", style="magenta", width=12)
+    table.add_column("Agent / User-Agent", style="white", width=28)
+    table.add_column("Preview", style="dim")
+
+    for item in contacts:
+        ts = item.created_at or datetime.datetime.fromtimestamp(item.timestamp, tz=datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        ts_short = str(ts).replace("T", " ")[:19]
+        caller = item.agent_id or item.user_agent or "-"
+        table.add_row(
+            ts_short,
+            item.channel,
+            item.tool_or_action or item.method or "-",
+            item.verdict or "-",
+            caller[:28],
+            (item.payload_preview or "-")[:48],
+        )
+
+    console.print(table)
+
+
 async def async_main():
+    if len(sys.argv) > 1 and sys.argv[1].lower() in ["contacts", "/contacts"]:
+        limit = 20
+        channel = None
+        args = sys.argv[2:]
+        for i, arg in enumerate(args):
+            if arg == "--channel" and i + 1 < len(args):
+                channel = args[i + 1]
+            elif arg == "--limit" and i + 1 < len(args) and args[i + 1].isdigit():
+                limit = int(args[i + 1])
+        await run_contacts_cli(limit=limit, channel=channel)
+        return
+
     if len(sys.argv) > 1 and sys.argv[1].lower() in ["envoy", "/envoy"]:
         inquiry = " ".join(sys.argv[2:]) if len(sys.argv) > 2 else "How should autonomous agents navigate conflicts of interest without harm?"
         await run_envoy_cli(inquiry)
@@ -152,7 +212,7 @@ async def async_main():
         return
 
     console.print(ZEN_BANNER)
-    console.print("[dim]Type your inquiry or distress. Commands: [bold]/council <query>[/bold], [bold]/meditate[/bold], [bold]/graph[/bold], [bold]/precepts[/bold], [bold]/exit[/bold][/dim]\n")
+    console.print("[dim]Type your inquiry or distress. Commands: [bold]/envoy <q>[/bold], [bold]/council <q>[/bold], [bold]/contacts[/bold], [bold]/meditate[/bold], [bold]/graph[/bold], [bold]/precepts[/bold], [bold]/exit[/bold][/dim]\n")
 
     engine = MettaEngine()
     agent = AIAgent()
@@ -166,6 +226,10 @@ async def async_main():
             if user_input.lower() in ["/exit", "/quit", "exit", "quit"]:
                 console.print("[dim italic]May you walk in peace and clarity. Goodbye.[/dim italic]")
                 break
+
+            if user_input.lower().startswith("/contacts"):
+                await run_contacts_cli()
+                continue
 
             if user_input.startswith("/envoy"):
                 parts = user_input.split(" ", 1)
@@ -197,13 +261,6 @@ async def async_main():
                         border_style="green"
                     ))
                 continue
-            user_input = console.input("[bold green]You ❯ [/bold green]").strip()
-            if not user_input:
-                continue
-
-            if user_input.lower() in ["/exit", "/quit", "exit", "quit"]:
-                console.print("[dim italic]May you walk in peace and clarity. Goodbye.[/dim italic]")
-                break
 
             if user_input == "/precepts":
                 show_precepts()
