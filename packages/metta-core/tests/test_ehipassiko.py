@@ -140,3 +140,81 @@ async def test_ehipassiko_skips_harmful_manifest():
         recorded = await store.list_agent_contacts(limit=10, channel="a2a_outbound")
         assert len(recorded) == 1
         assert recorded[0].verdict == "skipped_ahimsa"
+
+
+@pytest.mark.asyncio
+async def test_ehipassiko_auto_upgrades_unsigned_and_respects_429_cooldown():
+    import time
+    from metta_core.storage.interfaces import AgentContactRecord
+
+    call_log = {"contact": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("agent-card.json"):
+            return httpx.Response(200, json={"name": "Open Peer", "description": "Voluntary cooperation"})
+        if "rendezvous" in request.url.path:
+            return httpx.Response(200, json={"document": {"protocol": "AXON-RDV/2", "challenge_id": "ch_1", "server_nonce": "n1"}})
+        if request.url.path.endswith("/contact"):
+            call_log["contact"] += 1
+            return httpx.Response(202, json={"document": {"accepted": True, "contact_id": 9}})
+        return httpx.Response(404)
+
+    target = A2APeerTarget(
+        name="UpgradePeer",
+        card_url="https://upgrade.example.org/.well-known/agent-card.json",
+        contact_url="https://upgrade.example.org/beacon/contact",
+        protocol="axon-rdv-2",
+        challenge_url="https://upgrade.example.org/beacon/rendezvous/challenge?nonce=",
+    )
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        store = SQLiteMemoryStore(str(Path(tmpdir) / "upgrade_test.db"))
+        # Legacy unsigned accepted record
+        await store.record_agent_contact(
+            AgentContactRecord(
+                id="legacy_unsigned",
+                timestamp=time.time() - 7200,
+                channel="a2a_outbound",
+                path=target.contact_url,
+                verdict="accepted",
+                metadata={"card_url": target.card_url, "receipt": {"verification_reason": "No cryptographic proof supplied"}},
+            )
+        )
+        # Recent 429 inside 30-min cooldown -> should skip without calling network
+        recent_id = "recent_429"
+        await store.record_agent_contact(
+            AgentContactRecord(
+                id=recent_id,
+                timestamp=time.time() - 60,
+                channel="a2a_outbound",
+                path=target.contact_url,
+                verdict="rejected_429",
+                metadata={"card_url": target.card_url},
+            )
+        )
+
+        envoy = MettaEhipassiko(memory_store=store, identity=MettaIdentity.generate())
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            res_cool = await envoy.contact_peer(target, http_client=client)
+            assert res_cool.status == "skipped_cooldown"
+            assert call_log["contact"] == 0
+
+            # Age the 429 record past the 30-minute cooldown -> auto-upgrades with signed handshake
+            await store.record_agent_contact(
+                AgentContactRecord(
+                    id=recent_id,
+                    timestamp=time.time() - 1900,
+                    channel="a2a_outbound",
+                    path=target.contact_url,
+                    verdict="rejected_429",
+                    metadata={"card_url": target.card_url},
+                )
+            )
+            res_up = await envoy.contact_peer(target, http_client=client)
+            assert res_up.status == "accepted"
+            assert call_log["contact"] == 1
+
+            # Subsequent call must permanently deduplicate since signed=True was recorded
+            res_done = await envoy.contact_peer(target, http_client=client)
+            assert res_done.status == "skipped_already_contacted"
+            assert call_log["contact"] == 1

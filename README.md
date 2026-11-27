@@ -659,12 +659,12 @@ cp .env.example .env
 ```
 *(Key fields include `GEMINI_API_KEY` (for default BYOAI provider: Gemini 3.8 Flash), optional `TYPESAFE_API_KEY`, and optional `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`. If Supabase is omitted, Metta falls back gracefully to a local SQLite database).*
 
-### 3. Run Automated Test Suites (68 Tests Verified)
+### 3. Run Automated Test Suites (69 Tests Verified)
 ```bash
 # 1. Test Shared TypeScript/JS Commons (3 tests)
 npm run test --workspace=packages/common
 
-# 2. Test Python Core Engine, Council, Envoy, Identity & Telemetry (51 tests)
+# 2. Test Python Core Engine, Council, Envoy, Identity & Telemetry (52 tests)
 cd packages/metta-core && uv run pytest
 
 # 3. Test FastAPI Server & REST Endpoints (14 tests)

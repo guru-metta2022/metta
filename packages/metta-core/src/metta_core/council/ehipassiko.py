@@ -206,18 +206,54 @@ class MettaEhipassiko:
 
         return payload
 
-    async def _get_already_contacted_urls(self) -> set[str]:
-        """Load previously recorded outbound peer endpoints to enforce strict deduplication."""
+    async def _check_peer_dedup(self, target: A2APeerTarget) -> Optional[tuple[str, str]]:
+        """Determine whether outbound outreach should be skipped, upgraded, or retried after cooldown."""
         existing = await self.memory_store.list_agent_contacts(limit=500, channel="a2a_outbound")
-        seen: set[str] = set()
+        contact_key = target.contact_url.strip().rstrip("/")
+        card_key = target.card_url.strip().rstrip("/")
+
+        matching = []
         for rec in existing:
-            if rec.path:
-                seen.add(rec.path.strip().rstrip("/"))
+            rec_path = (rec.path or "").strip().rstrip("/")
+            rec_card = ""
             if isinstance(rec.metadata, dict):
-                card = rec.metadata.get("card_url")
-                if isinstance(card, str) and card:
-                    seen.add(card.strip().rstrip("/"))
-        return seen
+                rec_card = str(rec.metadata.get("card_url") or "").strip().rstrip("/")
+            if rec_path in (contact_key, card_key) or rec_card in (contact_key, card_key):
+                matching.append(rec)
+
+        if not matching:
+            return None
+
+        for rec in matching:
+            if rec.verdict == "skipped_ahimsa":
+                return (
+                    "skipped_already_contacted",
+                    f"Already handshaken or audited '{target.name}'; deduplication prevented duplicate outreach.",
+                )
+            if rec.verdict in ("accepted", "duplicate"):
+                meta = rec.metadata if isinstance(rec.metadata, dict) else {}
+                receipt = meta.get("receipt") if isinstance(meta.get("receipt"), dict) else {}
+                needs_crypto_upgrade = (
+                    not meta.get("signed")
+                    and (
+                        target.challenge_url is not None
+                        or receipt.get("verification_reason") == "No cryptographic proof supplied"
+                    )
+                )
+                if not needs_crypto_upgrade:
+                    return (
+                        "skipped_already_contacted",
+                        f"Already completed signed handshake with '{target.name}'; deduplication prevented duplicate outreach.",
+                    )
+
+        latest = matching[0]
+        if latest.verdict == "rejected_429" and (time.time() - latest.timestamp) < 1800:
+            return (
+                "skipped_cooldown",
+                f"'{target.name}' recently returned HTTP 429 rate-limit; cooling down before automatic retry.",
+            )
+
+        return None
 
     async def _log_outbound_attempt(
         self,
@@ -261,16 +297,14 @@ class MettaEhipassiko:
             )
 
         if not force:
-            seen = await self._get_already_contacted_urls()
-            if (
-                target.contact_url.rstrip("/") in seen
-                or target.card_url.rstrip("/") in seen
-            ):
+            skip = await self._check_peer_dedup(target)
+            if skip is not None:
+                skip_status, skip_msg = skip
                 return HandshakeAttemptResult(
                     peer_name=target.name,
                     contact_url=target.contact_url,
-                    status="skipped_already_contacted",
-                    message=f"Already handshaken or audited '{target.name}'; deduplication prevented duplicate outreach.",
+                    status=skip_status,
+                    message=skip_msg,
                 )
 
         own_client = http_client is None
@@ -378,7 +412,12 @@ class MettaEhipassiko:
                     target,
                     verdict=status_label,
                     summary=msg,
-                    metadata={"http_status": post_resp.status_code, "receipt": doc},
+                    metadata={
+                        "http_status": post_resp.status_code,
+                        "signed": True,
+                        "identity_fingerprint": self.identity.fingerprint,
+                        "receipt": doc,
+                    },
                 )
                 return HandshakeAttemptResult(
                     peer_name=target.name,
